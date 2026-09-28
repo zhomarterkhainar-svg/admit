@@ -1160,3 +1160,23 @@ body {
   bottom: 20px;
   pointer-events: auto;
 }
+.dev-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+.dev-row select,
+.dev-row input,
+.dev-row button {
+  font: inherit;
+  font-size: 12px;
+  background: #0b1020;
+  color: #cfe;
+  border: 1px solid #345;
+  border-radius: 6px;
+  padding: 3px 6px;
+}
+.dev-row .rec.on {
+  background: var(--err);
+  color: #fff;
+}
