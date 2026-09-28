@@ -1334,7 +1334,7 @@ body {
 }
 @keyframes toast-in {
   from {
-    transform: translateY(-30px) scale(0.9);
+    transform: translateY(30px) scale(0.9);
     opacity: 0;
   }
   to {
@@ -1438,4 +1438,17 @@ body {
     font-size: 13px;
     padding: 6px 10px;
   }
+}
+.tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.tabs .dwell-btn {
+  min-height: 52px;
+  padding: 8px 18px;
+}
+.tabs .dwell-label {
+  font-size: 18px;
 }

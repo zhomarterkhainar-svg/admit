@@ -49,6 +49,7 @@ export function App() {
     const actor = new DemoActor();
     actor.start();
     setDemo(actor);
+    useApp.getState().setDemo(true);
     useApp.getState().startProgram(QUICK);
   };
 

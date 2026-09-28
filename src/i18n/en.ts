@@ -242,5 +242,11 @@ export const en = {
   'workout.cleanStreak': 'clean in a row',
   'streak.days.one': 'day in a row',
   'streak.days.few': 'days in a row',
+  'lb.today': 'Today',
+  'lb.week': 'Week',
+  'lb.all': 'All time',
+  'lb.world': 'World',
+  'lb.device': 'This device',
+  'lb.offline': 'World board unavailable — showing this device',
   'praise.fixed': 'Great, keep it up!',
 } satisfies Record<I18nKey, string>;

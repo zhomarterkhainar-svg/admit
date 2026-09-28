@@ -14,6 +14,7 @@ import {
 import { randomBatyrName } from '@/storage/names';
 import type { Baseline } from '@/engine/baseline';
 import { applySession } from '@/game/progression';
+import { globalLeaderboard, type LeaderboardEntry } from '@/storage/leaderboard';
 import type { AchievementDef } from '@/game/achievements';
 import type { QuestDef } from '@/game/daily';
 
@@ -56,9 +57,12 @@ interface AppState {
   toasts: AchievementDef[];
   /** quest of the day completed by the last session */
   questCompleted: QuestDef | null;
+  /** demo mode: nothing is persisted or sent to the world leaderboard */
+  demo: boolean;
 
   go(screen: Screen): void;
   dismissToast(id: string): void;
+  setDemo(demo: boolean): void;
   setLang(lang: Lang): void;
   toggleMute(): void;
   setCalibrated(): void;
@@ -95,6 +99,16 @@ setMuted(muted0);
 const lang0 = initialLang();
 setI18nLang(lang0);
 
+/** Save locally and post to the world leaderboard (if configured) — never in demo mode. */
+function persist(p: Progress, demo: boolean, entry: LeaderboardEntry): void {
+  if (demo) return;
+  saveProgress(p);
+  if (entry.score > 0)
+    globalLeaderboard()
+      ?.submit(entry)
+      .catch((e) => console.warn('[leaderboard]', e));
+}
+
 export const useApp = create<AppState>((set, get) => ({
   screen: 'calibration',
   lang: lang0,
@@ -109,9 +123,11 @@ export const useApp = create<AppState>((set, get) => ({
   playerName: progress0.playerName ?? randomBatyrName(),
   toasts: [],
   questCompleted: null,
+  demo: false,
 
   go: (screen) => set({ screen }),
   dismissToast: (id) => set({ toasts: get().toasts.filter((a) => a.id !== id) }),
+  setDemo: (demo) => set({ demo }),
 
   setLang: (lang) => {
     setI18nLang(lang);
@@ -144,7 +160,12 @@ export const useApp = create<AppState>((set, get) => ({
     const summary = summarize(program?.id ?? 'single', results, startedAt, endedAt);
     const recorded = recordWorkout({ ...progress, playerName }, summary, playerName);
     const out = applySession(recorded, { workout: summary, now: endedAt });
-    saveProgress(out.progress);
+    persist(out.progress, get().demo, {
+      name: playerName,
+      score: summary.xp,
+      mode: 'workout',
+      at: endedAt,
+    });
     set({
       summary,
       xpBefore: progress.totalXp,
@@ -160,7 +181,7 @@ export const useApp = create<AppState>((set, get) => ({
     const record = isRecord(progress, 'challenge', r.score);
     const recorded = recordChallenge({ ...progress, playerName }, r.score, playerName, at, r.xp);
     const out = applySession(recorded, { challenge: { bestCombo: r.bestCombo }, now: at });
-    saveProgress(out.progress);
+    persist(out.progress, get().demo, { name: playerName, score: r.score, mode: 'challenge', at });
     set({
       challenge: { ...r, record },
       xpBefore: progress.totalXp,

@@ -3,7 +3,14 @@ import { t } from '@/i18n';
 import { rankFor } from '@/game/ranks';
 import { ACHIEVEMENTS } from '@/game/achievements';
 import { nextBatyrName } from '@/storage/names';
-import { topScores, type ScoreEntry } from '@/storage/progress';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  LocalLeaderboard,
+  globalLeaderboard,
+  type LeaderboardEntry,
+  type Mode,
+  type Period,
+} from '@/storage/leaderboard';
 import { useLoop } from '../engine';
 import { DwellButton } from '../gestures/DwellButton';
 import { useGestures } from '../gestures/GestureProvider';
@@ -20,6 +27,9 @@ export function Records() {
   });
   const { rank } = rankFor(progress.totalXp);
   const history = progress.history.slice(-12);
+  const world = useMemo(() => globalLeaderboard(), []);
+  const [source, setSource] = useState<'global' | 'local'>(world ? 'global' : 'local');
+  const [period, setPeriod] = useState<Period>('all');
 
   return (
     <>
@@ -41,15 +51,40 @@ export function Records() {
           </DwellButton>
         </div>
 
+        <div className="tabs">
+          {(['today', 'week', 'all'] as Period[]).map((p) => (
+            <DwellButton
+              key={p}
+              variant={p === period ? 'primary' : 'ghost'}
+              onSelect={() => setPeriod(p)}
+            >
+              {t(`lb.${p}`)}
+            </DwellButton>
+          ))}
+          {world && (
+            <DwellButton
+              variant="ghost"
+              icon={source === 'global' ? '🌍' : '📱'}
+              onSelect={() => setSource(source === 'global' ? 'local' : 'global')}
+            >
+              {t(source === 'global' ? 'lb.world' : 'lb.device')}
+            </DwellButton>
+          )}
+        </div>
+
         <div className="results-body">
-          <ScoreTable
+          <Board
             title={t('records.challenge')}
-            rows={topScores(progress, 'challenge', 7)}
+            mode="challenge"
+            source={source}
+            period={period}
             me={playerName}
           />
-          <ScoreTable
+          <Board
             title={t('records.workout')}
-            rows={topScores(progress, 'workout', 7)}
+            mode="workout"
+            source={source}
+            period={period}
             me={playerName}
           />
           <section className="card">
@@ -89,11 +124,46 @@ export function Records() {
   );
 }
 
-function ScoreTable({ title, rows, me }: { title: string; rows: ScoreEntry[]; me: string }) {
+/** Loads the board from the chosen provider; falls back to this device if the world board fails. */
+function Board(props: {
+  title: string;
+  mode: Mode;
+  source: 'global' | 'local';
+  period: Period;
+  me: string;
+}) {
+  const { title, mode, source, period, me } = props;
+  const progress = useApp((s) => s.progress);
+  const [state, setState] = useState<{ rows: LeaderboardEntry[] | null; offline: boolean }>({
+    rows: null,
+    offline: false,
+  });
+
+  useEffect(() => {
+    let alive = true;
+    const local = new LocalLeaderboard(() => progress);
+    const world = source === 'global' ? globalLeaderboard() : null;
+    (world ?? local)
+      .top(mode, period, 7)
+      .then((rows) => alive && setState({ rows, offline: false }))
+      .catch(() =>
+        local.top(mode, period, 7).then((rows) => alive && setState({ rows, offline: true })),
+      );
+    return () => {
+      alive = false;
+    };
+  }, [mode, source, period, progress]);
+
+  const rows = state.rows;
   return (
     <section className="card">
-      <h2>{title}</h2>
-      {rows.length === 0 ? (
+      <h2>
+        {title} {source === 'global' && !state.offline ? '🌍' : ''}
+      </h2>
+      {state.offline && <p className="muted">{t('lb.offline')}</p>}
+      {rows === null ? (
+        <p className="muted">…</p>
+      ) : rows.length === 0 ? (
         <p className="muted">{t('records.empty')}</p>
       ) : (
         <ol className="scores">

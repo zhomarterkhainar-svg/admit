@@ -244,5 +244,11 @@ export const kk = {
   'workout.cleanStreak': 'қатарынан таза',
   'streak.days.one': 'күн қатарынан',
   'streak.days.few': 'күн қатарынан',
+  'lb.today': 'Бүгін',
+  'lb.week': 'Апта',
+  'lb.all': 'Барлық уақыт',
+  'lb.world': 'Әлем',
+  'lb.device': 'Осы құрылғы',
+  'lb.offline': 'Әлемдік кестеге қосылу жоқ — құрылғы рекордтары көрсетілді',
   'praise.fixed': 'Жарайсың, осылай жалғастыр!',
 } satisfies Record<I18nKey, string>;

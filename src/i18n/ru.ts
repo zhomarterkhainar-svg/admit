@@ -242,6 +242,12 @@ export const ru = {
   'workout.cleanStreak': 'чисто подряд',
   'streak.days.one': 'день подряд',
   'streak.days.few': 'дня подряд',
+  'lb.today': 'Сегодня',
+  'lb.week': 'Неделя',
+  'lb.all': 'Всё время',
+  'lb.world': 'Мир',
+  'lb.device': 'Это устройство',
+  'lb.offline': 'Нет связи с мировой таблицей — показаны рекорды устройства',
   'praise.fixed': 'Отлично, так держать!',
 } as const;
 
