@@ -1,6 +1,7 @@
 import { P, type FrameFeatures } from '@/core/types';
 import type { ExerciseDefinition } from '@/engine/types';
 import { SQUAT as C } from './config';
+import { squatDown } from './reference';
 
 export interface SquatMetrics {
   minKnee: number;
@@ -19,6 +20,7 @@ export const squat: ExerciseDefinition<SquatMetrics> = {
   phases: ['up', 'down'],
   initialPhase: 'up',
   repStart: 'up',
+  keyframes: { rest: {}, peak: squatDown() },
 
   nextPhase(f, current) {
     const k = knee(f);

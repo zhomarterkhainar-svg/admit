@@ -1,4 +1,5 @@
 import type { FrameFeatures } from '@/core/types';
+import type { PoseEdit } from '@/core/reference/template';
 import type { I18nKey } from '@/i18n';
 
 /** Priority order: lower index wins in the arbiter. */
@@ -90,4 +91,6 @@ export interface ExerciseDefinition<M = Record<string, number>> {
   repRules: ReadonlyArray<RepRule<M>>;
   /** optional: which side worked (lunges, side bends) */
   sideOf?(m: M): Side | undefined;
+  /** reference keyframes (world space) for the ghost overlay, demos and tests */
+  keyframes: { rest: PoseEdit; peak: PoseEdit; peakAlt?: PoseEdit };
 }
