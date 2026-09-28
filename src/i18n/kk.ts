@@ -250,5 +250,6 @@ export const kk = {
   'lb.world': 'Әлем',
   'lb.device': 'Осы құрылғы',
   'lb.offline': 'Әлемдік кестеге қосылу жоқ — құрылғы рекордтары көрсетілді',
+  'results.smoothness': 'Бірқалыптылық',
   'praise.fixed': 'Жарайсың, осылай жалғастыр!',
 } satisfies Record<I18nKey, string>;

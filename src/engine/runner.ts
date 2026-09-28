@@ -1,6 +1,7 @@
 import type { FrameFeatures } from '@/core/types';
 import { FeedbackArbiter } from './arbiter';
 import { BaselineEstimator, personalize, type Baseline } from './baseline';
+import { smoothnessScore } from './dtw';
 import { RuleTracker } from './ruleTracker';
 import { DARK_THRESHOLD, NO_PERSON, TOO_DARK, setupRules } from './setupRules';
 import type { ExerciseDefinition, FrameRule, Hint, RepSummary, RuleContext } from './types';
@@ -45,6 +46,9 @@ export class ExerciseRunner<M> {
   private readonly arbiter = new FeedbackArbiter();
   readonly reps: RepSummary[] = [];
   private readonly autoBaseline = new BaselineEstimator();
+  /** depth trajectory: rolling pre-rep buffer + samples during the rep */
+  private trail: { t: number; v: number }[] = [];
+  private repTrail: { t: number; v: number }[] | null = null;
 
   /**
    * @param baseline personal standing baseline (from calibration); if omitted it is
@@ -81,6 +85,10 @@ export class ExerciseRunner<M> {
       this.baseline = this.autoBaseline.value;
     }
     f = personalize(f, this.baseline);
+    const depth = Math.min(1, Math.max(0, this.def.progress(f)));
+    this.trail.push({ t: f.t, v: depth });
+    while (this.trail.length && f.t - this.trail[0]!.t > 600) this.trail.shift();
+    this.repTrail?.push({ t: f.t, v: depth });
     const ctx: RuleContext = {
       phase: this.phase,
       people,
@@ -126,6 +134,7 @@ export class ExerciseRunner<M> {
     this.pending = null;
 
     if (from === this.def.repStart) {
+      this.repTrail = [...this.trail];
       this.metrics = this.def.initMetrics(f);
       this.repStartT = f.t;
       this.repErrors = new Set();
@@ -160,7 +169,9 @@ export class ExerciseRunner<M> {
       quality: counted ? Math.max(0, quality) : 0,
       errors: [...this.repErrors],
       side: this.def.sideOf?.(m),
+      smoothness: this.repTrail ? smoothnessScore(this.repTrail) : undefined,
     };
+    this.repTrail = null;
     this.reps.push(rep);
     this.metrics = null;
     return rep;

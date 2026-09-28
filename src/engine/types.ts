@@ -66,6 +66,8 @@ export interface RepSummary {
   /** ids of rules that fired during/at end of this rep */
   errors: string[];
   side?: Side;
+  /** movement control 0..100 (DTW of the depth trajectory vs a smooth reference) */
+  smoothness?: number;
 }
 
 export interface ExerciseDefinition<M = Record<string, number>> {

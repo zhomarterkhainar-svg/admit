@@ -29,6 +29,8 @@ export interface WorkoutSummary {
   kcal: number;
   /** longest run of consecutive counted reps without any error */
   bestCleanStreak: number;
+  /** average movement control (DTW smoothness) of counted reps, 0..100; null if unknown */
+  smoothness: number | null;
 }
 
 /** Bodyweight circuit ≈ 5 MET; 70 kg reference body. kcal/min = MET·3.5·kg/200 */
@@ -67,8 +69,12 @@ export function summarize(
     run = r.counted && r.errors.length === 0 ? run + 1 : 0;
     bestCleanStreak = Math.max(bestCleanStreak, run);
   }
+  const smooth = counted.map((r) => r.smoothness).filter((v): v is number => typeof v === 'number');
   return {
     bestCleanStreak,
+    smoothness: smooth.length
+      ? Math.round(smooth.reduce((a, b) => a + b, 0) / smooth.length)
+      : null,
     programId,
     startedAt,
     durationMs,

@@ -98,3 +98,10 @@ describe('darkness', () => {
     expect(runner.reps).toHaveLength(0);
   });
 });
+
+describe('movement control (DTW)', () => {
+  it('smooth synthetic reps get a high smoothness score', () => {
+    const { runner } = run(repSequence(squatDown(), { reps: 2 }));
+    for (const r of runner.reps) expect(r.smoothness).toBeGreaterThanOrEqual(80);
+  });
+});

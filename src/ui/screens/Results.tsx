@@ -57,6 +57,9 @@ export function Results() {
           <Stat label={t('results.reps')} value={`${summary.counted}/${summary.attempted}`} />
           <Stat label={t('results.clean')} value={`${summary.cleanPct}%`} />
           <Stat label={t('results.quality')} value={`${summary.quality}`} />
+          {summary.smoothness !== null && (
+            <Stat label={t('results.smoothness')} value={`${summary.smoothness}%`} />
+          )}
           <Stat label={t('results.time')} value={fmtTime(summary.durationMs)} />
           <Stat label={t('results.kcal')} value={`~${summary.kcal}`} />
           <Stat label={t('results.xp')} value={`+${summary.xp}`} accent />

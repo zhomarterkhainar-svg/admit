@@ -248,5 +248,6 @@ export const en = {
   'lb.world': 'World',
   'lb.device': 'This device',
   'lb.offline': 'World board unavailable — showing this device',
+  'results.smoothness': 'Control',
   'praise.fixed': 'Great, keep it up!',
 } satisfies Record<I18nKey, string>;
