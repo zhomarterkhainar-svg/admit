@@ -166,6 +166,28 @@ export const ru = {
   'records.totalXp': 'Всего опыта',
   'records.changeName': 'Сменить имя',
 
+  'ch.title': 'Батыр Челлендж',
+  'ch.rules':
+    'Выполняй команды, пока не кончилось время. Чистая техника — бонус, серия — множитель. Три промаха — конец игры',
+  'ch.cmd.squat': 'ПРИСЕД!',
+  'ch.cmd.jumpingJack': 'ПРЫЖОК!',
+  'ch.cmd.press': 'ЩИТ ВВЕРХ!',
+  'ch.cmd.bendLeft': 'УКЛОН ВЛЕВО!',
+  'ch.cmd.bendRight': 'УКЛОН ВПРАВО!',
+  'ch.hit': 'Попал!',
+  'ch.clean': 'Чисто!',
+  'ch.miss': 'Промах!',
+  'ch.wrongSide': 'Другая сторона!',
+  'ch.combo': 'серия',
+  'ch.score': 'Очки',
+  'ch.over': 'Игра окончена',
+  'ch.record': 'Новый рекорд!',
+  'ch.hits': 'Попаданий',
+  'ch.cleanHits': 'Чистых',
+  'ch.misses': 'Промахов',
+  'ch.bestCombo': 'Лучшая серия',
+  'ch.again': 'Ещё раз',
+
   'praise.fixed': 'Отлично, так держать!',
 } as const;
 

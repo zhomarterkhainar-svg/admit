@@ -849,3 +849,130 @@ body {
     padding: 12px 18px;
   }
 }
+
+/* ---------- challenge ---------- */
+.countdown-big {
+  font-size: clamp(90px, 16vw, 200px);
+  font-weight: 900;
+  color: var(--gold);
+  animation: pop 0.3s ease-out;
+  min-height: 1.2em;
+}
+.ch-top {
+  position: absolute;
+  top: 16px;
+  left: 24px;
+  right: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.ch-lives {
+  font-size: 40px;
+  letter-spacing: 6px;
+}
+.life {
+  color: var(--err);
+  text-shadow: 0 0 12px rgba(255, 77, 94, 0.6);
+}
+.life.lost {
+  color: rgba(255, 255, 255, 0.2);
+  text-shadow: none;
+}
+.ch-score {
+  font-size: clamp(40px, 6vw, 72px);
+  font-weight: 900;
+  color: var(--gold);
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.7);
+}
+.ch-mult {
+  font-size: 0.5em;
+  margin-left: 10px;
+  color: var(--sky);
+}
+.ch-timer {
+  position: static;
+}
+.ch-command {
+  position: absolute;
+  top: 18%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  animation: pop 0.3s ease-out;
+}
+.ch-ring {
+  --left: 1;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 64px;
+  background: conic-gradient(var(--gold) calc(var(--left) * 360deg), rgba(255, 255, 255, 0.1) 0);
+  -webkit-mask: radial-gradient(circle, #000 0 58%, transparent 59% 64%, #000 65%);
+  position: relative;
+}
+.ch-ring span {
+  position: relative;
+}
+.ch-cmd-text {
+  font-size: clamp(40px, 7vw, 88px);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.8);
+}
+.ch-hint {
+  position: absolute;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(92vw, 800px);
+}
+.ch-pop {
+  position: absolute;
+  top: 52%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: clamp(36px, 6vw, 80px);
+  font-weight: 900;
+  animation: flash 1s ease-out forwards;
+  text-align: center;
+  max-width: 90vw;
+}
+.pop-clean {
+  color: var(--gold);
+}
+.pop-hit {
+  color: var(--ok);
+}
+.pop-miss {
+  color: var(--err);
+}
+.pop-warn {
+  color: var(--warn);
+  font-size: clamp(24px, 3.5vw, 44px);
+}
+.ch-combo {
+  position: absolute;
+  bottom: 28px;
+  left: 28px;
+  font-size: 32px;
+  font-weight: 900;
+  color: var(--warn);
+}
+.ch-final {
+  font-size: clamp(80px, 14vw, 160px);
+  font-weight: 900;
+  color: var(--gold);
+  line-height: 1;
+}
+.record-badge {
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--gold);
+  animation: pop 0.5s ease-out;
+}

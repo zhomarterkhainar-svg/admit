@@ -10,6 +10,7 @@ import { WorkoutFlow } from '@/ui/screens/WorkoutFlow';
 import { Results } from '@/ui/screens/Results';
 import { Records } from '@/ui/screens/Records';
 import { Welcome } from '@/ui/screens/Welcome';
+import { Challenge, ChallengeResults } from '@/ui/screens/Challenge';
 import { unlockAudio } from '@/audio/sfx';
 import { useApp, type Screen } from './store';
 
@@ -21,8 +22,8 @@ const SCREENS: Record<Screen, () => React.ReactNode> = {
   pick: ExercisePicker,
   workout: WorkoutFlow,
   results: Results,
-  challenge: Menu,
-  challengeResults: Menu,
+  challenge: Challenge,
+  challengeResults: ChallengeResults,
   records: Records,
 };
 
