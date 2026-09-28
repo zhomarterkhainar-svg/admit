@@ -92,7 +92,9 @@ export function Results() {
 
           <section className="card">
             <h2>{t('results.topErrors')}</h2>
-            {summary.topErrors.length === 0 ? (
+            {summary.attempted === 0 ? (
+              <p className="muted">—</p>
+            ) : summary.topErrors.length === 0 ? (
               <p className="lead">{t('results.noErrors')}</p>
             ) : (
               <ol className="errors">
