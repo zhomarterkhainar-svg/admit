@@ -7,6 +7,8 @@ import { speak } from '@/audio/tts';
 import { sfx } from '@/audio/sfx';
 import { OverlayCanvas } from '../overlay/OverlayCanvas';
 import { drawArrow } from '../overlay/drawArrow';
+import { drawGhost } from '../overlay/drawGhost';
+import { GhostPreview } from '../overlay/GhostPreview';
 
 interface Props<M> {
   loop: PoseSource;
@@ -101,7 +103,13 @@ export function Workout<M>({
         errorJoints={ui?.errorJoints}
         onDraw={(ctx, tick) => {
           const h = hintRef.current;
-          if (tick.frame && h?.arrows) h.arrows.forEach((a) => drawArrow(ctx, tick.frame!, a));
+          if (!tick.frame || !h) return;
+          // technique problem → show the correct pose as a ghost over the user
+          if (h.severity !== 'setup' && tick.features) {
+            const target = exercise.ghostFor?.(tick.features) ?? exercise.keyframes.peak;
+            drawGhost(ctx, tick.frame, target);
+          }
+          h.arrows?.forEach((a) => drawArrow(ctx, tick.frame!, a));
         }}
       />
       <div className="hud">
@@ -140,6 +148,9 @@ export function Workout<M>({
             style={{ height: `${Math.round((ui?.progress ?? 0) * 100)}%` }}
           />
           <div className="phase-goal" />
+        </div>
+        <div className="mini-coach" aria-hidden="true">
+          <GhostPreview exercise={exercise} />
         </div>
         <div className="pause-hint">{t('workout.pauseHint')}</div>
         {flash && (

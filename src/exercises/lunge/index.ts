@@ -58,6 +58,8 @@ export const lunge: ExerciseDefinition<LungeMetrics> = {
 
   sideOf: (m) => m.front,
 
+  ghostFor: (f) => lungeDown(frontLeg(f)),
+
   frameRules: [
     {
       kind: 'frame',

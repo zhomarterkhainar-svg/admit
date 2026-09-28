@@ -1013,3 +1013,21 @@ body {
 .demo-badge .btn-link {
   font-size: 14px;
 }
+
+.mini-coach {
+  position: absolute;
+  left: 20px;
+  top: 26%;
+  width: clamp(90px, 12vw, 160px);
+  height: clamp(130px, 18vw, 230px);
+  border-radius: 16px;
+  background: rgba(11, 16, 32, 0.55);
+  border: 1px solid rgba(255, 199, 44, 0.25);
+}
+@media (max-width: 600px) {
+  .mini-coach {
+    top: auto;
+    bottom: 150px;
+    left: 12px;
+  }
+}

@@ -93,4 +93,6 @@ export interface ExerciseDefinition<M = Record<string, number>> {
   sideOf?(m: M): Side | undefined;
   /** reference keyframes (world space) for the ghost overlay, demos and tests */
   keyframes: { rest: PoseEdit; peak: PoseEdit; peakAlt?: PoseEdit };
+  /** which keyframe the ghost should show for the user's current pose (default: peak) */
+  ghostFor?(f: FrameFeatures): PoseEdit;
 }

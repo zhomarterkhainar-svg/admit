@@ -42,6 +42,8 @@ export const sideBend: ExerciseDefinition<BendMetrics> = {
 
   sideOf: (m) => (m.peak < 0 ? 'l' : 'r'),
 
+  ghostFor: (f) => bendPose(f.torsoSideLean < 0 ? 'l' : 'r'),
+
   frameRules: [
     {
       kind: 'frame',
