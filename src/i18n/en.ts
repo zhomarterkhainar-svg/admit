@@ -252,5 +252,8 @@ export const en = {
   'compare.wrong': 'yours',
   'compare.right': 'correct',
   'intro.mistakes': 'Common mistakes',
+  'ach.count': 'achievements',
+  'ach.count.one': 'achievement',
+  'ach.count.few': 'achievements',
   'praise.fixed': 'Great, keep it up!',
 } satisfies Record<I18nKey, string>;

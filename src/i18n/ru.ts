@@ -252,6 +252,9 @@ export const ru = {
   'compare.wrong': 'так было',
   'compare.right': 'так надо',
   'intro.mistakes': 'Частые ошибки',
+  'ach.count': 'достижений',
+  'ach.count.one': 'достижение',
+  'ach.count.few': 'достижения',
   'praise.fixed': 'Отлично, так держать!',
 } as const;
 

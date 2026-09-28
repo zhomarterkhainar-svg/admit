@@ -56,11 +56,12 @@ export function Menu() {
             📜 {t('quest.title')}: {quest.target} × {t(EXERCISES[quest.exercise].name)}
             <span className="quest-bar">
               <span style={{ width: `${(questProgress / quest.target) * 100}%` }} />
-            </span>
+            </span>{' '}
             {questDone ? '✓' : `${questProgress}/${quest.target}`} · +{quest.xp} XP
           </div>
           <div className="chip">
-            🏅 {Object.keys(progress.achievements).length} {t('ach.title').toLowerCase()}
+            🏅 {Object.keys(progress.achievements).length}{' '}
+            {plural(Object.keys(progress.achievements).length, 'ach.count')}
           </div>
         </div>
         <div className="menu-grid">

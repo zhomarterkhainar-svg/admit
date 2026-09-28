@@ -1561,3 +1561,84 @@ body {
   list-style: none;
   padding-left: 0;
 }
+/* welcome must never overlap or cut off on short/narrow screens */
+.welcome {
+  overflow-y: auto;
+  justify-content: safe center;
+  padding-top: 56px;
+  padding-bottom: 24px;
+}
+.welcome .privacy {
+  position: static;
+  margin-top: 4px;
+  pointer-events: none;
+}
+@media (max-width: 700px) {
+  .welcome .title {
+    font-size: 44px;
+  }
+  .welcome .subtitle {
+    font-size: 16px;
+  }
+  .features span {
+    display: none;
+  }
+  .ornament {
+    width: 90px;
+    height: 45px;
+  }
+}
+/* compact phone menu: everything reachable without scrolling */
+@media (max-width: 600px) {
+  .menu {
+    gap: 10px;
+  }
+  .menu-head {
+    gap: 8px;
+  }
+  .logo {
+    font-size: 30px;
+  }
+  .player {
+    padding: 6px 12px;
+  }
+  .rank-icon {
+    font-size: 26px;
+  }
+  .menu-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .menu-grid .dwell-btn {
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    gap: 4px;
+    min-height: 84px;
+    padding: 8px;
+  }
+  .menu-grid .dwell-sub {
+    display: none;
+  }
+  .menu-grid .dwell-icon {
+    font-size: 26px;
+  }
+  .menu-grid .dwell-label {
+    font-size: 16px;
+  }
+  .menu-small {
+    grid-column: span 2;
+  }
+  .menu-status {
+    gap: 6px;
+  }
+  .quest-bar {
+    display: none;
+  }
+  .gesture-help {
+    font-size: 12px;
+  }
+}
+.demo .gesture-help {
+  display: none;
+}

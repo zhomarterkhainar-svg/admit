@@ -254,5 +254,8 @@ export const kk = {
   'compare.wrong': 'осылай болды',
   'compare.right': 'осылай керек',
   'intro.mistakes': 'Жиі қателер',
+  'ach.count': 'жетістік',
+  'ach.count.one': 'жетістік',
+  'ach.count.few': 'жетістік',
   'praise.fixed': 'Жарайсың, осылай жалғастыр!',
 } satisfies Record<I18nKey, string>;

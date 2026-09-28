@@ -22,7 +22,7 @@ export function t(key: I18nKey): string {
  * Plural form for counters: `${n} ${plural(n, 'streak.days')}` → «1 день», «3 дня», «5 дней».
  * Uses `<base>.one` / `<base>.few` / `<base>` (many) keys; kk/en simply provide equal or two forms.
  */
-export function plural(n: number, base: 'streak.days'): string {
+export function plural(n: number, base: 'streak.days' | 'ach.count'): string {
   const n10 = n % 10;
   const n100 = n % 100;
   if (lang === 'en') return t(n === 1 ? `${base}.one` : base);
