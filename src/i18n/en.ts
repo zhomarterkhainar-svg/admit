@@ -87,6 +87,12 @@ export const en = {
   'rank.alyp': 'Giant',
 
   'ui.start': 'Start',
+  'feat.exercises': '5 exercises and a game',
+  'feat.exercisesSub': 'rep counting, summary, records',
+  'feat.errors': 'AI spots mistakes',
+  'feat.errorsSub': 'and tells you how to fix them: text, voice, arrows, pose ghost',
+  'feat.gestures': 'No mouse',
+  'feat.gesturesSub': 'your hand is the cursor, gestures are commands',
   'ui.loadingCamera': 'Allow camera access…',
   'ui.loadingModel': 'Loading the recognition model…',
   'ui.privacy': '🔒 Video never leaves your device — everything runs in the browser',

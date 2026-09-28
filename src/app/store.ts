@@ -67,14 +67,25 @@ const initialLang = (): Lang => {
   return navigator.language?.startsWith('kk') ? 'kk' : 'ru';
 };
 
+const MUTE_KEY = 'qozgal.muted';
+const initialMuted = (): boolean => {
+  try {
+    return localStorage.getItem(MUTE_KEY) === '1';
+  } catch {
+    return false;
+  }
+};
+
 const progress0 = loadProgress();
+const muted0 = initialMuted();
+setMuted(muted0);
 const lang0 = initialLang();
 setI18nLang(lang0);
 
 export const useApp = create<AppState>((set, get) => ({
   screen: 'calibration',
   lang: lang0,
-  muted: false,
+  muted: muted0,
   calibrated: false,
   program: null,
   summary: null,
@@ -98,6 +109,11 @@ export const useApp = create<AppState>((set, get) => ({
   toggleMute: () => {
     const muted = !get().muted;
     setMuted(muted);
+    try {
+      localStorage.setItem(MUTE_KEY, muted ? '1' : '0');
+    } catch {
+      /* ignore */
+    }
     set({ muted });
   },
 
