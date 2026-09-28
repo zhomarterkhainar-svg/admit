@@ -45,7 +45,9 @@ export class FeedbackArbiter {
     const outranks = best && this.current && rank(best) < rank(this.current);
 
     if (!currentStillActive || outranks) {
-      if (this.current && !currentStillActive) fixed = this.current.id;
+      // praise only real fixes: a rep-level flash simply expiring is not a fix
+      if (this.current && !currentStillActive && this.current !== this.flashHint)
+        fixed = this.current.id;
       if (best?.id !== this.current?.id) {
         this.current = best;
         this.shownAt = t;
