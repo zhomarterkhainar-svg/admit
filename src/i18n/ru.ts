@@ -249,6 +249,9 @@ export const ru = {
   'lb.device': 'Это устройство',
   'lb.offline': 'Нет связи с мировой таблицей — показаны рекорды устройства',
   'results.smoothness': 'Плавность',
+  'compare.wrong': 'так было',
+  'compare.right': 'так надо',
+  'intro.mistakes': 'Частые ошибки',
   'praise.fixed': 'Отлично, так держать!',
 } as const;
 

@@ -10,6 +10,7 @@ import { DwellButton } from '../gestures/DwellButton';
 import { useGestures } from '../gestures/GestureProvider';
 import { OverlayCanvas } from '../overlay/OverlayCanvas';
 import { Confetti } from '../components/Confetti';
+import { PoseCompare } from '../components/PoseCompare';
 
 const fmtTime = (ms: number) => {
   const s = Math.round(ms / 1000);
@@ -17,10 +18,10 @@ const fmtTime = (ms: number) => {
 };
 
 /** Rule id → its fix text, looked up across all exercises. */
-function fixFor(id: string): { msg: I18nKey; fix: I18nKey } | null {
+function fixFor(id: string): { msg: I18nKey; fix: I18nKey; joints: readonly number[] } | null {
   for (const ex of Object.values(EXERCISES)) {
     const r = [...ex.frameRules, ...ex.repRules].find((x) => x.id === id);
-    if (r) return { msg: r.message, fix: r.fix };
+    if (r) return { msg: r.message, fix: r.fix, joints: r.joints };
   }
   return null;
 }
@@ -102,12 +103,18 @@ export function Results() {
               <p className="lead">{t('results.noErrors')}</p>
             ) : (
               <ol className="errors">
-                {summary.topErrors.map((e) => {
+                {summary.topErrors.map((e, i) => {
                   const f = fixFor(e.id);
                   return (
-                    <li key={e.id}>
-                      <b>{f ? t(f.msg) : e.id}</b> · {e.count} {t('results.times')}
-                      {f && <div className="muted">💡 {t(f.fix)}</div>}
+                    <li key={e.id} className={i === 0 ? 'with-compare' : ''}>
+                      <div>
+                        <b>
+                          {i + 1}. {f ? t(f.msg) : e.id}
+                        </b>{' '}
+                        · {e.count} {t('results.times')}
+                        {f && <div className="muted">💡 {t(f.fix)}</div>}
+                      </div>
+                      {i === 0 && <PoseCompare ruleId={e.id} joints={f?.joints} />}
                     </li>
                   );
                 })}
@@ -121,12 +128,12 @@ export function Results() {
             📜 {t('quest.done')} +{questCompleted.xp} XP
           </div>
         )}
-        {summary.bestCleanStreak >= 3 && (
-          <div className="muted">
-            🔥 {summary.bestCleanStreak} {t('workout.cleanStreak')}
-          </div>
-        )}
         <div className={`rank-line ${rankUp ? 'rank-up' : ''}`}>
+          {summary.bestCleanStreak >= 3 && (
+            <span className="muted">
+              🔥 {summary.bestCleanStreak} {t('workout.cleanStreak')} ·{' '}
+            </span>
+          )}
           <span className="rank-icon">{after.rank.icon}</span>
           {rankUp && <b>{t('results.rankUp')} </b>}
           {t(after.rank.key)} · {progress.totalXp} XP

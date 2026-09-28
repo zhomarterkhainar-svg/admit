@@ -1452,3 +1452,112 @@ body {
 .tabs .dwell-label {
   font-size: 18px;
 }
+.pose-compare {
+  display: flex;
+  gap: 8px;
+  margin: 6px 0;
+}
+.pose-compare figure {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 12px;
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.04);
+}
+.pose-compare .bad {
+  border: 1px solid rgba(255, 77, 94, 0.5);
+}
+.pose-compare .good {
+  border: 1px solid rgba(46, 229, 157, 0.5);
+}
+.pose-compare figcaption {
+  font-size: 12px;
+  font-weight: 700;
+}
+.pose-compare .bad figcaption {
+  color: var(--err);
+}
+.pose-compare .good figcaption {
+  color: var(--ok);
+}
+.static-pose {
+  width: 72px;
+  height: 110px;
+  display: block;
+}
+.intro-mistakes {
+  display: grid;
+  gap: 8px;
+  margin-top: 6px;
+}
+.intro-mistake {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  background: rgba(20, 27, 51, 0.7);
+  border-radius: 14px;
+  padding: 6px 12px;
+}
+.intro-mistake b {
+  font-size: 16px;
+}
+.intro-mistake .muted {
+  font-size: 14px;
+}
+@media (max-width: 800px) {
+  .intro-mistakes {
+    display: none;
+  }
+}
+.static-pose {
+  width: 64px;
+  height: 92px;
+}
+.errors li.with-compare {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+.errors li.with-compare .pose-compare {
+  margin: 0;
+}
+.results {
+  gap: 14px;
+}
+.results .card {
+  padding: 12px 18px;
+}
+.intro-mistake .static-pose {
+  width: 70px;
+  height: 100px;
+}
+.static-pose {
+  width: 64px;
+  height: 92px;
+}
+.errors li.with-compare {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+.errors li.with-compare .pose-compare {
+  margin: 0;
+}
+.results {
+  gap: 14px;
+}
+.results .card {
+  padding: 12px 18px;
+}
+.intro-mistake .static-pose {
+  width: 70px;
+  height: 100px;
+}
+.errors {
+  list-style: none;
+  padding-left: 0;
+}

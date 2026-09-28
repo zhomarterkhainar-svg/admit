@@ -7,7 +7,7 @@ import { drawSkeleton } from './drawSkeleton';
 /** Fixed frame for the whole animation: fits the union of rest/peak poses into the canvas. */
 const BOX = { minX: -0.62, maxX: 0.62, minY: -1.2, maxY: 0.95 };
 
-function fitFrame(world: PoseFrame['world'], w: number, h: number): PoseFrame {
+export function fitFrame(world: PoseFrame['world'], w: number, h: number): PoseFrame {
   const bw = BOX.maxX - BOX.minX;
   const bh = BOX.maxY - BOX.minY;
   const k = 0.92 * Math.min(w / bw, h / bh); // px per meter

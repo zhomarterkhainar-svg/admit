@@ -13,6 +13,8 @@ import { useGestures } from '../gestures/GestureProvider';
 import { GhostPreview } from '../overlay/GhostPreview';
 import { OverlayCanvas } from '../overlay/OverlayCanvas';
 import { Workout } from './Workout';
+import { PoseCompare } from '../components/PoseCompare';
+import { ERROR_EXAMPLES } from '@/exercises/errorExamples';
 
 const INTRO_SEC = 7;
 
@@ -104,6 +106,9 @@ function Intro({
 }) {
   const loop = useLoop();
   const ex = EXERCISES[step.id];
+  const mistakes = [...ex.repRules, ...ex.frameRules]
+    .filter((r) => ERROR_EXAMPLES[r.id])
+    .slice(0, 2);
   const [left, setLeft] = useState(INTRO_SEC);
   const startRef = useRef(onStart);
   useEffect(() => {
@@ -140,6 +145,20 @@ function Intro({
             🎯 {step.target} × · ⏱ {step.timeLimitSec}s
           </p>
           <p className="muted">{t('intro.handsUp')}</p>
+          {mistakes.length > 0 && (
+            <div className="intro-mistakes">
+              <div className="step">{t('intro.mistakes')}</div>
+              {mistakes.map((r) => (
+                <div key={r.id} className="intro-mistake">
+                  <PoseCompare ruleId={r.id} joints={r.joints} />
+                  <div>
+                    <b>{t(r.message)}</b>
+                    <div className="muted">💡 {t(r.fix)}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
         <div className="intro-ghost">
           <GhostPreview exercise={ex} />

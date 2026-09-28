@@ -251,5 +251,8 @@ export const kk = {
   'lb.device': 'Осы құрылғы',
   'lb.offline': 'Әлемдік кестеге қосылу жоқ — құрылғы рекордтары көрсетілді',
   'results.smoothness': 'Бірқалыптылық',
+  'compare.wrong': 'осылай болды',
+  'compare.right': 'осылай керек',
+  'intro.mistakes': 'Жиі қателер',
   'praise.fixed': 'Жарайсың, осылай жалғастыр!',
 } satisfies Record<I18nKey, string>;
