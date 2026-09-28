@@ -112,6 +112,8 @@ export const en = {
   'calib.cursorTitle': 'Raise your hand — it is your cursor',
   'calib.cursorText': 'Hover the cursor over a button and hold until the ring fills up',
   'calib.ready': "I'm ready!",
+  'calib.skip': 'Skip',
+  'calib.skipSub': 'if the room is small',
 
   'menu.quick': 'Quick workout',
   'menu.quickSub': '5 exercises · ~2 min',

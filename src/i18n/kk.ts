@@ -114,6 +114,8 @@ export const kk = {
   'calib.cursorTitle': 'Қолыңды көтер — бұл сенің курсорың',
   'calib.cursorText': 'Курсорды батырмаға апарып, шеңбер толғанша ұстап тұр',
   'calib.ready': 'Мен дайынмын!',
+  'calib.skip': 'Өткізу',
+  'calib.skipSub': 'бөлме тар болса',
 
   'menu.quick': 'Жылдам жаттығу',
   'menu.quickSub': '5 жаттығу · ~2 мин',

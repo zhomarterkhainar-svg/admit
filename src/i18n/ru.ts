@@ -112,6 +112,8 @@ export const ru = {
   'calib.cursorTitle': 'Подними руку — это твой курсор',
   'calib.cursorText': 'Наведи курсор на кнопку и задержи, пока кольцо не заполнится',
   'calib.ready': 'Я готов!',
+  'calib.skip': 'Пропустить',
+  'calib.skipSub': 'если комната тесная',
 
   'menu.quick': 'Быстрая тренировка',
   'menu.quickSub': '5 упражнений · ~2 мин',

@@ -1154,3 +1154,9 @@ body {
     font-size: 18px;
   }
 }
+.calib-skip {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  pointer-events: auto;
+}

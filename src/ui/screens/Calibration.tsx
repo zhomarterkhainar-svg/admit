@@ -77,6 +77,11 @@ export function Calibration() {
               ))}
             </ul>
           </div>
+          <div className="calib-skip">
+            <DwellButton variant="ghost" icon="⏭" sub={t('calib.skipSub')} onSelect={setCalibrated}>
+              {t('calib.skip')}
+            </DwellButton>
+          </div>
         </div>
       ) : (
         <div className="screen-dim center">
