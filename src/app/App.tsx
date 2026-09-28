@@ -1,62 +1,62 @@
 import { useRef } from 'react';
 import { usePoseEngine } from '@/ui/hooks/usePoseEngine';
+import { EngineContext } from '@/ui/engine';
+import { GestureProvider } from '@/ui/gestures/GestureProvider';
 import { LiveDebug } from '@/ui/screens/LiveDebug';
-import { Workout } from '@/ui/screens/Workout';
-import { squat } from '@/exercises/squat';
+import { Calibration } from '@/ui/screens/Calibration';
+import { Menu } from '@/ui/screens/Menu';
+import { ExercisePicker } from '@/ui/screens/ExercisePicker';
+import { WorkoutFlow } from '@/ui/screens/WorkoutFlow';
+import { Results } from '@/ui/screens/Results';
+import { Records } from '@/ui/screens/Records';
+import { Welcome } from '@/ui/screens/Welcome';
 import { unlockAudio } from '@/audio/sfx';
+import { useApp, type Screen } from './store';
 
 const DEV = new URLSearchParams(location.search).has('dev');
 
-const ERROR_TEXT: Record<string, string> = {
-  denied: 'Доступ к камере запрещён. Разрешите камеру в настройках браузера и обновите страницу.',
-  notFound: 'Камера не найдена. Подключите веб-камеру.',
-  inUse: 'Камера занята другим приложением (Zoom, Teams…). Закройте его и обновите страницу.',
-  insecure: 'Камера работает только по HTTPS.',
-  unknown: 'Не удалось открыть камеру.',
-  model: 'Не удалось загрузить модель распознавания. Проверьте интернет и обновите страницу.',
+const SCREENS: Record<Screen, () => React.ReactNode> = {
+  calibration: Calibration,
+  menu: Menu,
+  pick: ExercisePicker,
+  workout: WorkoutFlow,
+  results: Results,
+  challenge: Menu,
+  challengeResults: Menu,
+  records: Records,
 };
 
 export function App() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const { status, start } = usePoseEngine(videoRef);
+  const screen = useApp((s) => s.screen);
+  useApp((s) => s.lang); // re-render all screens on language change
+  const Current = SCREENS[screen];
 
   return (
     <main className="screen">
       <video ref={videoRef} className="camera" playsInline muted />
-      {status.state === 'ready' &&
-        (DEV ? (
-          <LiveDebug
-            loop={status.loop}
-            info={`${status.tracker.model}/${status.tracker.delegate}`}
-          />
-        ) : (
-          <Workout loop={status.loop} exercise={squat} target={10} />
-        ))}
-      {status.state !== 'ready' && (
-        <div className="screen center layer">
-          <h1 className="title">QOZĞAL</h1>
-          <p className="subtitle">Путь Батыра — AI-тренер, которым управляешь телом</p>
-          {status.state === 'idle' && (
-            <button
-              className="btn-primary"
-              onClick={() => {
-                unlockAudio();
-                void start();
-              }}
-            >
-              Начать
-            </button>
+      {status.state === 'ready' ? (
+        <EngineContext.Provider value={status.loop}>
+          {DEV ? (
+            <LiveDebug
+              loop={status.loop}
+              info={`${status.tracker.model}/${status.tracker.delegate}`}
+            />
+          ) : (
+            <GestureProvider loop={status.loop}>
+              <Current key={screen} />
+            </GestureProvider>
           )}
-          {status.state === 'loading' && (
-            <p className="subtitle">
-              {status.step === 'camera' ? 'Разрешите доступ к камере…' : 'Загружаем модель…'}
-            </p>
-          )}
-          {status.state === 'error' && <p className="error">{ERROR_TEXT[status.kind]}</p>}
-          <p className="privacy">
-            🔒 Видео не покидает ваше устройство — всё обрабатывается в браузере
-          </p>
-        </div>
+        </EngineContext.Provider>
+      ) : (
+        <Welcome
+          status={status}
+          onStart={() => {
+            unlockAudio();
+            void start();
+          }}
+        />
       )}
     </main>
   );

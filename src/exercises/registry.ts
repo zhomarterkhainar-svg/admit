@@ -8,11 +8,11 @@ import { squat } from './squat';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type AnyExercise = ExerciseDefinition<any>;
 
-export const EXERCISES = { squat, jumpingJack, lunge, press, sideBend } satisfies Record<
-  string,
-  AnyExercise
->;
+const defs = { squat, jumpingJack, lunge, press, sideBend };
 
-export type ExerciseId = keyof typeof EXERCISES;
+export type ExerciseId = keyof typeof defs;
+
+/** Metric types erased so screens can treat all exercises uniformly. */
+export const EXERCISES: Record<ExerciseId, AnyExercise> = defs;
 
 export const EXERCISE_IDS = Object.keys(EXERCISES) as ExerciseId[];

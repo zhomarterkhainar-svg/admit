@@ -12,6 +12,8 @@ export interface SkeletonStyle {
   mirror?: boolean;
   /** ms timestamp for pulse animation */
   now?: number;
+  /** draw a head circle (for the ghost / reference skeleton) */
+  head?: boolean;
 }
 
 const MIN_VIS = 0.5;
@@ -28,6 +30,7 @@ export function drawSkeleton(
     lineWidth = 6,
     mirror = true,
     now = performance.now(),
+    head = false,
   }: SkeletonStyle = {},
 ): void {
   const { width: cw, height: ch } = ctx.canvas;
@@ -49,6 +52,17 @@ export function drawSkeleton(
     ctx.beginPath();
     ctx.moveTo(pa.x, pa.y);
     ctx.lineTo(pb.x, pb.y);
+    ctx.stroke();
+  }
+  if (head) {
+    const nose = pts[0]!;
+    const le = pts[7]!;
+    const re = pts[8]!;
+    const r = Math.max(Math.hypot(le.x - re.x, le.y - re.y) * 0.75, 6 * scale);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = lineWidth * scale;
+    ctx.beginPath();
+    ctx.arc((le.x + re.x) / 2, nose.y - r * 0.35, r, 0, Math.PI * 2);
     ctx.stroke();
   }
   pts.forEach((p, i) => {
