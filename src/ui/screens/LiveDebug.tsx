@@ -31,7 +31,7 @@ export function LiveDebug({ loop, info }: { loop: PoseSource; info: string }) {
   useEffect(() => {
     let last = 0;
     return loop.subscribe((t) => {
-      const s = runner.update(t.features, t.people, t.t);
+      const s = runner.update(t.features, t.people, t.t, { brightness: t.brightness });
       if (recRef.current && t.frame) frames.current.push(compactFrame(t.frame));
       if (s.events.length || t.t - last > 100) {
         last = t.t;

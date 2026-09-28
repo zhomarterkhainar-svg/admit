@@ -3,6 +3,8 @@ import type { I18nKey } from './ru';
 export const en = {
   'app.tagline': 'Path of the Batyr — an AI coach you control with your body',
 
+  'setup.dark.msg': 'Too dark',
+  'setup.dark.fix': 'Turn on the light or face a window — the camera needs more light',
   'setup.noPerson.msg': "I can't see you",
   'setup.noPerson.fix': 'Stand 2–3 meters in front of the camera so your whole body is visible',
   'setup.multiplePeople.msg': 'More than one person in frame',
@@ -102,6 +104,7 @@ export const en = {
   'ui.demoExit': 'Use camera',
 
   'calib.title': 'Stand so your whole body is visible',
+  'calib.light': 'Enough light',
   'calib.person': "You're in frame",
   'calib.single': 'One person in frame',
   'calib.fullBody': 'Feet visible',

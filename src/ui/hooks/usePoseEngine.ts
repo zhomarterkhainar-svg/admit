@@ -11,6 +11,28 @@ export type EngineStatus =
 
 const isMobile = () => /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
+/** Slow device? After a warm-up, if inference stays under 14 FPS, hot-swap to the lite model. */
+function watchPerformance(loop: PoseLoop, onSwap: (lite: PoseTracker) => void): void {
+  const startedAt = performance.now();
+  let slowSince: number | null = null;
+  let switching = false;
+  const unsub = loop.subscribe((tick) => {
+    if (switching || tick.t - startedAt < 4000) return;
+    slowSince = tick.fps < 14 ? (slowSince ?? tick.t) : null;
+    if (slowSince !== null && tick.t - slowSince > 3000) {
+      switching = true;
+      unsub();
+      void PoseTracker.create('lite').then((lite) => {
+        const old = loop.currentTracker;
+        loop.setTracker(lite);
+        onSwap(lite);
+        old.close();
+        console.info('[pose] switched to lite model for performance');
+      });
+    }
+  });
+}
+
 /** Owns camera + MediaPipe lifecycle. `start()` must be called from a user gesture on iOS. */
 export function usePoseEngine(videoRef: React.RefObject<HTMLVideoElement | null>) {
   const [status, setStatus] = useState<EngineStatus>({ state: 'idle' });
@@ -34,6 +56,7 @@ export function usePoseEngine(videoRef: React.RefObject<HTMLVideoElement | null>
         loopRef.current = loop;
         loop.start();
         setStatus({ state: 'ready', loop, tracker });
+        if (tracker.model === 'full') watchPerformance(loop, (lite) => (trackerRef.current = lite));
       } catch (err) {
         if (err instanceof CameraError)
           setStatus({ state: 'error', kind: err.kind, message: err.message });

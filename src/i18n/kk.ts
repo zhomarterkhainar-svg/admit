@@ -3,6 +3,8 @@ import type { I18nKey } from './ru';
 export const kk = {
   'app.tagline': 'Батыр жолы — денеңмен басқаратын AI-жаттықтырушы',
 
+  'setup.dark.msg': 'Тым қараңғы',
+  'setup.dark.fix': 'Жарықты қос немесе терезеге қарай бұрыл — камераға көбірек жарық керек',
   'setup.noPerson.msg': 'Сен көрінбейсің',
   'setup.noPerson.fix': 'Камераның алдына 2–3 метр қашықтыққа тұр, толық көрінетіндей болсын',
   'setup.multiplePeople.msg': 'Кадрда бірнеше адам бар',
@@ -104,6 +106,7 @@ export const kk = {
   'ui.demoExit': 'Камераны қосу',
 
   'calib.title': 'Толық көрінетіндей тұр',
+  'calib.light': 'Жарық жеткілікті',
   'calib.person': 'Сен кадрдасың',
   'calib.single': 'Кадрда бір адам',
   'calib.fullBody': 'Табандар көрінеді',

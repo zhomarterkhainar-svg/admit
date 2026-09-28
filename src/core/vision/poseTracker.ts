@@ -9,15 +9,6 @@ const CDN_MODEL = (m: PoseModel) =>
 
 const base = import.meta.env.BASE_URL;
 
-async function exists(url: string): Promise<boolean> {
-  try {
-    const res = await fetch(url, { method: 'HEAD' });
-    return res.ok;
-  } catch {
-    return false;
-  }
-}
-
 export interface PoseDetection {
   /** largest person in frame, or null */
   frame: PoseFrame | null;
@@ -41,29 +32,32 @@ export class PoseTracker {
   ) {}
 
   static async create(model: PoseModel = 'lite'): Promise<PoseTracker> {
-    const localWasm = `${base}wasm`;
-    const wasmPath = (await exists(`${localWasm}/vision_wasm_internal.js`)) ? localWasm : CDN_WASM;
-    const localModel = `${base}models/pose_landmarker_${model}.task`;
-    const modelPath = (await exists(localModel)) ? localModel : CDN_MODEL(model);
-    const fileset = await FilesetResolver.forVisionTasks(wasmPath);
-
-    for (const delegate of ['GPU', 'CPU'] as const) {
-      try {
-        const landmarker = await PoseLandmarker.createFromOptions(fileset, {
-          baseOptions: { modelAssetPath: modelPath, delegate },
-          runningMode: 'VIDEO',
-          numPoses: 2,
-          minPoseDetectionConfidence: 0.5,
-          minPosePresenceConfidence: 0.5,
-          minTrackingConfidence: 0.5,
-        });
-        return new PoseTracker(landmarker, model, delegate);
-      } catch (err) {
-        if (delegate === 'CPU') throw err;
-        console.warn('[pose] GPU delegate failed, falling back to CPU', err);
+    // self-hosted first (fast, works behind strict networks), CDN as a fallback
+    const sources = [
+      { wasm: `${base}wasm`, model: `${base}models/pose_landmarker_${model}.task` },
+      { wasm: CDN_WASM, model: CDN_MODEL(model) },
+    ];
+    let lastError: unknown;
+    for (const src of sources) {
+      const fileset = await FilesetResolver.forVisionTasks(src.wasm);
+      for (const delegate of ['GPU', 'CPU'] as const) {
+        try {
+          const landmarker = await PoseLandmarker.createFromOptions(fileset, {
+            baseOptions: { modelAssetPath: src.model, delegate },
+            runningMode: 'VIDEO',
+            numPoses: 2,
+            minPoseDetectionConfidence: 0.5,
+            minPosePresenceConfidence: 0.5,
+            minTrackingConfidence: 0.5,
+          });
+          return new PoseTracker(landmarker, model, delegate);
+        } catch (err) {
+          lastError = err;
+          console.warn(`[pose] ${delegate} with ${src.model} failed`, err);
+        }
       }
     }
-    throw new Error('unreachable');
+    throw lastError;
   }
 
   detect(source: HTMLVideoElement, tMs: number): PoseDetection {

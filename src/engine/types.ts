@@ -30,6 +30,8 @@ export interface RuleContext {
   people: number;
   /** ms since the current phase started */
   phaseMs: number;
+  /** mean frame luminance 0..1 when known */
+  brightness?: number;
 }
 
 /** Checked on every frame; becomes active only after `persistMs` of continuous violation. */

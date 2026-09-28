@@ -143,7 +143,9 @@ export function Challenge() {
 
       let hint: Hint | null = null;
       if (runner) {
-        const st = runner.update(tick.features, tick.people, tick.t);
+        const st = runner.update(tick.features, tick.people, tick.t, {
+          brightness: tick.brightness,
+        });
         hint = st.hint;
         setErrorJoints((prev) => (sameSet(prev, st.errorJoints) ? prev : st.errorJoints));
         for (const e of st.events) if (e.type === 'rep') handle(game.rep(e.rep, clock));

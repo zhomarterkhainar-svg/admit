@@ -81,3 +81,20 @@ describe('runner without a person', () => {
     expect(st.paused).toBe(true);
   });
 });
+
+describe('darkness', () => {
+  it('explains "too dark" instead of "can\'t see you"', () => {
+    const runner = new ExerciseRunner(squat);
+    expect(runner.update(null, 0, 1000, { brightness: 0.05 }).hint?.id).toBe('setup.dark');
+  });
+
+  it('pauses counting in a dark room even when a pose is found', () => {
+    const { runner } = (() => {
+      const r = new ExerciseRunner(squat);
+      for (const fr of repSequence(squatDown(), { reps: 2 }))
+        r.update(extractFeatures(fr), 1, fr.t, { brightness: 0.08 });
+      return { runner: r };
+    })();
+    expect(runner.reps).toHaveLength(0);
+  });
+});

@@ -2,6 +2,8 @@
 export const ru = {
   'app.tagline': 'Путь Батыра — AI-тренер, которым управляешь телом',
 
+  'setup.dark.msg': 'Слишком темно',
+  'setup.dark.fix': 'Включи свет или повернись лицом к окну — камере нужно больше света',
   'setup.noPerson.msg': 'Тебя не видно',
   'setup.noPerson.fix': 'Встань перед камерой в 2–3 метрах, чтобы было видно тебя целиком',
   'setup.multiplePeople.msg': 'В кадре несколько человек',
@@ -102,6 +104,7 @@ export const ru = {
   'ui.demoExit': 'Включить камеру',
 
   'calib.title': 'Встань так, чтобы тебя было видно целиком',
+  'calib.light': 'Достаточно света',
   'calib.person': 'Ты в кадре',
   'calib.single': 'В кадре один человек',
   'calib.fullBody': 'Видно ступни',

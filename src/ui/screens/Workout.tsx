@@ -72,7 +72,7 @@ export function Workout<M>({
       if (lastT !== null) activeMs += tick.t - lastT;
       lastT = tick.t;
 
-      const st = runner.update(tick.features, tick.people, tick.t);
+      const st = runner.update(tick.features, tick.people, tick.t, { brightness: tick.brightness });
       hintRef.current = st.hint;
       for (const e of st.events) {
         if (e.type === 'hint' && e.speak) {

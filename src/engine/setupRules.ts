@@ -1,6 +1,18 @@
 import { P } from '@/core/types';
 import type { FrameRule, Hint } from './types';
 
+/** Below this mean luminance the camera image is too dark for reliable tracking. */
+export const DARK_THRESHOLD = 0.16;
+
+/** Shown when the frame is too dark (also explains "can't see you"). */
+export const TOO_DARK: Hint = {
+  id: 'setup.dark',
+  severity: 'setup',
+  message: 'setup.dark.msg',
+  fix: 'setup.dark.fix',
+  joints: [],
+};
+
 /** Shown when nobody is detected at all. */
 export const NO_PERSON: Hint = {
   id: 'setup.noPerson',
@@ -19,6 +31,12 @@ export function setupRules(
   view: 'front' | 'side',
 ): FrameRule[] {
   const rules: FrameRule[] = [
+    {
+      ...TOO_DARK,
+      kind: 'frame',
+      persistMs: 1000,
+      test: (_f, ctx) => ctx.brightness !== undefined && ctx.brightness < DARK_THRESHOLD,
+    },
     {
       kind: 'frame',
       id: 'setup.multiplePeople',

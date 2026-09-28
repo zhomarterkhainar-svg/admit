@@ -4,15 +4,21 @@ import { speak } from '@/audio/tts';
 import { sfx } from '@/audio/sfx';
 import { useApp } from '@/app/store';
 import type { FrameFeatures } from '@/core/types';
+import { DARK_THRESHOLD } from '@/engine/setupRules';
 import { useLoop } from '../engine';
 import { DwellButton } from '../gestures/DwellButton';
 import { OverlayCanvas } from '../overlay/OverlayCanvas';
 
-type Check = 'person' | 'single' | 'fullBody' | 'distance' | 'centered' | 'facing';
-const CHECKS: Check[] = ['person', 'single', 'fullBody', 'distance', 'centered', 'facing'];
+type Check = 'light' | 'person' | 'single' | 'fullBody' | 'distance' | 'centered' | 'facing';
+const CHECKS: Check[] = ['light', 'person', 'single', 'fullBody', 'distance', 'centered', 'facing'];
 
-function evaluate(f: FrameFeatures | null, people: number): Record<Check, boolean> {
+function evaluate(
+  f: FrameFeatures | null,
+  people: number,
+  brightness?: number,
+): Record<Check, boolean> {
   return {
+    light: brightness === undefined || brightness >= DARK_THRESHOLD,
     person: !!f,
     single: people <= 1,
     fullBody: !!f && f.visibility.feet > 0.5 && f.bodyHeightFrac < 1.02,
@@ -38,7 +44,7 @@ export function Calibration() {
     if (step !== 'frame') return;
     let last = 0;
     return loop.subscribe((tick) => {
-      const c = evaluate(tick.features, tick.people);
+      const c = evaluate(tick.features, tick.people, tick.brightness);
       const all = CHECKS.every((k) => c[k]);
       okSince.current = all ? (okSince.current ?? tick.t) : null;
       if (okSince.current && tick.t - okSince.current > 1500) {
