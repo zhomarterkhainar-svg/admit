@@ -9,7 +9,7 @@ export interface ProgramStep {
 }
 
 export interface Program {
-  id: 'quick' | 'full' | 'single';
+  id: 'quick' | 'full' | 'single' | 'free';
   steps: ProgramStep[];
 }
 

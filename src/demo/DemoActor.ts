@@ -2,7 +2,7 @@ import { extractFeatures } from '@/core/features/extract';
 import { blend, makePose, type PoseEdit } from '@/core/reference/template';
 import type { PoseListener, PoseSource, PoseTick } from '@/core/vision/poseLoop';
 import type { ExerciseId } from '@/exercises/registry';
-import { DEMO_SCRIPTS, type DemoRep } from './scripts';
+import { DEMO_MIX, DEMO_SCRIPTS, type DemoRep } from './scripts';
 
 const HOLD_MS = 700;
 const FPS = 30;
@@ -33,9 +33,9 @@ export class DemoActor implements PoseSource {
     this.timer = null;
   }
 
-  /** Start performing an exercise's demo choreography (null = stand still). */
-  perform(id: ExerciseId | null): void {
-    this.script = id ? DEMO_SCRIPTS[id] : [];
+  /** Start performing an exercise's demo choreography ('mix' = all exercises, null = stand still). */
+  perform(id: ExerciseId | 'mix' | null): void {
+    this.script = id === 'mix' ? DEMO_MIX : id ? DEMO_SCRIPTS[id] : [];
     this.rest = this.script[0]?.rest ?? {};
     this.repIdx = 0;
     this.repStart = performance.now() + 800;

@@ -203,5 +203,13 @@ export const en = {
   'ch.again': 'Play again',
 
   'wrong.title': 'Looks like a different exercise',
+  'menu.free': 'Free workout',
+  'menu.freeSub': 'AI recognizes the exercise',
+  'free.title': 'Free workout',
+  'free.start': 'Start any exercise',
+  'free.startSub': "I'll recognize which one and count it: squats, jumps, lunges, shield, bends",
+  'free.waiting': 'Waiting for movement…',
+  'free.finish': 'Finish and see the summary',
+  'free.finishHint': '🙅 cross arms — pause / finish',
   'praise.fixed': 'Great, keep it up!',
 } satisfies Record<I18nKey, string>;

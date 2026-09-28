@@ -1241,3 +1241,59 @@ body {
     padding: 8px 12px;
   }
 }
+
+/* ---------- free workout ---------- */
+.free-tiles {
+  position: absolute;
+  left: 50%;
+  bottom: 36px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+}
+.free-tile {
+  min-width: 110px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: rgba(11, 16, 32, 0.75);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+  transition:
+    transform 0.2s,
+    border-color 0.2s;
+}
+.free-tile.on {
+  border-color: var(--gold);
+  transform: translateY(-6px) scale(1.06);
+  box-shadow: 0 8px 30px rgba(255, 199, 44, 0.25);
+}
+.free-count {
+  font-size: 40px;
+  font-weight: 900;
+  line-height: 1;
+  animation: pop 0.3s ease-out;
+}
+.free-name {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+@media (max-width: 700px) {
+  .free-tiles {
+    gap: 6px;
+    bottom: 44px;
+    width: calc(100vw - 16px);
+    justify-content: center;
+  }
+  .free-tile {
+    min-width: 0;
+    flex: 1;
+    padding: 6px 4px;
+  }
+  .free-count {
+    font-size: 26px;
+  }
+  .free-name {
+    font-size: 10px;
+  }
+}

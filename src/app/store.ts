@@ -19,6 +19,7 @@ export type Screen =
   | 'menu'
   | 'pick'
   | 'workout'
+  | 'free'
   | 'results'
   | 'challenge'
   | 'challengeResults'

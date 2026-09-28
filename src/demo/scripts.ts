@@ -94,3 +94,18 @@ export const DEMO_SCRIPTS: Record<ExerciseId, DemoRep[]> = {
     rep(sideBend('l')),
   ],
 };
+
+/** Free-workout demo: a mix of clean reps across all exercises (the AI must tell them apart). */
+export const DEMO_MIX: DemoRep[] = [
+  DEMO_SCRIPTS.squat[0]!,
+  DEMO_SCRIPTS.squat[0]!,
+  DEMO_SCRIPTS.jumpingJack[0]!,
+  DEMO_SCRIPTS.jumpingJack[0]!,
+  DEMO_SCRIPTS.jumpingJack[0]!,
+  DEMO_SCRIPTS.press[0]!,
+  DEMO_SCRIPTS.press[0]!,
+  DEMO_SCRIPTS.sideBend[0]!,
+  DEMO_SCRIPTS.sideBend[1]!,
+  DEMO_SCRIPTS.lunge[0]!,
+  DEMO_SCRIPTS.lunge[2]!,
+];

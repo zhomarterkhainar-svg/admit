@@ -50,6 +50,9 @@ export function Menu() {
           <DwellButton icon="🎯" sub={t('menu.pickSub')} onSelect={() => go('pick')}>
             {t('menu.pick')}
           </DwellButton>
+          <DwellButton icon="🤖" sub={t('menu.freeSub')} onSelect={() => go('free')}>
+            {t('menu.free')}
+          </DwellButton>
           <DwellButton icon="🏹" sub={t('menu.challengeSub')} onSelect={() => go('challenge')}>
             {t('menu.challenge')}
           </DwellButton>
