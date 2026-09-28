@@ -77,7 +77,8 @@ export function Results() {
                     <tr key={i}>
                       <td>{t(EXERCISES[r.id].name)}</td>
                       <td>
-                        {counted}/{r.target}
+                        {counted}
+                        {r.target > 0 && `/${r.target}`}
                       </td>
                       <td className="bar-cell">
                         <div className="mini-bar">
@@ -149,7 +150,9 @@ export function Results() {
           <DwellButton
             variant="primary"
             icon="↻"
-            onSelect={() => program && startProgram({ ...program })}
+            onSelect={() =>
+              summary.programId === 'free' ? go('free') : program && startProgram({ ...program })
+            }
           >
             {t('results.again')}
           </DwellButton>

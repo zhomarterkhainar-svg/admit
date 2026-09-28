@@ -30,3 +30,21 @@ describe('FreeWorkoutSession (AI picks the exercise)', () => {
     expect(st.runner?.hint?.severity ?? 'setup').toBe('setup');
   });
 });
+
+describe('free workout before recognition', () => {
+  it("never gives another exercise's technique advice", () => {
+    const s = new FreeWorkoutSession();
+    const hints: string[] = [];
+    let t = 0;
+    // a slow squat: early frames are ambiguous, only framing hints are allowed until recognized
+    for (let i = 0; i <= 40; i++) {
+      const st = s.update(
+        extractFeatures(makePose(blend({}, DEMO_MIX[0]!.peak, i / 40), (t += 33))),
+        1,
+        t,
+      );
+      for (const e of st.events) if (e.type === 'hint' && !st.active) hints.push(e.hint.id);
+    }
+    expect(hints.every((id) => id.startsWith('setup.'))).toBe(true);
+  });
+});

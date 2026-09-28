@@ -144,3 +144,13 @@ describe('registry', () => {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const run = (def: any, frames: Parameters<typeof runExercise>[1]) => runExercise(def, frames);
+
+describe('fast pace', () => {
+  it('counts brisk jumping jacks (~2.2 per second)', () => {
+    const { reps } = run(
+      jumpingJack,
+      repSequence(jackOpen(), { reps: 5, msPerRep: 450, holdMs: 0 }),
+    );
+    expect(reps.filter((r) => r.counted).length).toBeGreaterThanOrEqual(4);
+  });
+});

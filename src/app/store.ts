@@ -68,7 +68,12 @@ interface AppState {
   setCalibrated(): void;
   setBaseline(b: Baseline | null): void;
   startProgram(p: Program): void;
-  finishWorkout(results: ExerciseResult[], startedAt: number, endedAt: number): void;
+  finishWorkout(
+    results: ExerciseResult[],
+    startedAt: number,
+    endedAt: number,
+    programId?: Program['id'],
+  ): void;
   finishChallenge(r: Omit<ChallengeResult, 'record'>, at: number): void;
   setPlayerName(name: string): void;
 }
@@ -155,9 +160,9 @@ export const useApp = create<AppState>((set, get) => ({
 
   startProgram: (program) => set({ program, screen: 'workout' }),
 
-  finishWorkout: (results, startedAt, endedAt) => {
+  finishWorkout: (results, startedAt, endedAt, programId) => {
     const { program, progress, playerName } = get();
-    const summary = summarize(program?.id ?? 'single', results, startedAt, endedAt);
+    const summary = summarize(programId ?? program?.id ?? 'single', results, startedAt, endedAt);
     const recorded = recordWorkout({ ...progress, playerName }, summary, playerName);
     const out = applySession(recorded, { workout: summary, now: endedAt });
     persist(out.progress, get().demo, {
@@ -180,7 +185,10 @@ export const useApp = create<AppState>((set, get) => ({
     const { progress, playerName } = get();
     const record = isRecord(progress, 'challenge', r.score);
     const recorded = recordChallenge({ ...progress, playerName }, r.score, playerName, at, r.xp);
-    const out = applySession(recorded, { challenge: { bestCombo: r.bestCombo }, now: at });
+    const out = applySession(recorded, {
+      challenge: { bestCombo: r.bestCombo, hits: r.hits },
+      now: at,
+    });
     persist(out.progress, get().demo, { name: playerName, score: r.score, mode: 'challenge', at });
     set({
       challenge: { ...r, record },
@@ -194,7 +202,7 @@ export const useApp = create<AppState>((set, get) => ({
 
   setPlayerName: (playerName) => {
     const progress = { ...get().progress, playerName };
-    saveProgress(progress);
+    if (!get().demo) saveProgress(progress);
     set({ playerName, progress });
   },
 }));

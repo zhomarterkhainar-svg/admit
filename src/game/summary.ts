@@ -56,7 +56,7 @@ export function summarize(
     : 0;
   const durationMs = Math.max(0, endedAt - startedAt);
   const completedSteps = results.filter(
-    (r) => r.reps.filter((x) => x.counted).length >= r.target,
+    (r) => r.target > 0 && r.reps.filter((x) => x.counted).length >= r.target,
   ).length;
   const xp = Math.round(
     counted.reduce((s, r) => s + 10 * (0.5 + r.quality / 200), 0) +
@@ -65,7 +65,8 @@ export function summarize(
   );
   let run = 0;
   let bestCleanStreak = 0;
-  for (const r of reps) {
+  // chronological order: free-workout results are grouped by exercise, not by time
+  for (const r of [...reps].sort((a, b) => a.endT - b.endT)) {
     run = r.counted && r.errors.length === 0 ? run + 1 : 0;
     bestCleanStreak = Math.max(bestCleanStreak, run);
   }

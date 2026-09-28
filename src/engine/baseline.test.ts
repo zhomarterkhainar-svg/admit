@@ -72,7 +72,7 @@ describe('personal baseline', () => {
     const est = new BaselineEstimator(5);
     est.add(extractFeatures(makePose(squatDown())));
     expect(est.ready).toBe(false);
-    for (let i = 0; i < 5; i++) est.add(extractFeatures(makePose(SOFT_KNEES)));
+    for (let i = 0; i < 10; i++) est.add(extractFeatures(makePose(SOFT_KNEES)));
     expect(est.value!.knee).toBeLessThan(155);
     const f = personalize(extractFeatures(makePose(SOFT_KNEES)), est.value);
     expect(f.kneeAngle.l).toBeGreaterThan(160);
@@ -102,10 +102,63 @@ describe('noise robustness', () => {
 
   it('explicit calibration baseline is used as-is', () => {
     const est = new BaselineEstimator(3);
-    for (let i = 0; i < 3; i++) est.add(extractFeatures(makePose(SOFT_KNEES)));
+    for (let i = 0; i < 8; i++) est.add(extractFeatures(makePose(SOFT_KNEES)));
     const runner = new ExerciseRunner(squat, est.value);
     for (const fr of repSequence(squatDown(), { reps: 2, start: SOFT_KNEES }))
       runner.update(extractFeatures(fr), 1);
     expect(runner.reps.filter((r) => r.counted)).toHaveLength(2);
+  });
+});
+
+describe('review fixes', () => {
+  it('does not learn a baseline from the middle of a movement (no standing hold)', () => {
+    const est = new BaselineEstimator(5);
+    for (const fr of repSequence(squatDown(), { reps: 3, holdMs: 0 })) est.add(extractFeatures(fr));
+    expect(est.value?.knee ?? REFERENCE_BASELINE.knee).toBeGreaterThan(170);
+  });
+
+  it('handles users standing with very soft knees (148°)', () => {
+    const SOFTER: PoseEdit = {
+      [P.leftKnee]: [0.15, 0.43, -0.115],
+      [P.rightKnee]: [-0.15, 0.43, -0.115],
+    };
+    const frames = repSequence(squatDown(), { reps: 3, start: SOFTER, holdMs: 900 });
+    expect(extractFeatures(frames[0]!).kneeAngle.l).toBeLessThan(150);
+    expect(runExercise(squat, frames).reps.filter((r) => r.counted)).toHaveLength(3);
+  });
+
+  it('never changes angles at squat depth', () => {
+    const b = { ...REFERENCE_BASELINE, knee: 150 };
+    const f = extractFeatures(makePose(squatDown()));
+    const deep = { ...f, kneeAngle: { l: 99, r: 99 } };
+    expect(personalize(deep, b).kneeAngle.l).toBe(99);
+  });
+
+  it('back-to-back smooth reps all get a high control score', () => {
+    const { reps } = runExercise(
+      squat,
+      repSequence(squatDown(), { reps: 4, msPerRep: 1200, holdMs: 0 }),
+    );
+    expect(reps.length).toBeGreaterThanOrEqual(3);
+    for (const r of reps) expect(r.smoothness ?? 100).toBeGreaterThanOrEqual(75);
+  });
+
+  it('a knee warning does not turn into praise when the knees become hidden', () => {
+    const valgus = squatDown({
+      [P.leftKnee]: [0.05, 0.45, -0.22],
+      [P.rightKnee]: [-0.05, 0.45, -0.22],
+    });
+    const frames = repSequence(valgus, { msPerRep: 4000 }).map((fr, i, all) =>
+      i > all.length / 2
+        ? {
+            ...fr,
+            image: fr.image.map((l, j) =>
+              j === P.leftKnee || j === P.rightKnee ? { ...l, visibility: 0.2 } : l,
+            ),
+          }
+        : fr,
+    );
+    const { events } = runExercise(squat, frames);
+    expect(events.some((e) => e.type === 'fixed' && e.id === 'squat.valgus')).toBe(false);
   });
 });

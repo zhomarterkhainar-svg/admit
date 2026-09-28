@@ -17,7 +17,7 @@ create index scores_mode_score on public.scores (mode, score desc);
 alter table public.scores enable row level security;
 -- anyone can read the board
 create policy "read" on public.scores for select using (true);
--- anyone can add a score, but only a sane one and only "now" (no back-dating)
+-- anyone can add a score, but only a sane one and only "now" (the app never sends `at`; the default now() is used)
 create policy "insert" on public.scores for insert
   with check (at between now() - interval '5 minutes' and now() + interval '5 minutes');
 ```

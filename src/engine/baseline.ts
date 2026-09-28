@@ -24,6 +24,10 @@ export const REFERENCE_BASELINE: Baseline = {
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 /** Largest correction we trust (a baseline recorded mid-movement must not break counting). */
 const MAX = { knee: 14, hip: 14, lean: 14, side: 8 };
+/** frames the pose must stay unchanged (±4°) to count as "standing still" */
+const STILL_FRAMES = 6;
+/** no knee/hip correction at or below this angle, so real depth is never altered */
+const NO_CORRECTION_BELOW = 110;
 
 /**
  * Collects a baseline from frames where the user stands still and upright-ish.
@@ -31,22 +35,34 @@ const MAX = { knee: 14, hip: 14, lean: 14, side: 8 };
  */
 export class BaselineEstimator {
   private readonly frames: Baseline[] = [];
+  /** last few frames, to require the pose to be still (not the middle of a rep) */
+  private readonly recent: Baseline[] = [];
 
   constructor(private readonly need = 20) {}
 
   add(f: FrameFeatures): void {
     if (this.ready) return;
-    const knee = (f.kneeAngle.l + f.kneeAngle.r) / 2;
-    const standing =
-      knee > 150 && f.torsoLean < 25 && Math.abs(f.torsoSideLean) < 12 && f.visibility.lower > 0.5;
-    if (!standing) return;
-    this.frames.push({
-      knee,
+    const b: Baseline = {
+      knee: (f.kneeAngle.l + f.kneeAngle.r) / 2,
       hip: (f.hipAngle.l + f.hipAngle.r) / 2,
       torsoLean: f.torsoLean,
       torsoPitch: f.torsoPitch,
       torsoSideLean: f.torsoSideLean,
-    });
+    };
+    this.recent.push(b);
+    if (this.recent.length > STILL_FRAMES) this.recent.shift();
+    const upright =
+      b.knee > 140 &&
+      b.torsoLean < 25 &&
+      Math.abs(b.torsoSideLean) < 12 &&
+      f.visibility.lower > 0.5;
+    const range = (sel: (x: Baseline) => number) =>
+      Math.max(...this.recent.map(sel)) - Math.min(...this.recent.map(sel));
+    const still =
+      this.recent.length === STILL_FRAMES &&
+      range((x) => x.knee) < 4 &&
+      range((x) => x.torsoLean) < 4;
+    if (upright && still) this.frames.push(b);
   }
 
   get ready(): boolean {
@@ -72,7 +88,7 @@ export class BaselineEstimator {
 /**
  * Removes the person/camera-specific offset from the features: e.g. someone who stands with
  * knees at 166° or a laptop camera looking up (torso seems to lean back). Corrections fade out
- * toward deep flexion so real depth is never "invented".
+ * toward deep flexion (none below 110°) so real depth is never "invented".
  */
 export function personalize(f: FrameFeatures, b: Baseline | null): FrameFeatures {
   if (!b) return f;
@@ -80,7 +96,8 @@ export function personalize(f: FrameFeatures, b: Baseline | null): FrameFeatures
   const dKnee = clamp(r.knee - b.knee, 0, MAX.knee);
   const dHip = clamp(r.hip - b.hip, 0, MAX.hip);
   // full correction when standing, none at 90° (deep squat)
-  const fade = (angle: number, base: number) => clamp((angle - 90) / Math.max(base - 90, 1), 0, 1);
+  const fade = (angle: number, base: number) =>
+    clamp((angle - NO_CORRECTION_BELOW) / Math.max(base - NO_CORRECTION_BELOW, 1), 0, 1);
   const knee = (a: number) => Math.min(180, a + dKnee * fade(a, b.knee));
   const hip = (a: number) => Math.min(180, a + dHip * fade(a, b.hip));
   const dPitch = clamp(b.torsoPitch - r.torsoPitch, -MAX.lean, MAX.lean);

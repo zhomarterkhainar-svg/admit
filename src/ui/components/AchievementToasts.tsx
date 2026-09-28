@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useApp } from '@/app/store';
 import { t } from '@/i18n';
 import { sfx } from '@/audio/sfx';
-import { speak } from '@/audio/tts';
+import { speakIfIdle } from '@/audio/tts';
 
 /** Stack of "Achievement unlocked!" toasts; each disappears after a few seconds. */
 export function AchievementToasts() {
@@ -13,7 +13,8 @@ export function AchievementToasts() {
   useEffect(() => {
     if (!first) return;
     sfx.perfect();
-    speak((tr) => `${tr('ach.unlocked')} ${tr(first.title)}`);
+    // low priority: never cut off the spoken results summary
+    speakIfIdle(`${t('ach.unlocked')} ${t(first.title)}`);
     const id = setTimeout(() => dismiss(first.id), 3800);
     return () => clearTimeout(id);
   }, [first, dismiss]);

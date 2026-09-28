@@ -69,6 +69,7 @@ describe('supabase leaderboard', () => {
     );
     expect(body.name.length).toBeLessThanOrEqual(32);
     expect(body.score).toBe(13);
+    expect(body).not.toHaveProperty('at'); // server time, not the device clock
   });
 
   it('throws on HTTP errors so the UI can fall back to local', async () => {

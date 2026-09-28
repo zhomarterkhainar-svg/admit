@@ -77,8 +77,9 @@ export class FreeWorkoutSession {
       }
     }
     for (const e of activeState?.events ?? []) {
-      if (e.type === 'hint') events.push(e);
-      else if (e.type === 'fixed') events.push(e);
+      // before recognition only framing advice makes sense (not another exercise's technique)
+      if (e.type === 'hint' && (this.active || e.hint.severity === 'setup')) events.push(e);
+      else if (e.type === 'fixed' && this.active) events.push(e);
     }
     // before the first exercise is recognized, only framing hints make sense
     if (!this.active && activeState?.hint && activeState.hint.severity !== 'setup') {

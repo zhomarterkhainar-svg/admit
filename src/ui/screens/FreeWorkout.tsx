@@ -43,12 +43,11 @@ export function FreeWorkout() {
     doneRef.current = true;
     const results = EXERCISE_IDS.filter((id) => session.accepted[id].length > 0).map((id) => ({
       id,
-      target: Math.max(1, session.accepted[id].filter((r) => r.counted).length),
+      target: 0, // free workout has no targets (no 'completed step' bonus)
       reps: session.accepted[id],
       durationMs: 0,
     }));
-    useApp.setState({ program: { id: 'free', steps: [] } });
-    finishWorkout(results, startedAt, Date.now());
+    finishWorkout(results, startedAt, Date.now(), 'free');
   };
   const finishRef = useRef(finish);
   useEffect(() => {

@@ -80,7 +80,10 @@ describe('applySession', () => {
   });
 
   it('challenge combo unlocks combo5; dayKey is local', () => {
-    const out = applySession(empty(), { challenge: { bestCombo: 6 }, now: day('2026-09-29') });
+    const out = applySession(empty(), {
+      challenge: { bestCombo: 6, hits: 8 },
+      now: day('2026-09-29'),
+    });
     expect(out.unlocked.map((a) => a.id)).toContain('combo5');
     expect(dayKey(day('2026-09-29'))).toBe('2026-09-29');
   });
@@ -92,5 +95,45 @@ describe('applySession', () => {
     const p = loadProgress({ getItem: (k: string) => m.get(k) ?? null });
     expect(p.stats.totalReps).toBe(0);
     expect(p.achievements).toEqual({});
+  });
+});
+
+describe('review regressions', () => {
+  const empty = () => loadProgress(undefined);
+
+  it('an empty session is not activity: no stats, streak or achievements', () => {
+    const w = summarize('free', [], 0, 60_000);
+    const out = applySession(empty(), { workout: w, now: day('2026-09-29') });
+    expect(out.unlocked).toEqual([]);
+    expect(out.progress.stats.workouts).toBe(0);
+    expect(out.progress.streak.days).toBe(0);
+  });
+
+  it('clean streak follows time, not exercise grouping (free workout)', () => {
+    const at = (t: number, clean = true) => ({ ...rep(true, clean ? [] : ['x']), endT: t });
+    const w = summarize(
+      'free',
+      [
+        {
+          id: 'squat',
+          target: 0,
+          durationMs: 0,
+          reps: [1, 2, 3, 4, 5, 7, 8, 9, 10, 11].map((t) => at(t)),
+        },
+        { id: 'jumpingJack', target: 0, durationMs: 0, reps: [at(6, false)] },
+      ],
+      0,
+      60_000,
+    );
+    expect(w.bestCleanStreak).toBe(5);
+    // no "completed step" bonus without targets
+    expect(w.xp).toBe(
+      summarize(
+        'free',
+        w.results.map((r) => ({ ...r, target: 0 })),
+        0,
+        60_000,
+      ).xp,
+    );
   });
 });

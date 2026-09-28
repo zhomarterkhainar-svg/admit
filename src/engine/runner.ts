@@ -112,7 +112,12 @@ export class ExerciseRunner<M> {
     const extra = paused ? [] : (env.extraHints ?? []);
     const out = this.arbiter.update([...setupActive, ...formActive, ...extra], f.t);
     if (out.hint) events.push({ type: 'hint', hint: out.hint, speak: out.speak });
-    if (out.fixed) events.push({ type: 'fixed', id: out.fixed });
+    if (
+      out.fixed &&
+      (this.setup.fixed.includes(out.fixed) || this.form.fixed.includes(out.fixed))
+    ) {
+      events.push({ type: 'fixed', id: out.fixed });
+    }
     return this.state(f, events, paused, [...setupActive, ...formActive]);
   }
 
@@ -139,7 +144,7 @@ export class ExerciseRunner<M> {
       this.repStartT = f.t;
       this.repErrors = new Set();
     } else if (proposed === this.def.repStart && this.metrics) {
-      if (f.t - this.repStartT < MIN_REP_MS) {
+      if (f.t - this.repStartT < (this.def.minRepMs ?? MIN_REP_MS)) {
         this.metrics = null; // noise, not a movement
       } else {
         events.push({ type: 'rep', rep: this.finishRep(f.t) });
@@ -172,6 +177,8 @@ export class ExerciseRunner<M> {
       smoothness: this.repTrail ? smoothnessScore(this.repTrail) : undefined,
     };
     this.repTrail = null;
+    // the next rep's pre-roll must not contain the tail of this one
+    this.trail = [];
     this.reps.push(rep);
     this.metrics = null;
     return rep;

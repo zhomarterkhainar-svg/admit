@@ -148,15 +148,19 @@ export function recordChallenge(
   };
 }
 
+const WEEK_MS = 8 * 86_400_000;
+
+/**
+ * Keeps the all-time top 20 per mode AND every score from the last ~week (so the
+ * 'today' / 'week' boards never lose a fresh but modest score), capped at 200 per mode.
+ */
 function addScore(scores: ScoreEntry[], e: ScoreEntry): ScoreEntry[] {
   const all = [...scores, e];
-  // keep the top 20 per mode
-  return (['challenge', 'workout'] as const).flatMap((mode) =>
-    all
-      .filter((s) => s.mode === mode)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 20),
-  );
+  return (['challenge', 'workout'] as const).flatMap((mode) => {
+    const ofMode = all.filter((s) => s.mode === mode).sort((a, b) => b.score - a.score);
+    const top = new Set(ofMode.slice(0, 20));
+    return ofMode.filter((s) => top.has(s) || e.at - s.at <= WEEK_MS).slice(0, 200);
+  });
 }
 
 export function topScores(p: Progress, mode: ScoreEntry['mode'], n = 10): ScoreEntry[] {

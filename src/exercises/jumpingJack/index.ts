@@ -19,6 +19,8 @@ export const jumpingJack: ExerciseDefinition<JackMetrics> = {
   phases: ['closed', 'open'],
   initialPhase: 'closed',
   repStart: 'closed',
+  // jacks are fast: ~2 per second is a normal pace
+  minRepMs: 200,
   keyframes: { rest: {}, peak: jackOpen() },
 
   nextPhase(f, current) {

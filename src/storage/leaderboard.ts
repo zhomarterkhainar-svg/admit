@@ -75,7 +75,7 @@ export class SupabaseLeaderboard implements LeaderboardProvider {
         name: e.name.slice(0, 32),
         score: Math.round(e.score),
         mode: e.mode,
-        at: new Date(e.at).toISOString(),
+        // no client time: the column defaults to now() on the server (device clocks drift)
       }),
     });
     if (!res.ok) throw new Error(`leaderboard submit failed: ${res.status}`);

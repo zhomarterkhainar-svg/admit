@@ -17,11 +17,19 @@ export interface SessionOutcome {
  */
 export function applySession(
   p: Progress,
-  session: { workout?: WorkoutSummary; challenge?: { bestCombo: number }; now: number },
+  session: {
+    workout?: WorkoutSummary;
+    challenge?: { bestCombo: number; hits: number };
+    now: number;
+  },
 ): SessionOutcome {
   const today = dayKey(session.now);
   const stats = { ...p.stats };
   const byExercise: Partial<Record<ExerciseId, number>> = {};
+
+  // a session without a single counted rep / hit is not activity: no stats, streak or badges
+  const active = (session.workout?.counted ?? 0) > 0 || (session.challenge?.hits ?? 0) > 0;
+  if (!active) return { progress: p, unlocked: [], questCompleted: null };
 
   if (session.workout) {
     const w = session.workout;

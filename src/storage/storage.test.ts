@@ -56,3 +56,16 @@ describe('batyr names', () => {
     expect(nextBatyrName(n, -1, () => 0)).toBe('Гүлбаршын-10');
   });
 });
+
+describe('recent scores are kept for today/week boards', () => {
+  it('a modest score today survives 20 better old ones', () => {
+    let p = loadProgress(undefined);
+    const old = Date.parse('2026-01-01');
+    for (let i = 0; i < 20; i++) p = recordChallenge(p, 1000 + i, 'Old', old + i, 0);
+    const today = Date.parse('2026-09-29');
+    p = recordChallenge(p, 50, 'Me', today, 0);
+    expect(p.scores.some((s) => s.name === 'Me')).toBe(true);
+    p = recordChallenge(p, 10, 'Later', today + 30 * 86_400_000, 0);
+    expect(p.scores.some((s) => s.name === 'Me')).toBe(false); // a month later it is trimmed
+  });
+});
