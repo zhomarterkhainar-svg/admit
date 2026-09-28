@@ -12,6 +12,7 @@ import { Records } from '@/ui/screens/Records';
 import { Welcome } from '@/ui/screens/Welcome';
 import { Challenge, ChallengeResults } from '@/ui/screens/Challenge';
 import { FreeWorkout } from '@/ui/screens/FreeWorkout';
+import { AchievementToasts } from '@/ui/components/AchievementToasts';
 import { unlockAudio } from '@/audio/sfx';
 import { DemoActor } from '@/demo/DemoActor';
 import { QUICK } from '@/game/program';
@@ -65,6 +66,7 @@ export function App() {
             ) : (
               <GestureProvider loop={source} enabled={!demo}>
                 <Current key={screen} />
+                <AchievementToasts />
               </GestureProvider>
             )}
             {demo && (

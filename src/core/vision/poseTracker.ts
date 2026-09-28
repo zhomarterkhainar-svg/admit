@@ -1,4 +1,5 @@
-import { FilesetResolver, PoseLandmarker } from '@mediapipe/tasks-vision';
+// the heavy MediaPipe bundle is loaded lazily (own chunk) so the welcome screen appears instantly
+import type { PoseLandmarker } from '@mediapipe/tasks-vision';
 import type { Landmark, PoseFrame } from '../types';
 
 export type PoseModel = 'lite' | 'full';
@@ -37,6 +38,7 @@ export class PoseTracker {
       { wasm: `${base}wasm`, model: `${base}models/pose_landmarker_${model}.task` },
       { wasm: CDN_WASM, model: CDN_MODEL(model) },
     ];
+    const { FilesetResolver, PoseLandmarker } = await import('@mediapipe/tasks-vision');
     let lastError: unknown;
     for (const src of sources) {
       const fileset = await FilesetResolver.forVisionTasks(src.wasm);

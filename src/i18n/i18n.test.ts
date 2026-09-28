@@ -30,3 +30,22 @@ describe('i18n', () => {
     }
   });
 });
+
+describe('plural', () => {
+  afterEach(() => setLang('ru'));
+  it('russian day forms', async () => {
+    const { plural } = await import('.');
+    expect([1, 2, 5, 11, 21, 22, 25].map((n) => `${n} ${plural(n, 'streak.days')}`)).toEqual([
+      '1 день подряд',
+      '2 дня подряд',
+      '5 дней подряд',
+      '11 дней подряд',
+      '21 день подряд',
+      '22 дня подряд',
+      '25 дней подряд',
+    ]);
+    setLang('en');
+    expect(plural(1, 'streak.days')).toBe('day in a row');
+    expect(plural(3, 'streak.days')).toBe('days in a row');
+  });
+});

@@ -27,7 +27,7 @@ function fixFor(id: string): { msg: I18nKey; fix: I18nKey } | null {
 
 export function Results() {
   const loop = useLoop();
-  const { summary, xpBefore, progress, program, startProgram, go } = useApp();
+  const { summary, xpBefore, progress, program, startProgram, go, questCompleted } = useApp();
   useGestures({ crossArms: () => go('menu') });
 
   const before = rankFor(xpBefore);
@@ -113,6 +113,16 @@ export function Results() {
           </section>
         </div>
 
+        {questCompleted && (
+          <div className="quest-done">
+            📜 {t('quest.done')} +{questCompleted.xp} XP
+          </div>
+        )}
+        {summary.bestCleanStreak >= 3 && (
+          <div className="muted">
+            🔥 {summary.bestCleanStreak} {t('workout.cleanStreak')}
+          </div>
+        )}
         <div className={`rank-line ${rankUp ? 'rank-up' : ''}`}>
           <span className="rank-icon">{after.rank.icon}</span>
           {rankUp && <b>{t('results.rankUp')} </b>}

@@ -27,6 +27,8 @@ export interface WorkoutSummary {
   topErrors: ErrorStat[];
   xp: number;
   kcal: number;
+  /** longest run of consecutive counted reps without any error */
+  bestCleanStreak: number;
 }
 
 /** Bodyweight circuit ≈ 5 MET; 70 kg reference body. kcal/min = MET·3.5·kg/200 */
@@ -59,7 +61,14 @@ export function summarize(
       clean.length * 5 +
       completedSteps * 20,
   );
+  let run = 0;
+  let bestCleanStreak = 0;
+  for (const r of reps) {
+    run = r.counted && r.errors.length === 0 ? run + 1 : 0;
+    bestCleanStreak = Math.max(bestCleanStreak, run);
+  }
   return {
+    bestCleanStreak,
     programId,
     startedAt,
     durationMs,

@@ -13,6 +13,9 @@ import {
 } from '@/storage/progress';
 import { randomBatyrName } from '@/storage/names';
 import type { Baseline } from '@/engine/baseline';
+import { applySession } from '@/game/progression';
+import type { AchievementDef } from '@/game/achievements';
+import type { QuestDef } from '@/game/daily';
 
 export type Screen =
   | 'calibration'
@@ -49,8 +52,13 @@ interface AppState {
   challenge: ChallengeResult | null;
   progress: Progress;
   playerName: string;
+  /** achievements unlocked by the last session, shown as toasts */
+  toasts: AchievementDef[];
+  /** quest of the day completed by the last session */
+  questCompleted: QuestDef | null;
 
   go(screen: Screen): void;
+  dismissToast(id: string): void;
   setLang(lang: Lang): void;
   toggleMute(): void;
   setCalibrated(): void;
@@ -99,8 +107,11 @@ export const useApp = create<AppState>((set, get) => ({
   challenge: null,
   progress: progress0,
   playerName: progress0.playerName ?? randomBatyrName(),
+  toasts: [],
+  questCompleted: null,
 
   go: (screen) => set({ screen }),
+  dismissToast: (id) => set({ toasts: get().toasts.filter((a) => a.id !== id) }),
 
   setLang: (lang) => {
     setI18nLang(lang);
@@ -131,20 +142,31 @@ export const useApp = create<AppState>((set, get) => ({
   finishWorkout: (results, startedAt, endedAt) => {
     const { program, progress, playerName } = get();
     const summary = summarize(program?.id ?? 'single', results, startedAt, endedAt);
-    const next = recordWorkout({ ...progress, playerName }, summary, playerName);
-    saveProgress(next);
-    set({ summary, xpBefore: progress.totalXp, progress: next, screen: 'results' });
+    const recorded = recordWorkout({ ...progress, playerName }, summary, playerName);
+    const out = applySession(recorded, { workout: summary, now: endedAt });
+    saveProgress(out.progress);
+    set({
+      summary,
+      xpBefore: progress.totalXp,
+      progress: out.progress,
+      toasts: [...get().toasts, ...out.unlocked],
+      questCompleted: out.questCompleted,
+      screen: 'results',
+    });
   },
 
   finishChallenge: (r, at) => {
     const { progress, playerName } = get();
     const record = isRecord(progress, 'challenge', r.score);
-    const next = recordChallenge({ ...progress, playerName }, r.score, playerName, at, r.xp);
-    saveProgress(next);
+    const recorded = recordChallenge({ ...progress, playerName }, r.score, playerName, at, r.xp);
+    const out = applySession(recorded, { challenge: { bestCombo: r.bestCombo }, now: at });
+    saveProgress(out.progress);
     set({
       challenge: { ...r, record },
       xpBefore: progress.totalXp,
-      progress: next,
+      progress: out.progress,
+      toasts: [...get().toasts, ...out.unlocked],
+      questCompleted: out.questCompleted,
       screen: 'challengeResults',
     });
   },

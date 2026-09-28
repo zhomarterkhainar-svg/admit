@@ -1,7 +1,10 @@
 import { useApp } from '@/app/store';
-import { t, type Lang } from '@/i18n';
+import { plural, t, type Lang } from '@/i18n';
 import { FULL, QUICK } from '@/game/program';
 import { rankFor } from '@/game/ranks';
+import { dayKey, questFor } from '@/game/daily';
+import { EXERCISES } from '@/exercises/registry';
+import { useState } from 'react';
 import { useLoop } from '../engine';
 import { DwellButton } from '../gestures/DwellButton';
 import { OverlayCanvas } from '../overlay/OverlayCanvas';
@@ -13,6 +16,14 @@ export function Menu() {
   const loop = useLoop();
   const { go, startProgram, lang, setLang, muted, toggleMute, progress, playerName } = useApp();
   const { rank, next, progress: rp } = rankFor(progress.totalXp);
+  const [today] = useState(() => dayKey(Date.now()));
+  const quest = questFor(today);
+  const questState = progress.quest?.day === today ? progress.quest : null;
+  const questProgress = questState?.progress ?? 0;
+  const questDone = questState?.done ?? false;
+  // a streak only counts if it reached today or yesterday
+  const streakDays =
+    progress.streak.lastDay && isRecent(progress.streak.lastDay, today) ? progress.streak.days : 0;
 
   return (
     <>
@@ -35,6 +46,23 @@ export function Menu() {
             </div>
           </div>
         </header>
+        <div className="menu-status">
+          {streakDays > 0 && (
+            <div className="chip">
+              🔥 {streakDays} {plural(streakDays, 'streak.days')}
+            </div>
+          )}
+          <div className={`chip quest ${questDone ? 'done' : ''}`}>
+            📜 {t('quest.title')}: {quest.target} × {t(EXERCISES[quest.exercise].name)}
+            <span className="quest-bar">
+              <span style={{ width: `${(questProgress / quest.target) * 100}%` }} />
+            </span>
+            {questDone ? '✓' : `${questProgress}/${quest.target}`} · +{quest.xp} XP
+          </div>
+          <div className="chip">
+            🏅 {Object.keys(progress.achievements).length} {t('ach.title').toLowerCase()}
+          </div>
+        </div>
         <div className="menu-grid">
           <DwellButton
             variant="primary"
@@ -82,4 +110,9 @@ export function Menu() {
       </div>
     </>
   );
+}
+
+function isRecent(lastDay: string, today: string): boolean {
+  const [y, m, d] = today.split('-').map(Number) as [number, number, number];
+  return lastDay === today || lastDay === dayKey(new Date(y, m - 1, d - 1).getTime());
 }

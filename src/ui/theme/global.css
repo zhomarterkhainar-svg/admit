@@ -1297,3 +1297,145 @@ body {
     font-size: 10px;
   }
 }
+
+/* ---------- gamification ---------- */
+.toast {
+  position: absolute;
+  z-index: 70;
+  bottom: 64px;
+  right: 16px;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 20px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(255, 199, 44, 0.95), rgba(255, 150, 20, 0.95));
+  color: #1a1300;
+  box-shadow: 0 12px 40px rgba(255, 170, 30, 0.45);
+  animation: toast-in 0.45s cubic-bezier(0.2, 1.4, 0.4, 1);
+  max-width: min(420px, calc(100vw - 32px));
+}
+.toast-icon {
+  font-size: 44px;
+}
+.toast-kicker {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+.toast-title {
+  font-size: 22px;
+  font-weight: 900;
+}
+.toast-desc {
+  font-size: 14px;
+}
+@keyframes toast-in {
+  from {
+    transform: translateY(-30px) scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.menu-status {
+  width: min(1100px, 100%);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(20, 27, 51, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 15px;
+  font-weight: 700;
+}
+.chip.quest.done {
+  border-color: var(--ok);
+  color: var(--ok);
+}
+.quest-bar {
+  display: inline-block;
+  width: 80px;
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+.quest-bar span {
+  display: block;
+  height: 100%;
+  background: var(--gold);
+}
+.quest-done {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--ok);
+  animation: pop 0.4s ease-out;
+}
+.achievements {
+  width: min(1100px, 100%);
+}
+.ach-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+.ach {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 2px;
+  padding: 10px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  filter: grayscale(1);
+  opacity: 0.45;
+}
+.ach.on {
+  filter: none;
+  opacity: 1;
+  background: rgba(255, 199, 44, 0.12);
+  border: 1px solid rgba(255, 199, 44, 0.4);
+}
+.ach-icon {
+  font-size: 30px;
+}
+.ach b {
+  font-size: 14px;
+}
+.ach small {
+  font-size: 11px;
+  color: var(--muted);
+}
+.clean-streak {
+  position: absolute;
+  left: 32px;
+  bottom: 210px;
+  font-size: 26px;
+  font-weight: 900;
+  color: var(--warn);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.7);
+  animation: pop 0.3s ease-out;
+}
+@media (max-width: 600px) {
+  .clean-streak {
+    left: 16px;
+    bottom: 170px;
+    font-size: 20px;
+  }
+  .chip {
+    font-size: 13px;
+    padding: 6px 10px;
+  }
+}

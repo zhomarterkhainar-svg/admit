@@ -44,3 +44,10 @@ export function speak(phrase: Phrase): void {
   speechSynthesis.cancel();
   speechSynthesis.speak(u);
 }
+
+/** Low-priority phrase (e.g. rep count): skipped if the coach is already talking. */
+export function speakIfIdle(text: string): void {
+  if (typeof window === 'undefined' || !window.speechSynthesis) return;
+  if (speechSynthesis.speaking || speechSynthesis.pending) return;
+  speak(text);
+}

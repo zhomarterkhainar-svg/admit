@@ -4,7 +4,7 @@ import { ExerciseRunner, type RunnerState } from '@/engine/runner';
 import type { ExerciseDefinition, Hint, RepSummary } from '@/engine/types';
 import { t } from '@/i18n';
 import { useApp } from '@/app/store';
-import { speak } from '@/audio/tts';
+import { speak, speakIfIdle } from '@/audio/tts';
 import { sfx } from '@/audio/sfx';
 import { OverlayCanvas } from '../overlay/OverlayCanvas';
 import { drawArrow } from '../overlay/drawArrow';
@@ -44,6 +44,7 @@ export function Workout<M>({
   const [ui, setUi] = useState<RunnerState | null>(null);
   const [flash, setFlash] = useState<Flash>(null);
   const [praise, setPraise] = useState(false);
+  const [cleanRun, setCleanRun] = useState(0);
   const [remaining, setRemaining] = useState(timeLimitSec);
   const hintRef = useRef<Hint | null>(null);
   const particles = useMemo(() => new Particles(), []);
@@ -108,6 +109,8 @@ export function Workout<M>({
           else sfx.rep();
           setFlash({ kind, key: e.rep.index });
           if (e.rep.counted) lastCountedT = tick.t;
+          setCleanRun((n) => (e.rep.counted && e.rep.errors.length === 0 ? n + 1 : 0));
+          if (e.rep.counted) speakIfIdle(String(st.counted));
           if (kind !== 'miss') burstRef.current = kind;
           if (st.counted >= target) finish();
         } else if (e.type === 'fixed') {
@@ -201,6 +204,11 @@ export function Workout<M>({
           />
           <div className="phase-goal" />
         </div>
+        {cleanRun >= 2 && (
+          <div className="clean-streak" key={cleanRun}>
+            🔥 {cleanRun} {t('workout.cleanStreak')}
+          </div>
+        )}
         <div className="mini-coach" aria-hidden="true">
           <GhostPreview exercise={exercise} />
         </div>

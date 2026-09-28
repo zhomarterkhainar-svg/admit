@@ -1,6 +1,7 @@
 import { useApp } from '@/app/store';
 import { t } from '@/i18n';
 import { rankFor } from '@/game/ranks';
+import { ACHIEVEMENTS } from '@/game/achievements';
 import { nextBatyrName } from '@/storage/names';
 import { topScores, type ScoreEntry } from '@/storage/progress';
 import { useLoop } from '../engine';
@@ -60,6 +61,25 @@ export function Records() {
             )}
           </section>
         </div>
+
+        <section className="card achievements">
+          <h2>
+            {t('ach.title')} · {Object.keys(progress.achievements).length}/{ACHIEVEMENTS.length}
+          </h2>
+          <div className="ach-grid">
+            {ACHIEVEMENTS.map((a) => (
+              <div
+                key={a.id}
+                className={`ach ${progress.achievements[a.id] ? 'on' : ''}`}
+                title={t(a.desc)}
+              >
+                <span className="ach-icon">{a.icon}</span>
+                <b>{t(a.title)}</b>
+                <small>{t(a.desc)}</small>
+              </div>
+            ))}
+          </div>
+        </section>
 
         <DwellButton variant="ghost" icon="←" onSelect={() => go('menu')}>
           {t('back')}

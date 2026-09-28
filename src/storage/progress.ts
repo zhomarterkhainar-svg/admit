@@ -19,15 +19,66 @@ export interface ScoreEntry {
   mode: 'challenge' | 'workout';
 }
 
+/** Lifetime counters that drive achievements. */
+export interface LifetimeStats {
+  totalReps: number;
+  cleanReps: number;
+  /** exercise ids ever completed at least once */
+  exercises: string[];
+  workouts: number;
+  freeWorkouts: number;
+  challenges: number;
+  bestCombo: number;
+  bestCleanStreak: number;
+  questsDone: number;
+}
+
+export interface Streak {
+  days: number;
+  /** local YYYY-MM-DD of the last active day */
+  lastDay: string | null;
+}
+
+export interface QuestState {
+  day: string;
+  progress: number;
+  done: boolean;
+}
+
 export interface Progress {
   totalXp: number;
   history: HistoryEntry[];
   scores: ScoreEntry[];
   playerName: string | null;
+  stats: LifetimeStats;
+  streak: Streak;
+  quest: QuestState | null;
+  /** achievement id → unlock timestamp */
+  achievements: Record<string, number>;
 }
 
 const KEY = 'qozgal.progress.v1';
-const EMPTY: Progress = { totalXp: 0, history: [], scores: [], playerName: null };
+export const EMPTY_STATS: LifetimeStats = {
+  totalReps: 0,
+  cleanReps: 0,
+  exercises: [],
+  workouts: 0,
+  freeWorkouts: 0,
+  challenges: 0,
+  bestCombo: 0,
+  bestCleanStreak: 0,
+  questsDone: 0,
+};
+const EMPTY: Progress = {
+  totalXp: 0,
+  history: [],
+  scores: [],
+  playerName: null,
+  stats: EMPTY_STATS,
+  streak: { days: 0, lastDay: null },
+  quest: null,
+  achievements: {},
+};
 
 /** Storage can be unavailable (private mode, blocked cookies) — never let that break the app. */
 export function loadProgress(
@@ -42,6 +93,11 @@ export function loadProgress(
       history: Array.isArray(p.history) ? p.history : [],
       scores: Array.isArray(p.scores) ? p.scores : [],
       playerName: typeof p.playerName === 'string' ? p.playerName : null,
+      // fields added later: merge with defaults so old saves keep working
+      stats: { ...EMPTY_STATS, ...(p.stats ?? {}) },
+      streak: p.streak && typeof p.streak.days === 'number' ? p.streak : { days: 0, lastDay: null },
+      quest: p.quest ?? null,
+      achievements: p.achievements && typeof p.achievements === 'object' ? p.achievements : {},
     };
   } catch {
     return structuredClone(EMPTY);
