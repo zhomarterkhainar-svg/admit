@@ -5,6 +5,8 @@ import { ExerciseRunner, type RunnerState } from '@/engine/runner';
 import { EXERCISES, EXERCISE_IDS, type ExerciseId } from '@/exercises/registry';
 import { compactFrame, downloadRecording } from '@/dev/recording';
 import { OverlayCanvas } from '../overlay/OverlayCanvas';
+import { defaultClassifier } from '@/ml/recognizer';
+import { toVector } from '@/ml/vector';
 
 const r = (n: number) => (Number.isFinite(n) ? Math.round(n) : '—');
 const f2 = (n: number) => (Number.isFinite(n) ? n.toFixed(2) : '—');
@@ -57,6 +59,11 @@ export function LiveDebug({ loop, info }: { loop: PoseSource; info: string }) {
   };
 
   const f = tick?.features;
+  const knn = f
+    ? (({ label, confidence }) => `${label} ${f2(confidence)}`)(
+        defaultClassifier().predict(toVector(f)),
+      )
+    : '—';
   return (
     <>
       <OverlayCanvas loop={loop} errorJoints={st?.errorJoints} />
@@ -85,6 +92,7 @@ export function LiveDebug({ loop, info }: { loop: PoseSource; info: string }) {
             {[
               `phase ${st.phase}  progress ${f2(st.progress)}  counted ${st.counted}/${st.attempted}  paused ${st.paused}`,
               `hint  ${st.hint?.id ?? '—'}`,
+              `kNN   ${knn}`,
               `reps  ${runner.reps
                 .slice(-4)
                 .map(

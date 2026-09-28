@@ -196,5 +196,6 @@ export const en = {
   'ch.bestCombo': 'Best streak',
   'ch.again': 'Play again',
 
+  'wrong.title': 'Looks like a different exercise',
   'praise.fixed': 'Great, keep it up!',
 } satisfies Record<I18nKey, string>;

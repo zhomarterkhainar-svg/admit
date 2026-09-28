@@ -56,7 +56,7 @@ export class ExerciseRunner<M> {
     f: FrameFeatures | null,
     people: number,
     t = f?.t ?? 0,
-    env: { brightness?: number } = {},
+    env: { brightness?: number; extraHints?: Hint[] } = {},
   ): RunnerState {
     const events: RunnerEvent[] = [];
     if (!f) {
@@ -85,7 +85,8 @@ export class ExerciseRunner<M> {
       if (this.metrics) formActive.forEach((r) => this.repErrors.add(r.id));
     }
 
-    const out = this.arbiter.update([...setupActive, ...formActive], f.t);
+    const extra = paused ? [] : (env.extraHints ?? []);
+    const out = this.arbiter.update([...setupActive, ...formActive, ...extra], f.t);
     if (out.hint) events.push({ type: 'hint', hint: out.hint, speak: out.speak });
     if (out.fixed) events.push({ type: 'fixed', id: out.fixed });
     return this.state(f, events, paused, [...setupActive, ...formActive]);

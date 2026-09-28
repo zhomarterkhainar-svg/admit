@@ -196,6 +196,7 @@ export const ru = {
   'ch.bestCombo': 'Лучшая серия',
   'ch.again': 'Ещё раз',
 
+  'wrong.title': 'Похоже, ты делаешь другое упражнение',
   'praise.fixed': 'Отлично, так держать!',
 } as const;
 

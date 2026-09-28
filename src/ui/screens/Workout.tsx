@@ -12,6 +12,7 @@ import { GhostPreview } from '../overlay/GhostPreview';
 import { Particles } from '../overlay/particles';
 import { coverMapper } from '../overlay/drawSkeleton';
 import { P } from '@/core/types';
+import { ExerciseRecognizer } from '@/ml/recognizer';
 
 interface Props<M> {
   loop: PoseSource;
@@ -63,6 +64,17 @@ export function Workout<M>({
       setTimeout(() => doneRef.current(runner.reps, activeMs), 900);
     };
 
+    // kNN recognizer: "you seem to be doing a different exercise"
+    const recognizer = new ExerciseRecognizer();
+    const wrongHint: Hint = {
+      id: 'wrongExercise',
+      severity: 'validity',
+      message: 'wrong.title',
+      fix: exercise.howTo,
+      joints: [],
+    };
+    let lastCountedT = performance.now();
+
     return loop.subscribe((tick) => {
       if (finished) return;
       if (pausedRef.current) {
@@ -72,7 +84,16 @@ export function Workout<M>({
       if (lastT !== null) activeMs += tick.t - lastT;
       lastT = tick.t;
 
-      const st = runner.update(tick.features, tick.people, tick.t, { brightness: tick.brightness });
+      const rec = recognizer.update(tick.features);
+      const wrong =
+        rec.label !== null &&
+        rec.label !== exercise.id &&
+        rec.share >= 0.75 &&
+        tick.t - lastCountedT > 6000;
+      const st = runner.update(tick.features, tick.people, tick.t, {
+        brightness: tick.brightness,
+        extraHints: wrong ? [wrongHint] : [],
+      });
       hintRef.current = st.hint;
       for (const e of st.events) {
         if (e.type === 'hint' && e.speak) {
@@ -84,6 +105,7 @@ export function Workout<M>({
           else if (kind === 'perfect') sfx.perfect();
           else sfx.rep();
           setFlash({ kind, key: e.rep.index });
+          if (e.rep.counted) lastCountedT = tick.t;
           if (kind !== 'miss') burstRef.current = kind;
           if (st.counted >= target) finish();
         } else if (e.type === 'fixed') {
@@ -99,7 +121,7 @@ export function Workout<M>({
         setRemaining(Math.max(0, Math.ceil(timeLimitSec - activeMs / 1000)));
       }
     });
-  }, [loop, runner, target, timeLimitSec]);
+  }, [loop, runner, target, timeLimitSec, exercise]);
 
   const hint = ui?.hint;
   return (

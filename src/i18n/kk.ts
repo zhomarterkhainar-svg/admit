@@ -198,5 +198,6 @@ export const kk = {
   'ch.bestCombo': 'Үздік серия',
   'ch.again': 'Қайта ойнау',
 
+  'wrong.title': 'Басқа жаттығу жасап жатқан сияқтысың',
   'praise.fixed': 'Жарайсың, осылай жалғастыр!',
 } satisfies Record<I18nKey, string>;

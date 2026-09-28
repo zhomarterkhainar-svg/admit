@@ -14,7 +14,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "models": "node scripts/fetch-models.mjs",
-    "postinstall": "node scripts/fetch-models.mjs"
+    "postinstall": "node scripts/fetch-models.mjs",
+    "train": "vitest run tests/train.test.ts --mode train"
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "^1.0.1",
