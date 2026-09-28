@@ -32,7 +32,7 @@ const COUNTDOWN_SEC = 4;
 
 export function Challenge() {
   const loop = useLoop();
-  const { go, finishChallenge } = useApp();
+  const { go, finishChallenge, baseline } = useApp();
   const demo = useDemo();
   useEffect(() => () => demo?.perform(null), [demo]);
   const [stage, setStage] = useState<'ready' | 'play'>('ready');
@@ -86,7 +86,7 @@ export function Challenge() {
     const handle = (events: ReturnType<ChallengeGame['tick']>) => {
       for (const e of events) {
         if (e.type === 'command') {
-          runner = new ExerciseRunner(EXERCISES[e.command.def.exercise]);
+          runner = new ExerciseRunner(EXERCISES[e.command.def.exercise], baseline);
           demo?.perform(e.command.def.exercise);
           speak((tr) => tr(`ch.cmd.${e.command.def.id}` as I18nKey));
         } else if (e.type === 'hit') {
@@ -168,7 +168,7 @@ export function Challenge() {
         });
       }
     });
-  }, [stage, loop, finishChallenge, demo]);
+  }, [stage, loop, finishChallenge, demo, baseline]);
 
   return (
     <>

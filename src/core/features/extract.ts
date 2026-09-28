@@ -107,6 +107,7 @@ export function extractFeatures(frame: PoseFrame): FrameFeatures {
     center: { x: (g(frame.image, P.leftHip).x + g(frame.image, P.rightHip).x) / 2, y: hipMidI.y },
     frontality: shoulderWidthI / torsoLenI,
     shoulderWidth: shoulderWidthI,
+    jointVisibility: frame.image.map((l) => l.visibility),
     visibility: {
       upper: minVis(frame.image, [
         P.leftShoulder,

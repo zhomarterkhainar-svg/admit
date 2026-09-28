@@ -12,6 +12,7 @@ import {
   type Progress,
 } from '@/storage/progress';
 import { randomBatyrName } from '@/storage/names';
+import type { Baseline } from '@/engine/baseline';
 
 export type Screen =
   | 'calibration'
@@ -38,6 +39,8 @@ interface AppState {
   lang: Lang;
   muted: boolean;
   calibrated: boolean;
+  /** personal standing baseline captured during calibration */
+  baseline: Baseline | null;
   program: Program | null;
   summary: WorkoutSummary | null;
   /** xp before the last result, to animate rank-ups */
@@ -50,6 +53,7 @@ interface AppState {
   setLang(lang: Lang): void;
   toggleMute(): void;
   setCalibrated(): void;
+  setBaseline(b: Baseline | null): void;
   startProgram(p: Program): void;
   finishWorkout(results: ExerciseResult[], startedAt: number, endedAt: number): void;
   finishChallenge(r: Omit<ChallengeResult, 'record'>, at: number): void;
@@ -87,6 +91,7 @@ export const useApp = create<AppState>((set, get) => ({
   lang: lang0,
   muted: muted0,
   calibrated: false,
+  baseline: null,
   program: null,
   summary: null,
   xpBefore: progress0.totalXp,
@@ -118,6 +123,7 @@ export const useApp = create<AppState>((set, get) => ({
   },
 
   setCalibrated: () => set({ calibrated: true, screen: 'menu' }),
+  setBaseline: (baseline) => set({ baseline }),
 
   startProgram: (program) => set({ program, screen: 'workout' }),
 

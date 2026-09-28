@@ -5,6 +5,7 @@ import { sfx } from '@/audio/sfx';
 import { useApp } from '@/app/store';
 import type { FrameFeatures } from '@/core/types';
 import { DARK_THRESHOLD } from '@/engine/setupRules';
+import { BaselineEstimator } from '@/engine/baseline';
 import { useLoop } from '../engine';
 import { DwellButton } from '../gestures/DwellButton';
 import { OverlayCanvas } from '../overlay/OverlayCanvas';
@@ -32,6 +33,7 @@ function evaluate(
 export function Calibration() {
   const loop = useLoop();
   const setCalibrated = useApp((s) => s.setCalibrated);
+  const setBaseline = useApp((s) => s.setBaseline);
   const [checks, setChecks] = useState<Record<Check, boolean>>(evaluate(null, 0));
   const [step, setStep] = useState<'frame' | 'cursor'>('frame');
   const okSince = useRef<number | null>(null);
@@ -43,12 +45,16 @@ export function Calibration() {
   useEffect(() => {
     if (step !== 'frame') return;
     let last = 0;
+    const estimator = new BaselineEstimator(30);
     return loop.subscribe((tick) => {
       const c = evaluate(tick.features, tick.people, tick.brightness);
       const all = CHECKS.every((k) => c[k]);
+      // while the user stands correctly, learn how they stand (personal baseline)
+      if (all && tick.features) estimator.add(tick.features);
       okSince.current = all ? (okSince.current ?? tick.t) : null;
       if (okSince.current && tick.t - okSince.current > 1500) {
         sfx.perfect();
+        if (estimator.value) setBaseline(estimator.value);
         speak((tr) => `${tr('calib.ok')} ${tr('calib.cursorTitle')}`);
         setStep('cursor');
       }
@@ -57,7 +63,7 @@ export function Calibration() {
         setChecks(c);
       }
     });
-  }, [loop, step]);
+  }, [loop, step, setBaseline]);
 
   const allOk = CHECKS.every((k) => checks[k]);
   return (

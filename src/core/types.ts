@@ -64,6 +64,8 @@ export interface FrameFeatures {
   frontality: number;
   /** min visibility of key landmark groups */
   visibility: { upper: number; lower: number; feet: number };
+  /** per-landmark visibility (33 values), for gating rules on the joints they use */
+  jointVisibility: number[];
 }
 
 /** MediaPipe Pose landmark indices. */

@@ -3,6 +3,7 @@ import type { PoseSource } from '@/core/vision/poseLoop';
 import { ExerciseRunner, type RunnerState } from '@/engine/runner';
 import type { ExerciseDefinition, Hint, RepSummary } from '@/engine/types';
 import { t } from '@/i18n';
+import { useApp } from '@/app/store';
 import { speak } from '@/audio/tts';
 import { sfx } from '@/audio/sfx';
 import { OverlayCanvas } from '../overlay/OverlayCanvas';
@@ -38,7 +39,8 @@ export function Workout<M>({
   onDone,
   step,
 }: Props<M>) {
-  const runner = useMemo(() => new ExerciseRunner(exercise), [exercise]);
+  const baseline = useApp((s) => s.baseline);
+  const runner = useMemo(() => new ExerciseRunner(exercise, baseline), [exercise, baseline]);
   const [ui, setUi] = useState<RunnerState | null>(null);
   const [flash, setFlash] = useState<Flash>(null);
   const [praise, setPraise] = useState(false);

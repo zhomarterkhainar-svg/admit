@@ -1,5 +1,6 @@
 import type { FrameFeatures } from '@/core/types';
 import { FeedbackArbiter } from './arbiter';
+import { BaselineEstimator, personalize, type Baseline } from './baseline';
 import { RuleTracker } from './ruleTracker';
 import { DARK_THRESHOLD, NO_PERSON, TOO_DARK, setupRules } from './setupRules';
 import type { ExerciseDefinition, FrameRule, Hint, RepSummary, RuleContext } from './types';
@@ -24,6 +25,8 @@ export interface RunnerState {
 }
 
 const PHASE_DEBOUNCE_MS = 80;
+/** Shorter "reps" are sensor noise crossing a threshold, not movements. */
+const MIN_REP_MS = 350;
 const QUALITY_PENALTY = { setup: 0, safety: 35, validity: 50, form: 20, tempo: 10 } as const;
 
 /**
@@ -41,8 +44,16 @@ export class ExerciseRunner<M> {
   private readonly form: RuleTracker;
   private readonly arbiter = new FeedbackArbiter();
   readonly reps: RepSummary[] = [];
+  private readonly autoBaseline = new BaselineEstimator();
 
-  constructor(readonly def: ExerciseDefinition<M>) {
+  /**
+   * @param baseline personal standing baseline (from calibration); if omitted it is
+   *   estimated automatically from the first ~0.7 s of relaxed standing
+   */
+  constructor(
+    readonly def: ExerciseDefinition<M>,
+    private baseline: Baseline | null = null,
+  ) {
     this.phase = def.initialPhase;
     this.setup = new RuleTracker(setupRules(def.needs, def.view));
     this.form = new RuleTracker(def.frameRules);
@@ -65,6 +76,11 @@ export class ExerciseRunner<M> {
       if (out.hint) events.push({ type: 'hint', hint: out.hint, speak: out.speak });
       return this.state(null, events, true, []);
     }
+    if (!this.baseline && this.phase === this.def.initialPhase) {
+      this.autoBaseline.add(f);
+      this.baseline = this.autoBaseline.value;
+    }
+    f = personalize(f, this.baseline);
     const ctx: RuleContext = {
       phase: this.phase,
       people,
@@ -114,7 +130,11 @@ export class ExerciseRunner<M> {
       this.repStartT = f.t;
       this.repErrors = new Set();
     } else if (proposed === this.def.repStart && this.metrics) {
-      events.push({ type: 'rep', rep: this.finishRep(f.t) });
+      if (f.t - this.repStartT < MIN_REP_MS) {
+        this.metrics = null; // noise, not a movement
+      } else {
+        events.push({ type: 'rep', rep: this.finishRep(f.t) });
+      }
     }
   }
 

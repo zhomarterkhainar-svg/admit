@@ -1,6 +1,8 @@
 import type { FrameFeatures } from '@/core/types';
 import type { FrameRule, RuleContext } from './types';
 
+const MIN_JOINT_VISIBILITY = 0.5;
+
 interface RuleState {
   active: boolean;
   /** time the current (unconfirmed) state change started */
@@ -21,7 +23,11 @@ export class RuleTracker {
     for (const rule of this.rules) {
       const st = this.state.get(rule.id) ?? { active: false, since: null };
       const inPhase = !rule.phases || rule.phases.includes(ctx.phase);
-      const violating = inPhase && safeTest(rule, f, ctx);
+      // technique rules are only trusted when the joints they talk about are clearly visible
+      const visible =
+        rule.severity === 'setup' ||
+        rule.joints.every((j) => (f.jointVisibility[j] ?? 1) >= MIN_JOINT_VISIBILITY);
+      const violating = inPhase && visible && safeTest(rule, f, ctx);
       if (violating !== st.active) {
         st.since ??= f.t;
         const need = violating ? (rule.persistMs ?? 200) : (rule.clearMs ?? 300);
