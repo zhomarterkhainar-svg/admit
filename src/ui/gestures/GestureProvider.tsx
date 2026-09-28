@@ -73,6 +73,9 @@ export function GestureProvider({ loop, children, enabled = true }: ProviderProp
     const detector = new PoseGestureDetector();
     let cursor: Cursor | null = null;
     let lastHover: string | null = null;
+    // after a selection the next screen often has a button under the same spot:
+    // freeze dwell briefly so it can't be selected by accident
+    let cooldownUntil = 0;
 
     return loop.subscribe((tick) => {
       for (const g of detector.update(tick.frame, tick.features))
@@ -91,7 +94,7 @@ export function GestureProvider({ loop, children, enabled = true }: ProviderProp
       }
 
       cursor = targets.length && tick.frame ? computeCursor(tick.frame, cursor) : null;
-      const st = dwell.update(cursor, targets, tick.t);
+      const st = dwell.update(tick.t < cooldownUntil ? null : cursor, targets, tick.t);
 
       const c = cursorEl.current;
       if (c) {
@@ -111,6 +114,8 @@ export function GestureProvider({ loop, children, enabled = true }: ProviderProp
       }
       lastHover = st.hoverId;
       if (st.selected) {
+        cooldownUntil = tick.t + 900;
+        dwell.reset();
         sfx.select();
         buttons.current.get(st.selected)?.onSelect();
       }

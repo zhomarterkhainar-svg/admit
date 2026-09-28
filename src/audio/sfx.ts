@@ -5,6 +5,12 @@ const ac = () => (ctx ??= new AudioContext());
 /** Call from a user gesture once (browsers block audio before interaction). */
 export function unlockAudio(): void {
   void ac().resume();
+  // iOS only allows speech after a user gesture: warm the synthesizer up inside the click
+  try {
+    window.speechSynthesis?.speak(new SpeechSynthesisUtterance(''));
+  } catch {
+    /* no speech support */
+  }
 }
 
 /** Plucked-string "dombra" tone via Karplus–Strong. */

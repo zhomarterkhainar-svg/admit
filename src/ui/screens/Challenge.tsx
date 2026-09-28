@@ -253,7 +253,7 @@ export function Challenge() {
 export function ChallengeResults() {
   const loop = useLoop();
   const { challenge, go } = useApp();
-  useGestures({ crossArms: () => go('menu'), handsUp: () => go('challenge') });
+  useGestures({ crossArms: () => go('menu') });
   useEffect(() => {
     if (!challenge) return;
     speak(
