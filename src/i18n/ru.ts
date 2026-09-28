@@ -77,6 +77,11 @@ export const ru = {
   'sideBend.knees.msg': 'Колени согнуты',
   'sideBend.knees.fix': 'Держи ноги прямыми',
 
+  'rank.zhas': 'Жас батыр',
+  'rank.batyr': 'Батыр',
+  'rank.er': 'Ер',
+  'rank.alyp': 'Алып',
+
   'praise.fixed': 'Отлично, так держать!',
 } as const;
 
