@@ -19,7 +19,8 @@ export interface Hint {
   message: I18nKey;
   fix: I18nKey;
   joints: readonly number[];
-  arrow?: Arrow;
+  /** correction arrows, e.g. both knees outward */
+  arrows?: readonly Arrow[];
 }
 
 export interface RuleContext {

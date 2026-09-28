@@ -2,6 +2,8 @@
 export const ru = {
   'app.tagline': 'Путь Батыра — AI-тренер, которым управляешь телом',
 
+  'setup.noPerson.msg': 'Тебя не видно',
+  'setup.noPerson.fix': 'Встань перед камерой в 2–3 метрах, чтобы было видно тебя целиком',
   'setup.multiplePeople.msg': 'В кадре несколько человек',
   'setup.multiplePeople.fix': 'Останься в кадре один',
   'setup.tooClose.msg': 'Не видно ступней',

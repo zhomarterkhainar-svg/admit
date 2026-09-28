@@ -1,7 +1,7 @@
 import type { FrameFeatures } from '@/core/types';
 import { FeedbackArbiter } from './arbiter';
 import { RuleTracker } from './ruleTracker';
-import { setupRules } from './setupRules';
+import { NO_PERSON, setupRules } from './setupRules';
 import type { ExerciseDefinition, FrameRule, Hint, RepSummary, RuleContext } from './types';
 
 export type RunnerEvent =
@@ -48,9 +48,12 @@ export class ExerciseRunner<M> {
     this.form = new RuleTracker(def.frameRules);
   }
 
-  update(f: FrameFeatures | null, people: number): RunnerState {
+  /** @param t frame time (ms); defaults to f.t */
+  update(f: FrameFeatures | null, people: number, t = f?.t ?? 0): RunnerState {
     const events: RunnerEvent[] = [];
     if (!f) {
+      const out = this.arbiter.update([NO_PERSON], t);
+      if (out.hint) events.push({ type: 'hint', hint: out.hint, speak: out.speak });
       return this.state(null, events, true, []);
     }
     const ctx: RuleContext = { phase: this.phase, people, phaseMs: f.t - this.phaseSince };

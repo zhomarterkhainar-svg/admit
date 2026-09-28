@@ -1,5 +1,14 @@
 import { P } from '@/core/types';
-import type { FrameRule } from './types';
+import type { FrameRule, Hint } from './types';
+
+/** Shown when nobody is detected at all. */
+export const NO_PERSON: Hint = {
+  id: 'setup.noPerson',
+  severity: 'setup',
+  message: 'setup.noPerson.msg',
+  fix: 'setup.noPerson.fix',
+  joints: [],
+};
 
 /**
  * Framing / environment checks shared by all exercises. Highest priority in the arbiter:

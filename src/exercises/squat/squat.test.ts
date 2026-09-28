@@ -72,3 +72,12 @@ describe('squat', () => {
     expect(runner.reps).toHaveLength(0);
   });
 });
+
+describe('runner without a person', () => {
+  it('asks the user to stand in front of the camera', () => {
+    const runner = new ExerciseRunner(squat);
+    const st = runner.update(null, 0, 1000);
+    expect(st.hint?.id).toBe('setup.noPerson');
+    expect(st.paused).toBe(true);
+  });
+});

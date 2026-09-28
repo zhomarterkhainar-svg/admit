@@ -4,6 +4,8 @@ import type { FrameFeatures, PoseFrame } from '../types';
 import type { PoseTracker } from './poseTracker';
 
 export interface PoseTick {
+  /** ms, performance.now() */
+  t: number;
   frame: PoseFrame | null;
   features: FrameFeatures | null;
   people: number;
@@ -86,7 +88,7 @@ export class PoseLoop {
         this.smoothImage.reset();
         this.smoothWorld.reset();
       }
-      const tick: PoseTick = { frame, features, people, fps: this.fps, inferenceMs };
+      const tick: PoseTick = { t: now, frame, features, people, fps: this.fps, inferenceMs };
       this.listeners.forEach((fn) => fn(tick));
     }
     this.schedule();
