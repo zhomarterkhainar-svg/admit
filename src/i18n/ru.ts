@@ -1,4 +1,4 @@
-// Source of truth for all UI strings. kk.ts / en.ts may be partial and fall back to ru.
+// Source of truth for all UI strings. kk.ts / en.ts must cover every key (checked by the type system).
 export const ru = {
   'app.tagline': 'Путь Батыра — AI-тренер, которым управляешь телом',
 
