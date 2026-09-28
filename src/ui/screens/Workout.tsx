@@ -9,6 +9,9 @@ import { OverlayCanvas } from '../overlay/OverlayCanvas';
 import { drawArrow } from '../overlay/drawArrow';
 import { drawGhost } from '../overlay/drawGhost';
 import { GhostPreview } from '../overlay/GhostPreview';
+import { Particles } from '../overlay/particles';
+import { coverMapper } from '../overlay/drawSkeleton';
+import { P } from '@/core/types';
 
 interface Props<M> {
   loop: PoseSource;
@@ -40,6 +43,8 @@ export function Workout<M>({
   const [praise, setPraise] = useState(false);
   const [remaining, setRemaining] = useState(timeLimitSec);
   const hintRef = useRef<Hint | null>(null);
+  const particles = useMemo(() => new Particles(), []);
+  const burstRef = useRef<'perfect' | 'good' | null>(null);
   const pausedRef = useRef(paused);
   const doneRef = useRef(onDone);
   useEffect(() => {
@@ -79,6 +84,7 @@ export function Workout<M>({
           else if (kind === 'perfect') sfx.perfect();
           else sfx.rep();
           setFlash({ kind, key: e.rep.index });
+          if (kind !== 'miss') burstRef.current = kind;
           if (st.counted >= target) finish();
         } else if (e.type === 'fixed') {
           setPraise(true);
@@ -102,6 +108,28 @@ export function Workout<M>({
         loop={loop}
         errorJoints={ui?.errorJoints}
         onDraw={(ctx, tick) => {
+          if (burstRef.current && tick.frame) {
+            const { map } = coverMapper(
+              tick.frame.width,
+              tick.frame.height,
+              ctx.canvas.width,
+              ctx.canvas.height,
+              true,
+            );
+            const ls = tick.frame.image[P.leftShoulder]!;
+            const rs = tick.frame.image[P.rightShoulder]!;
+            const c = map((ls.x + rs.x) / 2, (ls.y + rs.y) / 2);
+            particles.burst(
+              c.x,
+              c.y,
+              burstRef.current === 'perfect'
+                ? ['#ffc72c', '#fff3c4', '#ffffff']
+                : ['#2ee59d', '#00b5e2'],
+              burstRef.current === 'perfect' ? 48 : 28,
+            );
+            burstRef.current = null;
+          }
+          particles.draw(ctx);
           const h = hintRef.current;
           if (!tick.frame || !h) return;
           // technique problem → show the correct pose as a ghost over the user

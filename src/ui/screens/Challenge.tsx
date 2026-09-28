@@ -12,6 +12,7 @@ import { DwellButton } from '../gestures/DwellButton';
 import { useGestures } from '../gestures/GestureProvider';
 import { OverlayCanvas } from '../overlay/OverlayCanvas';
 import { drawArrow } from '../overlay/drawArrow';
+import { Confetti } from '../components/Confetti';
 
 type Pop = { text: string; kind: 'hit' | 'clean' | 'miss' | 'warn'; key: number };
 
@@ -261,6 +262,7 @@ export function ChallengeResults() {
   return (
     <>
       <OverlayCanvas loop={loop} />
+      {challenge.record && <Confetti />}
       <div className="screen-dim results">
         <h1 className="h1">{t('ch.over')}</h1>
         {challenge.record && <div className="record-badge">🏆 {t('ch.record')}</div>}

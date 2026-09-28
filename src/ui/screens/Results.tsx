@@ -9,6 +9,7 @@ import { useLoop } from '../engine';
 import { DwellButton } from '../gestures/DwellButton';
 import { useGestures } from '../gestures/GestureProvider';
 import { OverlayCanvas } from '../overlay/OverlayCanvas';
+import { Confetti } from '../components/Confetti';
 
 const fmtTime = (ms: number) => {
   const s = Math.round(ms / 1000);
@@ -48,6 +49,7 @@ export function Results() {
   return (
     <>
       <OverlayCanvas loop={loop} />
+      {(rankUp || summary.cleanPct === 100) && <Confetti />}
       <div className="screen-dim results">
         <h1 className="h1">{t('results.title')}</h1>
         <div className="stats">

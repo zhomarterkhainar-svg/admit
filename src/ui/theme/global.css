@@ -1031,3 +1031,31 @@ body {
     left: 12px;
   }
 }
+
+/* ---------- confetti ---------- */
+.confetti {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  overflow: hidden;
+}
+.confetti span {
+  position: absolute;
+  top: -20px;
+  border-radius: 2px;
+  animation-name: confetti-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: 2;
+}
+@keyframes confetti-fall {
+  to {
+    top: 105%;
+    transform: translateX(40px) rotate(720deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .confetti {
+    display: none;
+  }
+}
