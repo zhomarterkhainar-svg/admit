@@ -255,5 +255,6 @@ export const en = {
   'ach.count': 'achievements',
   'ach.count.one': 'achievement',
   'ach.count.few': 'achievements',
+  'results.share': 'Share',
   'praise.fixed': 'Great, keep it up!',
 } satisfies Record<I18nKey, string>;

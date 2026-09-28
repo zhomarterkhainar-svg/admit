@@ -257,5 +257,6 @@ export const kk = {
   'ach.count': 'жетістік',
   'ach.count.one': 'жетістік',
   'ach.count.few': 'жетістік',
+  'results.share': 'Бөлісу',
   'praise.fixed': 'Жарайсың, осылай жалғастыр!',
 } satisfies Record<I18nKey, string>;

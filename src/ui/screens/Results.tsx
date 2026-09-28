@@ -11,6 +11,7 @@ import { useGestures } from '../gestures/GestureProvider';
 import { OverlayCanvas } from '../overlay/OverlayCanvas';
 import { Confetti } from '../components/Confetti';
 import { PoseCompare } from '../components/PoseCompare';
+import { shareCard } from '../share/shareCard';
 
 const fmtTime = (ms: number) => {
   const s = Math.round(ms / 1000);
@@ -28,7 +29,8 @@ function fixFor(id: string): { msg: I18nKey; fix: I18nKey; joints: readonly numb
 
 export function Results() {
   const loop = useLoop();
-  const { summary, xpBefore, progress, program, startProgram, go, questCompleted } = useApp();
+  const { summary, xpBefore, progress, program, startProgram, go, questCompleted, playerName } =
+    useApp();
   useGestures({ crossArms: () => go('menu') });
 
   const before = rankFor(xpBefore);
@@ -158,6 +160,15 @@ export function Results() {
           </DwellButton>
           <DwellButton icon="🏆" onSelect={() => go('records')}>
             {t('results.records')}
+          </DwellButton>
+          <DwellButton
+            variant="ghost"
+            icon="📤"
+            onSelect={() =>
+              void shareCard({ playerName, rank: after.rank, totalXp: progress.totalXp, summary })
+            }
+          >
+            {t('results.share')}
           </DwellButton>
           <DwellButton variant="ghost" icon="🏠" onSelect={() => go('menu')}>
             {t('results.menu')}

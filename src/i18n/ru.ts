@@ -255,6 +255,7 @@ export const ru = {
   'ach.count': 'достижений',
   'ach.count.one': 'достижение',
   'ach.count.few': 'достижения',
+  'results.share': 'Поделиться',
   'praise.fixed': 'Отлично, так держать!',
 } as const;
 
