@@ -38,14 +38,24 @@ export interface FrameFeatures {
   torsoLean: number;
   /** sideways lean of torso, degrees; negative = user's left, positive = user's right */
   torsoSideLean: number;
+  /** signed forward pitch of torso, degrees; + = leaning toward the camera, − = arching back */
+  torsoPitch: number;
   /** ankle distance / shoulder width */
   stanceRatio: number;
   /** knee distance / ankle distance (< 1 means knees caving in) */
   kneeAnkleRatio: number;
+  /** how far each knee is below the hips, in torso lengths (image space; ~0.85 standing, ~0 thigh toward camera) */
+  kneeDrop: LR<number>;
+  /** knee shift toward the body midline relative to its ankle, in shoulder widths (+ = inward) */
+  kneeInward: LR<number>;
+  /** world z of left ankle minus right ankle, meters (− = left foot closer to camera) */
+  ankleZDiff: number;
   /** wrist y above nose y (image space) */
   wristAboveHead: LR<boolean>;
   /** wrist height relative to shoulder, normalized by torso length (+ = above shoulder) */
   wristLift: LR<number>;
+  /** shoulder width in aspect-corrected image units (for normalizing distances) */
+  shoulderWidth: number;
   /** fraction of frame height covered by the body (nose → ankles) */
   bodyHeightFrac: number;
   /** hip center in normalized image coords */

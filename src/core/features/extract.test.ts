@@ -50,3 +50,15 @@ describe('extractFeatures', () => {
     expect(f.kneeAnkleRatio).toBeLessThan(0.8);
   });
 });
+
+describe('extractFeatures: extended', () => {
+  it('standing: knees well below hips, not inward, no pitch', () => {
+    const f = extractFeatures(makePose());
+    expect(f.kneeDrop.l).toBeGreaterThan(0.7);
+    expect(Math.abs(f.kneeInward.l)).toBeLessThan(0.15);
+    expect(Math.abs(f.torsoPitch)).toBeLessThan(5);
+  });
+  it('squat bottom: torso pitches toward camera', () => {
+    expect(extractFeatures(makePose(squatDown())).torsoPitch).toBeGreaterThan(20);
+  });
+});

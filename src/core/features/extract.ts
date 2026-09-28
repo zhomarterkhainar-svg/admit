@@ -56,6 +56,10 @@ export function extractFeatures(frame: PoseFrame): FrameFeatures {
     g(frame.image, P.rightHeel).y,
   );
 
+  const shoulderWidthN = Math.max(shoulderWidthI, 1e-6);
+  const kneeInwardL = (g(im, P.leftAnkle).x - g(im, P.leftKnee).x) / shoulderWidthN;
+  const kneeInwardR = (g(im, P.rightKnee).x - g(im, P.rightAnkle).x) / shoulderWidthN;
+
   const wristLift = (shoulder: number, wrist: number) =>
     (g(im, shoulder).y - g(im, wrist).y) / torsoLenI;
 
@@ -80,8 +84,16 @@ export function extractFeatures(frame: PoseFrame): FrameFeatures {
     torsoLean: angleBetween(torsoW, UP_WORLD),
     // image is not mirrored: user's left side appears on image right (+x)
     torsoSideLean: -leanFromVertical2d(hipMidI, shoulderMidI),
+    // world z grows away from camera: leaning toward camera makes torso.z negative
+    torsoPitch: (Math.atan2(-torsoW.z, -torsoW.y) * 180) / Math.PI,
     stanceRatio: ankleDistW / shoulderWidthW,
     kneeAnkleRatio: kneeDistW / Math.max(ankleDistW, 1e-6),
+    kneeDrop: {
+      l: (g(im, P.leftKnee).y - hipMidI.y) / torsoLenI,
+      r: (g(im, P.rightKnee).y - hipMidI.y) / torsoLenI,
+    },
+    kneeInward: { l: kneeInwardL, r: kneeInwardR },
+    ankleZDiff: g(w, P.leftAnkle).z - g(w, P.rightAnkle).z,
     wristAboveHead: {
       l: g(frame.image, P.leftWrist).y < noseY,
       r: g(frame.image, P.rightWrist).y < noseY,
@@ -94,6 +106,7 @@ export function extractFeatures(frame: PoseFrame): FrameFeatures {
     bodyHeightFrac: (feetY - noseY) / 0.87,
     center: { x: (g(frame.image, P.leftHip).x + g(frame.image, P.rightHip).x) / 2, y: hipMidI.y },
     frontality: shoulderWidthI / torsoLenI,
+    shoulderWidth: shoulderWidthI,
     visibility: {
       upper: minVis(frame.image, [
         P.leftShoulder,
