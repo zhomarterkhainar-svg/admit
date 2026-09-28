@@ -1,9 +1,9 @@
 /** Thresholds for squat detection. Tune with the /dev HUD and recorded fixtures. */
 export const SQUAT = {
   /** avg knee angle below this → entering "down" */
-  downEnter: 145,
+  downEnter: 140,
   /** avg knee angle above this → back "up" */
-  upEnter: 162,
+  upEnter: 157,
   /** min knee angle during rep must be ≤ this, otherwise rep is too shallow */
   depthMax: 100,
   /** knee distance / ankle distance below this at the bottom → valgus */

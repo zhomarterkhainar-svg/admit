@@ -2,7 +2,7 @@ export const LUNGE = {
   /** avg knee angle to enter "down" */
   downEnter: 140,
   /** avg knee angle to return "up" */
-  upEnter: 160,
+  upEnter: 157,
   /** front knee must reach ≤ this */
   frontKneeMax: 110,
   /** back knee must reach ≤ this */
