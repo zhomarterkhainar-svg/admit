@@ -39,8 +39,9 @@ export function Results() {
     if (rankUp) sfx.perfect();
     const top = summary.topErrors[0] && fixFor(summary.topErrors[0].id);
     speak(
-      `${t('results.title')}. ${t('results.reps')}: ${summary.counted}. ${t('results.quality')}: ${summary.quality}%. ` +
-        (top ? `${t(top.msg)}. ${t(top.fix)}` : t('results.noErrors')),
+      (tr) =>
+        `${tr('results.title')}. ${tr('results.reps')}: ${summary.counted}. ${tr('results.quality')}: ${summary.quality}%. ` +
+        (top ? `${tr(top.msg)}. ${tr(top.fix)}` : tr('results.noErrors')),
     );
   }, [summary, rankUp]);
 

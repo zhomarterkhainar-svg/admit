@@ -15,5 +15,10 @@ export const setLang = (l: Lang) => {
 export const getLang = () => lang;
 
 export function t(key: I18nKey): string {
-  return dicts[lang][key] ?? ru[key] ?? key;
+  return tIn(lang, key);
+}
+
+/** Translate into a specific language (e.g. Russian speech when no Kazakh voice exists). */
+export function tIn(l: Lang, key: I18nKey): string {
+  return dicts[l][key] ?? ru[key] ?? key;
 }

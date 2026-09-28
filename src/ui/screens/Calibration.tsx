@@ -37,7 +37,7 @@ export function Calibration() {
   const okSince = useRef<number | null>(null);
 
   useEffect(() => {
-    speak(t('calib.title'));
+    speak((tr) => tr('calib.title'));
   }, []);
 
   useEffect(() => {
@@ -49,7 +49,7 @@ export function Calibration() {
       okSince.current = all ? (okSince.current ?? tick.t) : null;
       if (okSince.current && tick.t - okSince.current > 1500) {
         sfx.perfect();
-        speak(`${t('calib.ok')} ${t('calib.cursorTitle')}`);
+        speak((tr) => `${tr('calib.ok')} ${tr('calib.cursorTitle')}`);
         setStep('cursor');
       }
       if (tick.t - last > 150) {

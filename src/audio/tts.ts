@@ -1,4 +1,4 @@
-import { getLang, type Lang } from '@/i18n';
+import { getLang, tIn, type I18nKey, type Lang } from '@/i18n';
 
 const LOCALE: Record<Lang, string> = { ru: 'ru-RU', kk: 'kk-KZ', en: 'en-US' };
 let muted = false;
@@ -20,14 +20,26 @@ function pickVoice(locale: string): SpeechSynthesisVoice | undefined {
   );
 }
 
-/** Speaks a short coaching phrase, interrupting the previous one. */
-export function speak(text: string): void {
+/** Text to speak: a plain string, or a builder that receives a translator (preferred). */
+export type Phrase = string | ((tr: (key: I18nKey) => string) => string);
+
+/**
+ * Speaks a short coaching phrase, interrupting the previous one.
+ * Kazakh voices are rare in browsers: with no kk voice, phrases given as builders are spoken
+ * in Russian (the screen stays in Kazakh) instead of mispronouncing Kazakh with a Russian voice.
+ */
+export function speak(phrase: Phrase): void {
   if (muted || typeof window === 'undefined' || !window.speechSynthesis) return;
-  const locale = LOCALE[getLang()];
+  let lang = getLang();
+  let voice = pickVoice(LOCALE[lang]);
+  if (lang === 'kk' && !voice?.lang.startsWith('kk') && typeof phrase === 'function') {
+    lang = 'ru';
+    voice = pickVoice(LOCALE.ru);
+  }
+  const text = typeof phrase === 'function' ? phrase((key) => tIn(lang, key)) : phrase;
   const u = new SpeechSynthesisUtterance(text);
-  const voice = pickVoice(locale);
   if (voice) u.voice = voice;
-  u.lang = voice?.lang ?? locale;
+  u.lang = voice?.lang ?? LOCALE[lang];
   u.rate = 1.05;
   speechSynthesis.cancel();
   speechSynthesis.speak(u);

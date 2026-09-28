@@ -111,7 +111,7 @@ function Intro({
   });
 
   useEffect(() => {
-    speak(`${t(ex.name)}. ${t(ex.howTo)}`);
+    speak((tr) => `${tr(ex.name)}. ${tr(ex.howTo)}`);
     const started = performance.now();
     const id = setInterval(() => {
       const l = INTRO_SEC - Math.floor((performance.now() - started) / 1000);

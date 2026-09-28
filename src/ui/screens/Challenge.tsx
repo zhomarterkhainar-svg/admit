@@ -58,7 +58,7 @@ export function Challenge() {
   // countdown
   useEffect(() => {
     if (stage !== 'ready') return;
-    speak(`${t('ch.title')}. ${t('ch.rules')}`);
+    speak((tr) => `${tr('ch.title')}. ${tr('ch.rules')}`);
     const started = performance.now();
     const id = setInterval(() => {
       const left = COUNTDOWN_SEC + 3 - Math.floor((performance.now() - started) / 1000);
@@ -88,7 +88,7 @@ export function Challenge() {
         if (e.type === 'command') {
           runner = new ExerciseRunner(EXERCISES[e.command.def.exercise]);
           demo?.perform(e.command.def.exercise);
-          speak(t(`ch.cmd.${e.command.def.id}` as I18nKey));
+          speak((tr) => tr(`ch.cmd.${e.command.def.id}` as I18nKey));
         } else if (e.type === 'hit') {
           if (e.clean) sfx.perfect();
           else sfx.rep();
@@ -100,7 +100,7 @@ export function Challenge() {
         } else if (e.type === 'almost') {
           sfx.notCounted();
           const rule = [...runner!.def.repRules].find((r) => e.rep.errors.includes(r.id));
-          if (rule) speak(t(rule.fix));
+          if (rule) speak((tr) => tr(rule.fix));
           show(rule ? t(rule.fix) : t('ch.miss'), 'warn');
         } else if (e.type === 'wrongSide') {
           sfx.notCounted();
@@ -257,7 +257,8 @@ export function ChallengeResults() {
   useEffect(() => {
     if (!challenge) return;
     speak(
-      `${t('ch.over')}. ${t('ch.score')}: ${challenge.score}. ${challenge.record ? t('ch.record') : ''}`,
+      (tr) =>
+        `${tr('ch.over')}. ${tr('ch.score')}: ${challenge.score}. ${challenge.record ? tr('ch.record') : ''}`,
     );
   }, [challenge]);
   if (!challenge) return null;

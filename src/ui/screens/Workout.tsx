@@ -77,7 +77,7 @@ export function Workout<M>({
       for (const e of st.events) {
         if (e.type === 'hint' && e.speak) {
           sfx.hint();
-          speak(`${t(e.hint.message)}. ${t(e.hint.fix)}`);
+          speak((tr) => `${tr(e.hint.message)}. ${tr(e.hint.fix)}`);
         } else if (e.type === 'rep') {
           const kind = !e.rep.counted ? 'miss' : e.rep.errors.length === 0 ? 'perfect' : 'good';
           if (kind === 'miss') sfx.notCounted();
