@@ -94,7 +94,7 @@ export function GestureProvider({ loop, children, enabled = true }: ProviderProp
       }
 
       cursor = targets.length && tick.frame ? computeCursor(tick.frame, cursor) : null;
-      const st = dwell.update(tick.t < cooldownUntil ? null : cursor, targets, tick.t);
+      const st = dwell.update(cursor, targets, tick.t, tick.t < cooldownUntil);
 
       const c = cursorEl.current;
       if (c) {
@@ -115,7 +115,6 @@ export function GestureProvider({ loop, children, enabled = true }: ProviderProp
       lastHover = st.hoverId;
       if (st.selected) {
         cooldownUntil = tick.t + 900;
-        dwell.reset();
         sfx.select();
         buttons.current.get(st.selected)?.onSelect();
       }

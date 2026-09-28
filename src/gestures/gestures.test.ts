@@ -103,3 +103,22 @@ describe('dwell', () => {
     expect(d.update({ x: 0.5, y: 0.5 }, targets, 700).progress).toBe(0);
   });
 });
+
+describe('dwell freeze', () => {
+  const a = { id: 'a', rect: { left: 0, top: 0, right: 0.5, bottom: 0.5 } };
+  it('does not progress while frozen, then needs a full dwell', () => {
+    const d = new DwellTracker(1000);
+    d.update({ x: 0.2, y: 0.2 }, [a], 0, true);
+    expect(d.update({ x: 0.2, y: 0.2 }, [a], 900, true).progress).toBe(0);
+    expect(d.update({ x: 0.2, y: 0.2 }, [a], 1000).progress).toBeCloseTo(0.1);
+    expect(d.update({ x: 0.2, y: 0.2 }, [a], 1900).selected).toBe('a');
+  });
+
+  it('a selected button stays locked while hovered, even through a freeze', () => {
+    const d = new DwellTracker(1000);
+    d.update({ x: 0.2, y: 0.2 }, [a], 0);
+    expect(d.update({ x: 0.2, y: 0.2 }, [a], 1000).selected).toBe('a');
+    d.update({ x: 0.2, y: 0.2 }, [a], 1500, true);
+    expect(d.update({ x: 0.2, y: 0.2 }, [a], 5000).selected).toBeNull();
+  });
+});

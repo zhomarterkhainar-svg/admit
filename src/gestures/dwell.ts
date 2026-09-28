@@ -23,7 +23,13 @@ export class DwellTracker {
 
   constructor(private readonly dwellMs = 1100) {}
 
-  update(cursor: { x: number; y: number } | null, targets: DwellTarget[], t: number): DwellState {
+  /** @param frozen track hovering but make no progress (e.g. right after a selection) */
+  update(
+    cursor: { x: number; y: number } | null,
+    targets: DwellTarget[],
+    t: number,
+    frozen = false,
+  ): DwellState {
     const pad = 0.01;
     const hit = cursor
       ? targets.find(
@@ -42,6 +48,10 @@ export class DwellTracker {
       if (id !== this.locked) this.locked = null;
     }
     if (!id || id === this.locked) return { hoverId: id, progress: 0, selected: null };
+    if (frozen) {
+      this.since = t;
+      return { hoverId: id, progress: 0, selected: null };
+    }
 
     const progress = Math.min(1, (t - this.since) / this.dwellMs);
     if (progress >= 1) {
