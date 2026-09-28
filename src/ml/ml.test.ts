@@ -43,3 +43,30 @@ describe('ExerciseRecognizer', () => {
     });
   }
 });
+
+describe('kNN robustness (harder than training)', () => {
+  it('≥ 95% overall and ≥ 90% per class with 35° body rotation, 15° camera tilt, mirroring and heavy depth noise', () => {
+    const clf = new KnnClassifier(7);
+    clf.addAll(syntheticSamples());
+    const hard = syntheticSamples(50, 555, {
+      yaw: 35,
+      pitch: 15,
+      mirror: true,
+      noiseXY: 0.1,
+      noiseZ: 0.3,
+    });
+    const byClass = new Map<string, { ok: number; n: number }>();
+    for (const s of hard) {
+      const c = byClass.get(s.label) ?? { ok: 0, n: 0 };
+      c.n++;
+      if (clf.predict(s.v).label === s.label) c.ok++;
+      byClass.set(s.label, c);
+    }
+    const total = [...byClass.values()].reduce((a, c) => ({ ok: a.ok + c.ok, n: a.n + c.n }), {
+      ok: 0,
+      n: 0,
+    });
+    expect(total.ok / total.n).toBeGreaterThanOrEqual(0.95);
+    for (const [label, c] of byClass) expect(c.ok / c.n, label).toBeGreaterThanOrEqual(0.9);
+  });
+});
