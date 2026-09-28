@@ -192,7 +192,7 @@ AI-тренер «Путь Батыра» в браузере: пользова�
 | Анимации UI | CSS + Framer Motion (по желанию) | |
 | Тесты | **Vitest** + фикстуры поз (JSON) | тестируем логику без камеры |
 | Линт | ESLint + Prettier + `tsc --noEmit` | |
-| CI/CD | **GitHub Actions** → **GitHub Pages** (+ зеркало на Vercel/Netlify) | HTTPS обязателен для камеры |
+| CI/CD | **GitHub Actions** (проверки) + **Vercel** (деплой, preview на каждый PR) | HTTPS обязателен для камеры |
 | Хранение | localStorage (история, рекорды); опционально Supabase для глобальных рекордов | |
 
 ### 5.2 Поток данных (pipeline)
@@ -330,7 +330,7 @@ export interface ErrorRule {
 ### 7.2 Качество кода
 - TypeScript strict, ESLint, Prettier, pre-commit (lint-staged).
 - Юнит-тесты: геометрия, фильтры, FSM, каждое правило ошибок (good/bad фикстуры), arbiter, DTW.
-- CI: lint → typecheck → test → build → deploy (GitHub Pages) на каждый push в `main`.
+- CI: lint → typecheck → test → build на каждый PR; деплой — Vercel.
 - README: описание, демо-GIF, как запустить (2 команды), архитектура (схема), как устроен твист, список движений, структура, команда, **заявление о заготовках** (их нет, всё с 28.09 07:00).
 
 ### 7.3 Датасет и калибровка порогов
