@@ -21,14 +21,14 @@ const STANDING_WORLD: Partial<Record<number, Pt>> = {
   [P.rightWrist]: [-0.23, 0.03],
   [P.leftHip]: [0.1, 0],
   [P.rightHip]: [-0.1, 0],
-  [P.leftKnee]: [0.11, 0.43],
-  [P.rightKnee]: [-0.11, 0.43],
-  [P.leftAnkle]: [0.12, 0.85],
-  [P.rightAnkle]: [-0.12, 0.85],
-  [P.leftHeel]: [0.12, 0.89, 0.03],
-  [P.rightHeel]: [-0.12, 0.89, 0.03],
-  [P.leftFootIndex]: [0.14, 0.9, -0.12],
-  [P.rightFootIndex]: [-0.14, 0.9, -0.12],
+  [P.leftKnee]: [0.15, 0.43],
+  [P.rightKnee]: [-0.15, 0.43],
+  [P.leftAnkle]: [0.18, 0.85],
+  [P.rightAnkle]: [-0.18, 0.85],
+  [P.leftHeel]: [0.18, 0.89, 0.03],
+  [P.rightHeel]: [-0.18, 0.89, 0.03],
+  [P.leftFootIndex]: [0.21, 0.9, -0.12],
+  [P.rightFootIndex]: [-0.21, 0.9, -0.12],
 };
 
 export type PoseEdit = Partial<Record<number, Pt>>;
@@ -52,6 +52,11 @@ export function makePose(edit: PoseEdit = {}, t = 0, width = 1280, height = 720)
 /** Deep squat: hips drop and move back, knees forward. */
 export function squatDown(extra: PoseEdit = {}): PoseEdit {
   return {
+    [P.nose]: [0, -0.22, -0.35],
+    [P.leftEye]: [0.03, -0.25, -0.33],
+    [P.rightEye]: [-0.03, -0.25, -0.33],
+    [P.leftEar]: [0.07, -0.23, -0.28],
+    [P.rightEar]: [-0.07, -0.23, -0.28],
     [P.leftShoulder]: [0.19, -0.1, -0.25],
     [P.rightShoulder]: [-0.19, -0.1, -0.25],
     [P.leftElbow]: [0.22, 0.1, -0.35],
@@ -60,8 +65,43 @@ export function squatDown(extra: PoseEdit = {}): PoseEdit {
     [P.rightWrist]: [-0.2, 0.1, -0.6],
     [P.leftHip]: [0.1, 0.4, 0.2],
     [P.rightHip]: [-0.1, 0.4, 0.2],
-    [P.leftKnee]: [0.16, 0.45, -0.22],
-    [P.rightKnee]: [-0.16, 0.45, -0.22],
+    [P.leftKnee]: [0.21, 0.45, -0.22],
+    [P.rightKnee]: [-0.21, 0.45, -0.22],
     ...extra,
   };
+}
+
+/** Linear blend between two pose edits (k=0 → a, k=1 → b). Missing points use the standing template. */
+export function blend(a: PoseEdit, b: PoseEdit, k: number): PoseEdit {
+  const out: PoseEdit = {};
+  for (let i = 0; i < 33; i++) {
+    const pa = a[i] ?? STANDING_WORLD[i] ?? [0, -0.6];
+    const pb = b[i] ?? STANDING_WORLD[i] ?? [0, -0.6];
+    out[i] = [0, 1, 2].map((j) => (pa[j] ?? 0) * (1 - k) + (pb[j] ?? 0) * k) as Pt;
+  }
+  return out;
+}
+
+/**
+ * Generates frames for `reps` repetitions going standing → target → standing.
+ * @param msPerRep full rep duration
+ */
+export function repSequence(
+  target: PoseEdit,
+  { reps = 1, msPerRep = 2000, fps = 30, holdMs = 400, start: startEdit = {} as PoseEdit } = {},
+): PoseFrame[] {
+  const frames: PoseFrame[] = [];
+  const dt = 1000 / fps;
+  let t = 0;
+  const push = (k: number) => {
+    frames.push(makePose(blend(startEdit, target, k), t));
+    t += dt;
+  };
+  for (let i = 0; i < holdMs / dt; i++) push(0);
+  for (let r = 0; r < reps; r++) {
+    const n = Math.round(msPerRep / dt);
+    for (let i = 0; i <= n; i++) push(Math.sin((Math.PI * i) / n));
+    for (let i = 0; i < holdMs / dt; i++) push(0);
+  }
+  return frames;
 }

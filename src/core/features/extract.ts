@@ -2,6 +2,7 @@ import { P, type FrameFeatures, type Landmark, type PoseFrame } from '../types';
 import {
   angleBetween,
   dist,
+  dist2d,
   jointAngle,
   leanFromVertical2d,
   mid,
@@ -39,8 +40,9 @@ export function extractFeatures(frame: PoseFrame): FrameFeatures {
 
   const shoulderMidI = mid(g(im, P.leftShoulder), g(im, P.rightShoulder));
   const hipMidI = mid(g(im, P.leftHip), g(im, P.rightHip));
-  const torsoLenI = Math.max(dist(shoulderMidI, hipMidI), 1e-6);
-  const shoulderWidthI = dist(g(im, P.leftShoulder), g(im, P.rightShoulder));
+  // image z is a noisy relative depth: use 2D distances in image space
+  const torsoLenI = Math.max(dist2d(shoulderMidI, hipMidI), 1e-6);
+  const shoulderWidthI = dist2d(g(im, P.leftShoulder), g(im, P.rightShoulder));
 
   const shoulderWidthW = Math.max(dist(g(w, P.leftShoulder), g(w, P.rightShoulder)), 1e-6);
   const ankleDistW = dist(g(w, P.leftAnkle), g(w, P.rightAnkle));
