@@ -11,7 +11,8 @@ export interface PressMetrics {
   maxLift: number;
 }
 
-const lift = (f: FrameFeatures) => (f.wristLift.l + f.wristLift.r) / 2;
+/** The higher hand drives the phase, so a lagging arm is still recognized as a (bad) rep. */
+const lift = (f: FrameFeatures) => Math.max(f.wristLift.l, f.wristLift.r);
 
 export const press: ExerciseDefinition<PressMetrics> = {
   id: 'press',

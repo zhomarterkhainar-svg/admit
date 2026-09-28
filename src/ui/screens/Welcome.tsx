@@ -2,7 +2,13 @@ import { t, type I18nKey } from '@/i18n';
 import type { EngineStatus } from '../hooks/usePoseEngine';
 
 /** The only screen that needs a click: browsers require a user gesture for camera + audio. */
-export function Welcome({ status, onStart }: { status: EngineStatus; onStart: () => void }) {
+interface Props {
+  status: EngineStatus;
+  onStart: () => void;
+  onDemo: () => void;
+}
+
+export function Welcome({ status, onStart, onDemo }: Props) {
   return (
     <div className="screen center layer welcome">
       <div className="ornament" aria-hidden="true" />
@@ -14,6 +20,9 @@ export function Welcome({ status, onStart }: { status: EngineStatus; onStart: ()
             {t('ui.start')}
           </button>
           <p className="muted">{t('ui.oneClick')}</p>
+          <button className="btn-link" onClick={onDemo}>
+            {t('ui.demo')}
+          </button>
         </>
       )}
       {status.state === 'loading' && (
@@ -29,6 +38,9 @@ export function Welcome({ status, onStart }: { status: EngineStatus; onStart: ()
           <p className="error">{t(`ui.err.${status.kind}` as I18nKey)}</p>
           <button className="btn-primary" onClick={() => location.reload()}>
             {t('ui.retry')}
+          </button>
+          <button className="btn-link" onClick={onDemo}>
+            {t('ui.demo')}
           </button>
         </>
       )}

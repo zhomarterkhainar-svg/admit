@@ -7,7 +7,7 @@ import { EXERCISES } from '@/exercises/registry';
 import { ExerciseRunner } from '@/engine/runner';
 import type { Hint } from '@/engine/types';
 import { ChallengeGame, type ActiveCommand } from '@/game/challenge';
-import { useLoop } from '../engine';
+import { useDemo, useLoop } from '../engine';
 import { DwellButton } from '../gestures/DwellButton';
 import { useGestures } from '../gestures/GestureProvider';
 import { OverlayCanvas } from '../overlay/OverlayCanvas';
@@ -32,6 +32,8 @@ const COUNTDOWN_SEC = 4;
 export function Challenge() {
   const loop = useLoop();
   const { go, finishChallenge } = useApp();
+  const demo = useDemo();
+  useEffect(() => () => demo?.perform(null), [demo]);
   const [stage, setStage] = useState<'ready' | 'play'>('ready');
   const [count, setCount] = useState(COUNTDOWN_SEC);
   const [paused, setPaused] = useState(false);
@@ -84,6 +86,7 @@ export function Challenge() {
       for (const e of events) {
         if (e.type === 'command') {
           runner = new ExerciseRunner(EXERCISES[e.command.def.exercise]);
+          demo?.perform(e.command.def.exercise);
           speak(t(`ch.cmd.${e.command.def.id}` as I18nKey));
         } else if (e.type === 'hit') {
           if (e.clean) sfx.perfect();
@@ -162,7 +165,7 @@ export function Challenge() {
         });
       }
     });
-  }, [stage, loop, finishChallenge]);
+  }, [stage, loop, finishChallenge, demo]);
 
   return (
     <>

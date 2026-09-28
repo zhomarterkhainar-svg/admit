@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
-import type { PoseLoop, PoseTick } from '@/core/vision/poseLoop';
+import type { PoseSource, PoseTick } from '@/core/vision/poseLoop';
 import { OverlayCanvas } from '../overlay/OverlayCanvas';
 
 const r = (n: number) => (Number.isFinite(n) ? Math.round(n) : '—');
 const f2 = (n: number) => (Number.isFinite(n) ? n.toFixed(2) : '—');
 
 /** Developer HUD: live skeleton + raw features. Base for tuning thresholds. */
-export function LiveDebug({ loop, info }: { loop: PoseLoop; info: string }) {
+export function LiveDebug({ loop, info }: { loop: PoseSource; info: string }) {
   const [tick, setTick] = useState<PoseTick | null>(null);
   useEffect(() => {
     let last = 0;

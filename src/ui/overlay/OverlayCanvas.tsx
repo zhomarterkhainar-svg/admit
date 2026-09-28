@@ -1,9 +1,9 @@
 import { useEffect, useRef } from 'react';
-import type { PoseLoop, PoseTick } from '@/core/vision/poseLoop';
+import type { PoseSource, PoseTick } from '@/core/vision/poseLoop';
 import { drawSkeleton } from './drawSkeleton';
 
 export interface OverlayProps {
-  loop: PoseLoop;
+  loop: PoseSource;
   /** extra drawing after the skeleton (ghost, arrows, cursor, particles) */
   onDraw?: (ctx: CanvasRenderingContext2D, tick: PoseTick) => void;
   errorJoints?: ReadonlySet<number>;

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { PoseLoop } from '@/core/vision/poseLoop';
+import type { PoseSource } from '@/core/vision/poseLoop';
 import { ExerciseRunner, type RunnerState } from '@/engine/runner';
 import type { ExerciseDefinition, Hint, RepSummary } from '@/engine/types';
 import { t } from '@/i18n';
@@ -9,7 +9,7 @@ import { OverlayCanvas } from '../overlay/OverlayCanvas';
 import { drawArrow } from '../overlay/drawArrow';
 
 interface Props<M> {
-  loop: PoseLoop;
+  loop: PoseSource;
   exercise: ExerciseDefinition<M>;
   target: number;
   timeLimitSec: number;

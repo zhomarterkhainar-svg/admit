@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useRef, type ReactNode }
 import { computeCursor, type Cursor } from '@/gestures/cursor';
 import { DwellTracker, type DwellTarget } from '@/gestures/dwell';
 import { PoseGestureDetector, type PoseGesture } from '@/gestures/poseGestures';
-import type { PoseLoop } from '@/core/vision/poseLoop';
+import type { PoseSource } from '@/core/vision/poseLoop';
 import { sfx } from '@/audio/sfx';
 
 interface Registered {
@@ -38,7 +38,14 @@ export function useGestures(handlers: Partial<Record<PoseGesture, () => void>>):
  * and whole-body gestures (hands up, crossed arms, swipes). The cursor is only shown while
  * at least one DwellButton is on screen.
  */
-export function GestureProvider({ loop, children }: { loop: PoseLoop; children: ReactNode }) {
+interface ProviderProps {
+  loop: PoseSource;
+  children: ReactNode;
+  /** false in demo mode: the virtual athlete must not drive the UI (mouse still works) */
+  enabled?: boolean;
+}
+
+export function GestureProvider({ loop, children, enabled = true }: ProviderProps) {
   const buttons = useRef(new Map<string, Registered>());
   const listeners = useRef(new Set<(g: PoseGesture) => void>());
   const cursorEl = useRef<HTMLDivElement>(null);
@@ -61,6 +68,7 @@ export function GestureProvider({ loop, children }: { loop: PoseLoop; children: 
   );
 
   useEffect(() => {
+    if (!enabled) return;
     const dwell = new DwellTracker(1100);
     const detector = new PoseGestureDetector();
     let cursor: Cursor | null = null;
@@ -107,7 +115,7 @@ export function GestureProvider({ loop, children }: { loop: PoseLoop; children: 
         buttons.current.get(st.selected)?.onSelect();
       }
     });
-  }, [loop]);
+  }, [loop, enabled]);
 
   return (
     <Ctx.Provider value={api}>

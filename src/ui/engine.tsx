@@ -1,9 +1,16 @@
 import { createContext, useContext } from 'react';
-import type { PoseLoop } from '@/core/vision/poseLoop';
+import type { PoseSource } from '@/core/vision/poseLoop';
 
-export const EngineContext = createContext<PoseLoop | null>(null);
+import type { DemoActor } from '@/demo/DemoActor';
 
-export function useLoop(): PoseLoop {
+/** Set only in demo mode: lets screens tell the virtual athlete what to perform. */
+export const DemoContext = createContext<DemoActor | null>(null);
+
+export const useDemo = () => useContext(DemoContext);
+
+export const EngineContext = createContext<PoseSource | null>(null);
+
+export function useLoop(): PoseSource {
   const loop = useContext(EngineContext);
   if (!loop) throw new Error('useLoop() outside of EngineContext');
   return loop;

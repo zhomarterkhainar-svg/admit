@@ -17,6 +17,11 @@ export interface PoseTick {
 
 export type PoseListener = (tick: PoseTick) => void;
 
+/** Anything that emits pose ticks: the live camera loop or the scripted demo actor. */
+export interface PoseSource {
+  subscribe(fn: PoseListener): () => void;
+}
+
 type VideoWithRVFC = HTMLVideoElement & {
   requestVideoFrameCallback?: (cb: () => void) => number;
   cancelVideoFrameCallback?: (id: number) => void;
@@ -26,7 +31,7 @@ type VideoWithRVFC = HTMLVideoElement & {
  * Drives detection once per new video frame, smooths landmarks and extracts features.
  * Consumers subscribe; one loop feeds renderer, exercises, gestures and UI.
  */
-export class PoseLoop {
+export class PoseLoop implements PoseSource {
   private readonly listeners = new Set<PoseListener>();
   private readonly smoothImage = new LandmarkSmoother();
   private readonly smoothWorld = new LandmarkSmoother();

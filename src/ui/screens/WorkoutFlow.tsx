@@ -7,7 +7,7 @@ import { EXERCISES } from '@/exercises/registry';
 import type { ExerciseResult } from '@/game/summary';
 import type { ProgramStep } from '@/game/program';
 import type { RepSummary } from '@/engine/types';
-import { useLoop } from '../engine';
+import { useDemo, useLoop } from '../engine';
 import { DwellButton } from '../gestures/DwellButton';
 import { useGestures } from '../gestures/GestureProvider';
 import { GhostPreview } from '../overlay/GhostPreview';
@@ -28,6 +28,11 @@ export function WorkoutFlow() {
 
   const steps = program?.steps ?? [];
   const current = steps[idx];
+  const demo = useDemo();
+  useEffect(() => {
+    demo?.perform(stage === 'active' && !paused && current ? current.id : null);
+  }, [demo, stage, paused, current]);
+  useEffect(() => () => demo?.perform(null), [demo]);
 
   useGestures({
     crossArms: () => (stage === 'active' ? setPaused(true) : undefined),
