@@ -920,7 +920,8 @@ body {
   position: relative;
 }
 .ch-cmd-text {
-  font-size: clamp(40px, 7vw, 88px);
+  font-size: clamp(30px, 6vw, 76px);
+  white-space: nowrap;
   font-weight: 900;
   letter-spacing: 0.04em;
   text-shadow: 0 4px 24px rgba(0, 0, 0, 0.8);
@@ -934,7 +935,7 @@ body {
 }
 .ch-pop {
   position: absolute;
-  top: 52%;
+  top: 68%;
   left: 50%;
   transform: translate(-50%, -50%);
   font-size: clamp(36px, 6vw, 80px);
