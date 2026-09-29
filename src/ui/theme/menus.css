@@ -1,0 +1,709 @@
+/*
+ * Menu v2: 8-tile menu, podium leaderboard, profile, settings with the gesture cheat sheet,
+ * the floor mode, and the first-visit tour (grey screen + spotlight + Barys).
+ * Loaded after global.css and uses its tokens.
+ */
+
+/* ---------- menu ---------- */
+.menu-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.tile-wrap {
+  position: relative;
+  display: grid;
+  min-width: 0;
+}
+.start-here {
+  position: absolute;
+  top: -10px;
+  right: -6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--gold);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 900;
+  box-shadow: 0 3px 0 var(--gold-d);
+  animation: bob 2.2s ease-in-out infinite;
+  pointer-events: none;
+}
+.profile-btn {
+  width: 100%;
+  padding: 14px 16px;
+}
+.profile-btn .dwell-text,
+.profile-btn .dwell-label {
+  width: 100%;
+  font-size: inherit;
+}
+.profile-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.profile-go {
+  flex: none;
+  color: var(--ink-3);
+}
+
+/* ---------- leaderboard: podium + lines ---------- */
+.lb-world {
+  margin-left: 10px;
+  vertical-align: -3px;
+  color: var(--blue);
+}
+.lb-empty {
+  margin: auto;
+  font-size: 20px;
+}
+.lb-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 40px;
+  align-items: end;
+  animation: fade 0.25s ease-out;
+}
+.podium {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: end;
+  gap: 12px;
+}
+.podium-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  text-align: center;
+}
+.podium-ava {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 28px;
+  font-weight: 900;
+  box-shadow:
+    0 0 0 4px var(--bg),
+    0 0 0 7px var(--line);
+}
+.podium-col.p1 .podium-ava {
+  width: 84px;
+  height: 84px;
+  font-size: 36px;
+  box-shadow:
+    0 0 0 4px var(--bg),
+    0 0 0 7px var(--gold);
+}
+.podium-ava.empty {
+  background: var(--bg-soft);
+  color: var(--ink-3);
+  box-shadow: 0 0 0 3px var(--line);
+}
+.podium-crown {
+  position: absolute;
+  top: -30px;
+  color: var(--gold);
+  fill: var(--gold);
+}
+.podium-name {
+  max-width: 100%;
+  margin-top: 6px;
+  font-size: 17px;
+  font-weight: 900;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.podium-score {
+  font-size: 15px;
+  font-weight: 900;
+  color: var(--ink-2);
+}
+.podium-block {
+  width: 100%;
+  display: grid;
+  place-items: start center;
+  padding-top: 10px;
+  border-radius: 16px 16px 0 0;
+  font-size: 34px;
+  font-weight: 900;
+  color: #fff;
+}
+.p1 .podium-block {
+  height: 190px;
+  background: linear-gradient(var(--gold), var(--gold-d));
+}
+.p2 .podium-block {
+  height: 140px;
+  background: linear-gradient(#c9d3dc, #9aa9b8);
+}
+.p3 .podium-block {
+  height: 100px;
+  background: linear-gradient(#e8a86d, #c77b3f);
+}
+.podium-col.me .podium-name {
+  color: var(--blue-d);
+}
+.lb-lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+.lb-lines li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 8px;
+  border-bottom: 2px solid var(--line);
+  font-size: 18px;
+}
+.lb-lines li:first-child {
+  border-top: 2px solid var(--line);
+}
+.lb-lines li.me {
+  background: var(--blue-l);
+  border-radius: 12px;
+  border-color: transparent;
+}
+.lb-place {
+  width: 28px;
+  text-align: center;
+  font-weight: 900;
+  color: var(--ink-3);
+}
+.lb-lines b {
+  color: var(--ink-2);
+}
+
+/* ---------- profile ---------- */
+.profile-grid {
+  display: grid;
+  grid-template-columns: 340px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.profile-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+.profile-ava {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 42px;
+  font-weight: 900;
+}
+.profile-rank-badge {
+  position: absolute;
+  right: -6px;
+  bottom: -4px;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--gold-l);
+  border: 3px solid var(--bg);
+  color: var(--gold-d);
+}
+.profile-big-name {
+  font-size: 24px;
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+.profile-card .rank-bar {
+  width: 100%;
+}
+.nick-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+  text-align: left;
+}
+.nick-form .kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.nick-row {
+  display: flex;
+  gap: 8px;
+}
+.nick-input {
+  flex: 1;
+  min-width: 0;
+  height: 52px;
+  padding: 0 14px;
+  border-radius: 14px;
+  border: 2px solid var(--line);
+  background: var(--bg-soft);
+  color: var(--ink);
+  font: inherit;
+  font-size: 18px;
+  font-weight: 800;
+}
+.nick-input:focus {
+  outline: none;
+  border-color: var(--blue);
+  background: var(--bg);
+}
+.nick-input.bad {
+  border-color: var(--red);
+}
+.nick-save {
+  flex: none;
+  width: 56px;
+  height: 52px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+}
+.nick-save:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.nick-help {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+.nick-help.bad {
+  color: var(--red-d);
+}
+.profile-card > .dwell-btn {
+  width: 100%;
+}
+.profile-side {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+.profile-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.profile-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 8px;
+  border-radius: var(--radius);
+  background: var(--bg-soft);
+  text-align: center;
+}
+.profile-stat b {
+  font-size: 30px;
+  font-weight: 900;
+  line-height: 1.1;
+}
+.profile-stat span {
+  font-size: 14px;
+  color: var(--ink-2);
+}
+.profile-side .ach-grid {
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+}
+.profile-side .ach-badge {
+  width: 50px;
+  height: 50px;
+}
+.profile-side .ach b {
+  font-size: 12px;
+}
+.profile-side .sparkline {
+  height: 90px;
+}
+
+/* ---------- settings + gesture cheat sheet ---------- */
+.settings-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.settings-side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.settings-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.settings-row .dwell-btn {
+  flex: 1;
+  justify-content: center;
+}
+.gesture-guide {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+.gesture-guide li {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.gesture-pic {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 20px;
+}
+.gesture-guide li > div > b {
+  display: block;
+  font-size: 20px;
+  font-weight: 900;
+}
+.gesture-guide li > div > span {
+  display: block;
+  font-size: 15px;
+  color: var(--ink-2);
+}
+.gesture-guide.compact {
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.gesture-guide.compact .gesture-pic {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+}
+.gesture-guide.compact .gesture-pic svg {
+  width: 32px;
+  height: 32px;
+}
+.gesture-guide.compact li > div > b {
+  font-size: 15px;
+}
+.gesture-guide.compact li > div > span {
+  display: none;
+}
+
+/* ---------- depth meter: goal reached ---------- */
+.depth-meter.reached .depth-goal {
+  background: var(--green);
+}
+.challenge-hud .depth-track {
+  height: 30vh;
+}
+
+/* ---------- floor mode ---------- */
+.floor-tip {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.floor-tip b {
+  display: block;
+  font-size: 18px;
+  font-weight: 900;
+}
+.floor-tip span {
+  display: block;
+  font-size: 15px;
+  color: var(--ink-2);
+  line-height: 1.35;
+}
+.floor-tip-art {
+  flex: none;
+  width: 190px;
+  height: auto;
+}
+.ft-floor,
+.ft-dist {
+  stroke: var(--ink-3);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.ft-dist {
+  stroke-dasharray: 4 6;
+  stroke-width: 2;
+}
+.ft-phone {
+  fill: var(--blue);
+}
+.ft-lens {
+  fill: #fff;
+}
+.ft-view {
+  stroke: var(--blue-b);
+  stroke-width: 2;
+  stroke-dasharray: 5 5;
+  fill: none;
+}
+.ft-body,
+.ft-body-head {
+  stroke: var(--green);
+  stroke-width: 6;
+  stroke-linecap: round;
+  fill: none;
+}
+.ft-body-head {
+  fill: var(--green);
+  stroke-width: 0;
+}
+.floor-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) repeat(3, minmax(0, 1.2fr));
+  gap: 14px;
+}
+.floor-program {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+}
+.floor-program .dwell-icon {
+  width: 60px;
+  height: 60px;
+  margin-bottom: auto;
+}
+.floor-card {
+  min-height: clamp(220px, 40vh, 380px);
+}
+.floor-card .dwell-sub {
+  text-align: center;
+}
+.intro-text .floor-tip {
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: var(--blue-l);
+}
+.intro-text .floor-tip-art {
+  width: 150px;
+}
+
+/* ---------- first-visit tour ---------- */
+.tour {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+}
+.tour-dim,
+.tour-spot {
+  position: fixed;
+  pointer-events: none;
+}
+/* "everything goes grey": the menu behind loses its colour and dims, except the spotlight hole */
+.tour-dim {
+  inset: 0;
+  background: rgba(40, 40, 40, 0.38);
+  -webkit-backdrop-filter: grayscale(1) brightness(0.8);
+  backdrop-filter: grayscale(1) brightness(0.8);
+  transition: clip-path 0.35s ease;
+  animation: fade 0.25s ease-out;
+}
+.tour-spot {
+  border-radius: 22px;
+  box-shadow: 0 0 0 4px var(--gold);
+  transition:
+    left 0.35s ease,
+    top 0.35s ease,
+    width 0.35s ease,
+    height 0.35s ease;
+  animation: tour-pulse 1.6s ease-in-out infinite;
+}
+@keyframes tour-pulse {
+  50% {
+    box-shadow: 0 0 0 9px rgba(255, 200, 0, 0.6);
+  }
+}
+.tour-card {
+  position: fixed;
+  width: min(430px, calc(100vw - 32px));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  border-radius: var(--radius-lg);
+  background: var(--bg);
+  border: 2px solid var(--line);
+  box-shadow: 0 6px 0 var(--line);
+  animation: pop 0.3s ease-out;
+}
+.tour-card-center {
+  width: min(520px, calc(100vw - 32px));
+}
+.tour-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.tour-bubble h2 {
+  margin: 0 0 4px;
+  font-size: 22px;
+  font-weight: 900;
+}
+.tour-bubble p {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.4;
+  color: var(--ink-2);
+}
+.tour-bubble .tour-name {
+  margin-top: 8px;
+  color: var(--ink);
+}
+.tour-name b {
+  color: var(--blue-d);
+}
+.tour-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+.tour-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--line);
+  transition: width 0.2s;
+}
+.tour-dots .done {
+  background: var(--green-l);
+}
+.tour-dots .now {
+  width: 22px;
+  border-radius: 999px;
+  background: var(--green);
+}
+.tour-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+.tour-actions .dwell-btn {
+  min-height: 60px;
+  justify-content: center;
+}
+.tour-hint {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+/* ---------- responsive ---------- */
+@media (max-width: 1000px) {
+  .lb-body,
+  .profile-grid,
+  .settings-grid {
+    grid-template-columns: 1fr;
+  }
+  .lb-body {
+    align-items: start;
+    gap: 20px;
+  }
+  .floor-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 600px) {
+  .menu-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .start-here {
+    font-size: 11px;
+  }
+  .p1 .podium-block {
+    height: 120px;
+  }
+  .p2 .podium-block {
+    height: 88px;
+  }
+  .p3 .podium-block {
+    height: 64px;
+  }
+  .podium-ava {
+    width: 48px;
+    height: 48px;
+    font-size: 22px;
+  }
+  .podium-col.p1 .podium-ava {
+    width: 62px;
+    height: 62px;
+    font-size: 28px;
+  }
+  .page-head .tabs {
+    width: 100%;
+  }
+  .page-head {
+    flex-wrap: wrap;
+  }
+  .profile-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+  .floor-tip-art {
+    width: 120px;
+  }
+  .gesture-pic {
+    width: 56px;
+    height: 56px;
+  }
+  .gesture-guide li > div > b {
+    font-size: 17px;
+  }
+  /* the tour card docks to the bottom on phones */
+  .tour-card {
+    left: 16px !important;
+    right: 16px;
+    top: auto !important;
+    bottom: 16px;
+    width: auto;
+  }
+  .tour-card {
+    padding: 14px;
+    gap: 10px;
+  }
+  .tour-bubble h2 {
+    font-size: 19px;
+  }
+  .tour-bubble p {
+    font-size: 14px;
+  }
+  .tour-card.dock-top {
+    top: 16px !important;
+    bottom: auto;
+  }
+  .tour-head .mascot {
+    width: 64px;
+  }
+}
+@media (min-width: 1500px) and (min-height: 860px) {
+  .tour-card {
+    zoom: 1.2;
+  }
+}

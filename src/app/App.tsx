@@ -12,6 +12,9 @@ import { Records } from '@/ui/screens/Records';
 import { Welcome } from '@/ui/screens/Welcome';
 import { Challenge, ChallengeResults } from '@/ui/screens/Challenge';
 import { FreeWorkout } from '@/ui/screens/FreeWorkout';
+import { Profile } from '@/ui/screens/Profile';
+import { Settings } from '@/ui/screens/Settings';
+import { FloorMode } from '@/ui/screens/FloorMode';
 import { AchievementToasts } from '@/ui/components/AchievementToasts';
 import { unlockAudio } from '@/audio/sfx';
 import { DemoActor } from '@/demo/DemoActor';
@@ -32,6 +35,9 @@ const SCREENS: Record<Screen, () => React.ReactNode> = {
   challenge: Challenge,
   challengeResults: ChallengeResults,
   records: Records,
+  profile: Profile,
+  settings: Settings,
+  floor: FloorMode,
 };
 
 export function App() {

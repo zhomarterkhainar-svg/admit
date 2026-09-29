@@ -6,6 +6,7 @@ import { summarize, type ExerciseResult, type WorkoutSummary } from '@/game/summ
 import {
   isRecord,
   loadProgress,
+  renameScores,
   recordChallenge,
   recordWorkout,
   saveProgress,
@@ -27,7 +28,10 @@ export type Screen =
   | 'results'
   | 'challenge'
   | 'challengeResults'
-  | 'records';
+  | 'records'
+  | 'profile'
+  | 'settings'
+  | 'floor';
 
 export interface ChallengeResult {
   score: number;
@@ -59,6 +63,8 @@ interface AppState {
   questCompleted: QuestDef | null;
   /** demo mode: nothing is persisted or sent to the world leaderboard */
   demo: boolean;
+  /** the first-visit tour of the menu (mascot + spotlight) is open */
+  tutorial: boolean;
 
   go(screen: Screen): void;
   dismissToast(id: string): void;
@@ -76,6 +82,8 @@ interface AppState {
   ): void;
   finishChallenge(r: Omit<ChallengeResult, 'record'>, at: number): void;
   setPlayerName(name: string): void;
+  openTutorial(): void;
+  closeTutorial(): void;
 }
 
 const LANG_KEY = 'qozgal.lang';
@@ -98,7 +106,19 @@ const initialMuted = (): boolean => {
   }
 };
 
-const progress0 = loadProgress();
+const TUTORIAL_KEY = 'qozgal.tutorial.v1';
+const tutorialSeen = (): boolean => {
+  try {
+    return localStorage.getItem(TUTORIAL_KEY) === '1';
+  } catch {
+    return false;
+  }
+};
+
+const loaded = loadProgress();
+// first visit: the player gets a random batyr name + digits right away (changeable in the profile)
+const progress0 = loaded.playerName ? loaded : { ...loaded, playerName: randomBatyrName() };
+if (!loaded.playerName) saveProgress(progress0);
 const muted0 = initialMuted();
 setMuted(muted0);
 const lang0 = initialLang();
@@ -126,10 +146,11 @@ export const useApp = create<AppState>((set, get) => ({
   xpBefore: progress0.totalXp,
   challenge: null,
   progress: progress0,
-  playerName: progress0.playerName ?? randomBatyrName(),
+  playerName: progress0.playerName!,
   toasts: [],
   questCompleted: null,
   demo: false,
+  tutorial: false,
 
   go: (screen) => set({ screen }),
   dismissToast: (id) => set({ toasts: get().toasts.filter((a) => a.id !== id) }),
@@ -157,7 +178,9 @@ export const useApp = create<AppState>((set, get) => ({
     set({ muted });
   },
 
-  setCalibrated: () => set({ calibrated: true, screen: 'menu' }),
+  // the tour opens on the first arrival at the menu (never in the camera-less demo)
+  setCalibrated: () =>
+    set({ calibrated: true, screen: 'menu', tutorial: !get().demo && !tutorialSeen() }),
   setBaseline: (baseline) => set({ baseline }),
 
   startProgram: (program) => set({ program, screen: 'workout' }),
@@ -203,9 +226,20 @@ export const useApp = create<AppState>((set, get) => ({
   },
 
   setPlayerName: (playerName) => {
-    const progress = { ...get().progress, playerName };
+    const old = get().playerName;
+    const progress = { ...renameScores(get().progress, old, playerName), playerName };
     if (!get().demo) saveProgress(progress);
     set({ playerName, progress });
+  },
+
+  openTutorial: () => set({ tutorial: true, screen: 'menu' }),
+  closeTutorial: () => {
+    try {
+      localStorage.setItem(TUTORIAL_KEY, '1');
+    } catch {
+      /* ignore */
+    }
+    set({ tutorial: false });
   },
 }));
 
