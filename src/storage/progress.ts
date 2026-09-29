@@ -128,9 +128,7 @@ export function saveProgress(
  * Per exercise: how many reps were tried and, for every technique rule, which share of them had
  * that error. Framing problems (setup.*) and "wrong exercise" are not technique and are skipped.
  */
-export function errorStats(
-  s: WorkoutSummary,
-): Pick<HistoryEntry, 'tried' | 'errorRates'> {
+export function errorStats(s: WorkoutSummary): Pick<HistoryEntry, 'tried' | 'errorRates'> {
   const tried: Record<string, number> = {};
   const counts: Record<string, number> = {};
   for (const r of s.results) {

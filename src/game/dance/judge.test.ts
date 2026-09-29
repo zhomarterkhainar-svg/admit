@@ -9,7 +9,8 @@ function play(notes: Note[], shift: number, hold = 100, wrong = false) {
   const events = [];
   for (let ms = 0; ms <= SONG_MS + 1000; ms += 33) {
     const now = notes.find((n) => Math.abs(ms - (n.t + shift)) <= hold);
-    const move: MoveId | null = now ? (wrong ? (now.move === 'squat' ? 'up' : 'squat') : now.move) : null;
+    let move: MoveId | null = now?.move ?? null;
+    if (move && wrong) move = move === 'squat' ? 'up' : 'squat';
     events.push(...judge.update(ms, (m) => m === move));
   }
   return { judge, events };

@@ -420,7 +420,8 @@ export const ru = {
   'lb.leader': 'Ты лидер — держи корону!',
   // --- push-ups from two camera angles, elbow angle ---
   'setup.floorSide.msg': 'Повернись боком к камере',
-  'setup.floorSide.fix': 'Это упражнение я вижу только сбоку: ляг боком, чтобы было видно от головы до пяток',
+  'setup.floorSide.fix':
+    'Это упражнение я вижу только сбоку: ляг боком, чтобы было видно от головы до пяток',
   'pushup.flare.msg': 'Локти разведены в стороны',
   'pushup.flare.fix': 'Прижми локти ближе к телу — примерно 45°, как стрелка, а не буква «Т»',
   // --- games hub + duel ---

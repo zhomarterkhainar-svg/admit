@@ -48,7 +48,12 @@ export const pushup: ExerciseDefinition<PushupMetrics> = {
 
   progress: (f) => (165 - elbow(f)) / (165 - 85),
 
-  initMetrics: (f) => ({ minElbow: elbow(f), startT: f.t, minElbowT: f.t, flareAtBottom: flare(f) }),
+  initMetrics: (f) => ({
+    minElbow: elbow(f),
+    startT: f.t,
+    minElbowT: f.t,
+    flareAtBottom: flare(f),
+  }),
 
   track(m, f) {
     const e = elbow(f);
@@ -60,15 +65,13 @@ export const pushup: ExerciseDefinition<PushupMetrics> = {
     // green once deep enough, orange while bent but still too shallow, neutral at the top
     const tone = e <= C.depthMax ? 'good' : e < C.downEnter ? 'warn' : undefined;
     const sides = floorView(f) === 'front' ? (['l', 'r'] as const) : [nearSide(f)];
-    return sides.map(
-      (s): Gauge => ({
-        at: s === 'l' ? P.leftElbow : P.rightElbow,
-        from: s === 'l' ? P.leftShoulder : P.rightShoulder,
-        to: s === 'l' ? P.leftWrist : P.rightWrist,
-        deg: f.elbowAngle[s],
-        tone,
-      }),
-    );
+    return sides.map((s): Gauge => ({
+      at: s === 'l' ? P.leftElbow : P.rightElbow,
+      from: s === 'l' ? P.leftShoulder : P.rightShoulder,
+      to: s === 'l' ? P.leftWrist : P.rightWrist,
+      deg: f.elbowAngle[s],
+      tone,
+    }));
   },
 
   frameRules: [

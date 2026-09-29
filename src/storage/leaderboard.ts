@@ -110,7 +110,10 @@ export function myPlace(rows: readonly LeaderboardEntry[], name: string): MyPlac
   const i = rows.findIndex((r) => r.name === name);
   if (i < 0) return null;
   const score = rows[i]!.score;
-  const above = rows.slice(0, i).reverse().find((r) => r.score > score);
+  const above = rows
+    .slice(0, i)
+    .reverse()
+    .find((r) => r.score > score);
   return { place: i + 1, score, gap: above ? above.score - score + 1 : 0 };
 }
 

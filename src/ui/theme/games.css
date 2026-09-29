@@ -352,7 +352,9 @@
   transition: box-shadow 0.3s;
 }
 .dance-hud.hot {
-  box-shadow: inset 0 0 0 6px var(--gold), inset 0 0 60px rgba(255, 200, 0, 0.45);
+  box-shadow:
+    inset 0 0 0 6px var(--gold),
+    inset 0 0 60px rgba(255, 200, 0, 0.45);
 }
 .dance-progress {
   position: absolute;

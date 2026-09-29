@@ -198,8 +198,8 @@ export function Results() {
                               × {e.count} {plural(e.count, 'results.times')}
                             </span>
                             {trend && trend.before !== null && (
-                            <ErrorTrend before={trend.before} now={trend.now} />
-                          )}
+                              <ErrorTrend before={trend.before} now={trend.now} />
+                            )}
                           </div>
                           {f && (
                             <div className="fix">

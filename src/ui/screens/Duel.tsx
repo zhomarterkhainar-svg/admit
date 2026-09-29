@@ -288,15 +288,16 @@ export function Duel() {
               </span>
               {t(EXERCISES[hud.exercise].name)}
             </div>
-            <div className={`hud-chip timer-chip num ${hud.phase === 'play' && hud.left <= 5 ? 'low' : ''}`}>
+            <div
+              className={`hud-chip timer-chip num ${hud.phase === 'play' && hud.left <= 5 ? 'low' : ''}`}
+            >
               <Timer size={20} strokeWidth={2.75} /> {hud.left}
             </div>
           </div>
           {DUEL_SIDES.map((side) => {
             const p = hud.players[side];
             const hint = hud.hints[side];
-            const lead =
-              hud.players[side].score > hud.players[side === 'L' ? 'R' : 'L'].score;
+            const lead = hud.players[side].score > hud.players[side === 'L' ? 'R' : 'L'].score;
             return (
               <div key={side} className={`duel-card ${side}`}>
                 <div className="duel-card-name">
@@ -371,9 +372,8 @@ export function Duel() {
                     <span className="duel-card-name">{t(TEAM[side].name)}</span>
                     <span className="duel-score num">{result.players[side].score}</span>
                     <span className="muted">
-                      <span className="num">{result.players[side].reps}</span> {t('duel.reps')}{' '}
-                      · <span className="num">{result.players[side].clean}</span>{' '}
-                      {t('duel.clean')}
+                      <span className="num">{result.players[side].reps}</span> {t('duel.reps')} ·{' '}
+                      <span className="num">{result.players[side].clean}</span> {t('duel.clean')}
                     </span>
                   </div>
                 ))}

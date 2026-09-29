@@ -71,7 +71,11 @@ export class GrabDetector {
     if (hand.openness <= CLOSED_AT) {
       this.closedFrames++;
       this.closed = true;
-      if (this.armed && this.closedFrames >= CLOSED_FRAMES && t - this.lastOpen < SQUEEZE_WINDOW_MS) {
+      if (
+        this.armed &&
+        this.closedFrames >= CLOSED_FRAMES &&
+        t - this.lastOpen < SQUEEZE_WINDOW_MS
+      ) {
         this.armed = false;
         return { closed: true, grab: true };
       }

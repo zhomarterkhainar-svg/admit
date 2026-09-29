@@ -61,9 +61,7 @@ export const FLOOR_TORSO_LEAN_MIN = 45;
  * front (only for exercises that allow it) the head, shoulders and both arms — the legs are
  * hidden behind the body there. Side-only exercises seen from the front ask to turn sideways.
  */
-export function floorSetupRules(
-  views: ReadonlyArray<'side' | 'front'> = ['side'],
-): FrameRule[] {
+export function floorSetupRules(views: ReadonlyArray<'side' | 'front'> = ['side']): FrameRule[] {
   const front = views.includes('front');
   const rules: FrameRule[] = [
     DARK_RULE,
@@ -96,9 +94,7 @@ export function floorSetupRules(
       joints: [],
       persistMs: 400,
       test: (f) =>
-        floorView(f) === 'front'
-          ? f.torsoLean < FLOOR_TORSO_LEAN_MIN
-          : f.bodyTilt > FLOOR_TILT_MAX,
+        floorView(f) === 'front' ? f.torsoLean < FLOOR_TORSO_LEAN_MIN : f.bodyTilt > FLOOR_TILT_MAX,
     },
   ];
   if (!front)

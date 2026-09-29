@@ -34,6 +34,7 @@ export const sectionAt = (beat: number): Section =>
   SECTIONS.find((s) => beat >= s.startBeat && beat < s.startBeat + s.beats) ?? SECTIONS.at(-1)!;
 
 /** Choreography of each section, one move per 2 beats. */
+// prettier-ignore
 const PATTERN: Record<'A' | 'B', MoveId[]> = {
   A: [
     'reins', 'leanL', 'reins', 'leanR', 'reins', 'leanL', 'reins', 'leanR',

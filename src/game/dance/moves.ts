@@ -6,15 +6,7 @@ import { sideBend } from '@/exercises/sideBend/reference';
 import { squatDown } from '@/exercises/squat/reference';
 
 export type MoveId =
-  | 'reins'
-  | 'up'
-  | 'wings'
-  | 'leanL'
-  | 'leanR'
-  | 'clap'
-  | 'kneeL'
-  | 'kneeR'
-  | 'squat';
+  'reins' | 'up' | 'wings' | 'leanL' | 'leanR' | 'clap' | 'kneeL' | 'kneeR' | 'squat';
 
 export interface DanceMove {
   id: MoveId;

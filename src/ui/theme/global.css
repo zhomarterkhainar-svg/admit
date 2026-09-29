@@ -419,7 +419,12 @@ h3 {
 }
 /* the hand is squeezed into a fist: the cursor "presses" */
 .hand-cursor.is-grab {
-  background: radial-gradient(circle, var(--green) 0 34%, rgba(255, 255, 255, 0.92) 35% 50%, transparent 51%);
+  background: radial-gradient(
+    circle,
+    var(--green) 0 34%,
+    rgba(255, 255, 255, 0.92) 35% 50%,
+    transparent 51%
+  );
   box-shadow:
     0 0 0 6px var(--green),
     0 4px 12px rgba(88, 167, 0, 0.45);

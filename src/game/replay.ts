@@ -21,7 +21,10 @@ const BUFFER_MS = 6000;
 const ORDER: readonly Severity[] = ['validity', 'safety', 'form', 'tempo'];
 
 /** The error of a rep that matters most, by the rule severities of the exercise. */
-export function worstRule(errors: readonly string[], def: ExerciseDefinition<unknown>): string | null {
+export function worstRule(
+  errors: readonly string[],
+  def: ExerciseDefinition<unknown>,
+): string | null {
   const rules = [...def.frameRules, ...def.repRules];
   let best: string | null = null;
   let bestRank = Infinity;
@@ -38,7 +41,8 @@ export function worstRule(errors: readonly string[], def: ExerciseDefinition<unk
 
 /** lower = worse: a rep that did not count is worse than any counted one, then by quality */
 const badness = (r: RepSummary): [number, number] => [r.counted ? 1 : 0, r.quality];
-const worse = (a: [number, number], b: [number, number]) => a[0] < b[0] || (a[0] === b[0] && a[1] < b[1]);
+const worse = (a: [number, number], b: [number, number]) =>
+  a[0] < b[0] || (a[0] === b[0] && a[1] < b[1]);
 
 /**
  * Records the last few seconds of poses and cuts out every rep that went wrong

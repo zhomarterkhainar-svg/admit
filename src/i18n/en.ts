@@ -118,7 +118,8 @@ export const en = {
   'calib.facing': 'Facing the camera',
   'calib.ok': 'Great, I can see you!',
   'calib.cursorTitle': 'Raise your hand — it is your cursor',
-  'calib.cursorText': 'Hover the cursor over a button and hold for 2 seconds — or squeeze your fist',
+  'calib.cursorText':
+    'Hover the cursor over a button and hold for 2 seconds — or squeeze your fist',
   'calib.ready': "I'm ready!",
   'calib.skip': 'Skip',
   'calib.skipSub': 'if the room is small',
@@ -421,7 +422,8 @@ export const en = {
   'lb.leader': "You're the leader — keep the crown!",
   // --- push-ups from two camera angles, elbow angle ---
   'setup.floorSide.msg': 'Turn side-on to the camera',
-  'setup.floorSide.fix': 'I can only see this exercise from the side: lie side-on so I see you from head to heels',
+  'setup.floorSide.fix':
+    'I can only see this exercise from the side: lie side-on so I see you from head to heels',
   'pushup.flare.msg': 'Elbows flared out to the sides',
   'pushup.flare.fix': 'Bring your elbows in — about 45° to the body, an arrow, not a "T"',
   // --- games hub + duel ---

@@ -70,7 +70,9 @@ export function Workout<M>({
     let activeMs = 0;
     let finished = false;
     // the worst rep of the set, replayed in slow motion on the results (not for timed holds)
-    const recorder = exercise.hold ? null : new ReplayRecorder(exercise.id as AnyExerciseId, exercise);
+    const recorder = exercise.hold
+      ? null
+      : new ReplayRecorder(exercise.id as AnyExerciseId, exercise);
     const finish = () => {
       if (finished) return;
       finished = true;

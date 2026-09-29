@@ -76,9 +76,7 @@ export function Dance() {
             setStage('results');
           }}
         />
-        {paused && (
-          <PauseModal onResume={() => setPaused(false)} onExit={() => go('menu')} />
-        )}
+        {paused && <PauseModal onResume={() => setPaused(false)} onExit={() => go('menu')} />}
       </>
     );
 
@@ -210,9 +208,7 @@ function DanceGame({
       const ms = song.songMsAt(tick.t - latency);
       const f = tick.features;
       const frame = tick.frame;
-      handle(
-        f && frame ? judge.update(ms, (m) => MOVES[m].match(f, frame)) : judge.advance(ms),
-      );
+      handle(f && frame ? judge.update(ms, (m) => MOVES[m].match(f, frame)) : judge.advance(ms));
     });
 
     // display-rate drawing from the song position as heard (never from pose ticks)
@@ -451,7 +447,11 @@ function DanceResults({
             >
               {t('dance.again')}
             </DwellButton>
-            <DwellButton icon={<Trophy size={24} strokeWidth={2.75} />} tone="gold" onSelect={onBoard}>
+            <DwellButton
+              icon={<Trophy size={24} strokeWidth={2.75} />}
+              tone="gold"
+              onSelect={onBoard}
+            >
               {t('results.records')}
             </DwellButton>
             <DwellButton

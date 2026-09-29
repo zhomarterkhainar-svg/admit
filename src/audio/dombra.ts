@@ -109,7 +109,12 @@ export class DombraSong {
     if (this.pausedAt !== null) return this.pausedAt;
     const ts = this.ctx.getOutputTimestamp?.();
     let sec: number;
-    if (ts && ts.contextTime !== undefined && ts.performanceTime !== undefined && ts.performanceTime > 0)
+    if (
+      ts &&
+      ts.contextTime !== undefined &&
+      ts.performanceTime !== undefined &&
+      ts.performanceTime > 0
+    )
       sec = ts.contextTime + (perfMs - ts.performanceTime) / 1000 - this.t0;
     else sec = this.ctx.currentTime - this.t0 - (this.ctx.outputLatency || 0);
     return sec * 1000;
