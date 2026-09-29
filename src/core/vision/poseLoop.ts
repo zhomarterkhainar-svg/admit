@@ -13,6 +13,8 @@ export interface PoseTick {
   people: number;
   /** people in frame who are NOT the locked player (ignored by everything downstream) */
   others?: number;
+  /** everyone in the frame, raw (unsmoothed, unordered) — for two-player modes */
+  crowd?: PoseFrame[];
   /** inference frames per second (EMA) */
   fps: number;
   /** last inference time, ms */
@@ -183,6 +185,7 @@ export class PoseLoop implements PoseSource {
         features,
         people,
         others: people - (raw ? 1 : 0),
+        crowd: all,
         fps: this.fps,
         inferenceMs,
         brightness: this.brightness,
