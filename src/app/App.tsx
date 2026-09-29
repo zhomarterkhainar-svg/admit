@@ -15,6 +15,8 @@ import { FreeWorkout } from '@/ui/screens/FreeWorkout';
 import { Profile } from '@/ui/screens/Profile';
 import { Settings } from '@/ui/screens/Settings';
 import { FloorMode } from '@/ui/screens/FloorMode';
+import { Games } from '@/ui/screens/Games';
+import { Duel } from '@/ui/screens/Duel';
 import { AchievementToasts } from '@/ui/components/AchievementToasts';
 import { unlockAudio } from '@/audio/sfx';
 import { DemoActor } from '@/demo/DemoActor';
@@ -38,6 +40,8 @@ const SCREENS: Record<Screen, () => React.ReactNode> = {
   profile: Profile,
   settings: Settings,
   floor: FloorMode,
+  games: Games,
+  duel: Duel,
 };
 
 export function App() {

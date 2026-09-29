@@ -383,9 +383,9 @@ export const en = {
   'tour.modes.title': 'Modes',
   'tour.modes.text':
     '"One exercise" to polish technique. "Free workout": do anything, I recognize the exercise. "On the floor": push-ups, plank and bridge, with the camera to the side.',
-  'tour.challenge.title': 'Batyr Challenge',
-  'tour.challenge.text':
-    'A reaction game: 60 seconds, do what I shout. A depth meter on the side, just like in workouts. Come here once you are comfortable with the workout.',
+  'tour.games.title': 'Games',
+  'tour.games.text':
+    'Batyr Challenge — a 60-second reaction game. Duel — two players in front of one camera, who does more. Come here once you are comfortable with the workout.',
   'tour.records.title': 'Leaderboard',
   'tour.records.text':
     'The best batyrs: the top 3 on the podium, everyone else next to it — with your place and the points to the next one. Score points and climb!',
@@ -424,4 +424,29 @@ export const en = {
   'setup.floorSide.fix': 'I can only see this exercise from the side: lie side-on so I see you from head to heels',
   'pushup.flare.msg': 'Elbows flared out to the sides',
   'pushup.flare.fix': 'Bring your elbows in — about 45° to the body, an arrow, not a "T"',
+  // --- games hub + duel ---
+  'menu.games': 'Games',
+  'menu.gamesSub': 'Challenge · Two-player duel',
+  'games.title': 'Games',
+  'games.greet': 'What shall we play? Hold your hand on a game — or squeeze your fist',
+  'games.new': 'New',
+  'duel.title': 'Duel: Batyr vs Batyr',
+  'duel.sub': 'Two players, one camera · 3 rounds',
+  'duel.joinHint':
+    'Stand side by side, each in your own half of the screen, whole body in view. Ready? Raise both hands',
+  'duel.blue': 'Kök batyr',
+  'duel.gold': 'Altyn batyr',
+  'duel.none': "Can't see you — step into your half",
+  'duel.seen': 'I see you! Raise both hands',
+  'duel.ready': 'Ready!',
+  'duel.round': 'Round',
+  'duel.go': 'Go!',
+  'duel.roundReps': 'this round',
+  'duel.lost': "Can't see you — come back",
+  'duel.win': 'wins!',
+  'duel.winner': 'wins',
+  'duel.draw': "It's a draw!",
+  'duel.reps': 'reps',
+  'duel.clean': 'clean',
+  'duel.rematch': 'Rematch',
 } satisfies Record<I18nKey, string>;

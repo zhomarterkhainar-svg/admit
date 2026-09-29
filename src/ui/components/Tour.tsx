@@ -25,7 +25,7 @@ const STEPS: Step[] = [
   { id: 'cursor', mood: 'think' },
   { id: 'training', target: 'training', mood: 'happy' },
   { id: 'modes', target: 'modes', mood: 'happy' },
-  { id: 'challenge', target: 'challenge', mood: 'cheer' },
+  { id: 'games', target: 'games', mood: 'cheer' },
   { id: 'records', target: 'records', mood: 'happy' },
   { id: 'profile', target: 'profile', mood: 'wave' },
   { id: 'settings', target: 'settings', mood: 'think' },
@@ -93,7 +93,7 @@ function place(spot: Rect | null, cw: number, ch: number): { x: number; y: numbe
 
 /**
  * First-visit tour of the menu: the screen goes grey, Barys introduces himself, explains how to
- * stand for the hand cursor, walks through each area (training → modes → challenge →
+ * stand for the hand cursor, walks through each area (training → modes → games →
  * leaderboard → profile → settings → gestures), and
  * ends by sending the player to the quick workout first. Driven by dwell buttons, hands up
  * (next) and crossed arms (skip) — or the mouse.

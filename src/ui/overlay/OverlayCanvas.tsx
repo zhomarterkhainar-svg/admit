@@ -8,16 +8,20 @@ export interface OverlayProps {
   /** extra drawing after the skeleton (ghost, arrows, cursor, particles) */
   onDraw?: (ctx: CanvasRenderingContext2D, tick: PoseTick) => void;
   errorJoints?: ReadonlySet<number>;
+  /** false: don't draw the player's skeleton (two-player modes draw their own in onDraw) */
+  skeleton?: boolean;
 }
 
 /** Full-screen canvas synced to the pose loop. Resizes to its CSS box with devicePixelRatio. */
-export function OverlayCanvas({ loop, onDraw, errorJoints }: OverlayProps) {
+export function OverlayCanvas({ loop, onDraw, errorJoints, skeleton = true }: OverlayProps) {
   const ref = useRef<HTMLCanvasElement>(null);
   const errRef = useRef(errorJoints);
   const drawRef = useRef(onDraw);
+  const skelRef = useRef(skeleton);
   useEffect(() => {
     errRef.current = errorJoints;
     drawRef.current = onDraw;
+    skelRef.current = skeleton;
   });
 
   useEffect(() => {
@@ -26,7 +30,8 @@ export function OverlayCanvas({ loop, onDraw, errorJoints }: OverlayProps) {
     const unfit = fitCanvas(canvas);
     const unsub = loop.subscribe((tick) => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      if (tick.frame) drawSkeleton(ctx, tick.frame, { errorJoints: errRef.current });
+      if (tick.frame && skelRef.current)
+        drawSkeleton(ctx, tick.frame, { errorJoints: errRef.current });
       drawRef.current?.(ctx, tick);
     });
     return () => {

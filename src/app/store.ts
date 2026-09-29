@@ -31,7 +31,9 @@ export type Screen =
   | 'records'
   | 'profile'
   | 'settings'
-  | 'floor';
+  | 'floor'
+  | 'games'
+  | 'duel';
 
 export interface ChallengeResult {
   score: number;
