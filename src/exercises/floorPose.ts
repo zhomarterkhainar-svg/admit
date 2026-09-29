@@ -1,5 +1,6 @@
 import { P, type FrameFeatures } from '@/core/types';
 import type { PoseEdit, Pt } from '@/core/reference/template';
+import { floorView } from '@/engine/setupRules';
 
 /**
  * Side-view poses for floor exercises. The person lies along the world x axis with the head
@@ -79,6 +80,30 @@ export function nearSide(f: FrameFeatures): 'l' | 'r' {
     : 'r';
 }
 
-export const elbow = (f: FrameFeatures) => f.elbowAngle[nearSide(f)];
+export { floorView } from '@/engine/setupRules';
+
+/** From the side only the near arm is trustworthy; from the front both are: average them. */
+const arm = (f: FrameFeatures, v: FrameFeatures['elbowAngle']) =>
+  floorView(f) === 'front' ? (v.l + v.r) / 2 : v[nearSide(f)];
+
+export const elbow = (f: FrameFeatures) => arm(f, f.elbowAngle);
+/**
+ * Elbow flare: the angle between the upper arm and the torso (3D). Near the bottom of a push-up
+ * ~45° is right ("an arrow"), ~90° is elbows flared out ("a T") — hard on the shoulders.
+ */
+export const flare = (f: FrameFeatures) => arm(f, f.shoulderAngle);
 export const knee = (f: FrameFeatures) => f.kneeAngle[nearSide(f)];
 export const hip = (f: FrameFeatures) => f.hipAngle[nearSide(f)];
+
+/**
+ * A side-view floor pose turned to face the camera, head toward it: the body's long axis becomes
+ * depth, the player's left goes to image +x. For reference poses and tests of the front view.
+ */
+export function facingCamera(edit: PoseEdit): PoseEdit {
+  const out: PoseEdit = {};
+  for (const [k, p] of Object.entries(edit)) {
+    const [x, y, z = 0] = p!;
+    out[Number(k)] = [-z, y, x];
+  }
+  return out;
+}

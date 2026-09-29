@@ -330,12 +330,12 @@ export const en = {
   'floor.title': 'Floor exercises',
   'floor.tipTitle': 'Camera to the side, at floor level',
   'floor.tip':
-    'Put the phone or laptop low, 2–3 m to the side of your mat. Lie side-on to the camera so I can see you from head to heels.',
+    'Put the phone or laptop low, 2–3 m to the side of your mat. Lie side-on to the camera so I can see you from head to heels. Push-ups also work facing the camera.',
   'floor.program': 'Floor circuit',
   'floor.programSub': '6 push-ups · 20 s plank · 8 bridges',
   'pushup.name': 'Push-ups',
   'pushup.howTo':
-    'Plank on your hands, side-on to the camera. Lower until the elbows bend to 90°, body in a straight line',
+    'Plank on your hands, side-on or facing the camera. Lower until the elbows bend to 90°. Elbows at 45° to the body, not out to the sides. Body in a straight line',
   'pushup.sag.msg': 'Hips are sagging',
   'pushup.sag.fix': 'Brace your abs and glutes: one straight line from shoulders to heels',
   'pushup.pike.msg': 'Hips too high',
@@ -419,4 +419,9 @@ export const en = {
   'lb.notYet': "You're not on the board yet — play and take a place",
   'lb.gap': 'To the next place:',
   'lb.leader': "You're the leader — keep the crown!",
+  // --- push-ups from two camera angles, elbow angle ---
+  'setup.floorSide.msg': 'Turn side-on to the camera',
+  'setup.floorSide.fix': 'I can only see this exercise from the side: lie side-on so I see you from head to heels',
+  'pushup.flare.msg': 'Elbows flared out to the sides',
+  'pushup.flare.fix': 'Bring your elbows in — about 45° to the body, an arrow, not a "T"',
 } satisfies Record<I18nKey, string>;

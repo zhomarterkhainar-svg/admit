@@ -5,10 +5,23 @@ import { jackOpen } from './jumpingJack/reference';
 import { lungeDown } from './lunge/reference';
 import { pressTop } from './press/reference';
 import { sideBend } from './sideBend/reference';
+import { pushupDown, pushupDownFlared, pushupTop } from './pushup/reference';
 
 export interface ErrorExample {
   wrong: PoseEdit;
   right: PoseEdit;
+  /** draw it seen from above (mistakes across the body, like elbows flared out in a push-up) */
+  view?: 'top';
+}
+
+/** The same pose seen from above: the body's long axis stays horizontal, its width goes up/down. */
+export function topView(edit: PoseEdit): PoseEdit {
+  const out: PoseEdit = {};
+  for (const [k, p] of Object.entries(edit)) {
+    const [x, y, z = 0] = p!;
+    out[Number(k)] = [x, z, -y];
+  }
+  return out;
 }
 
 /**
@@ -62,4 +75,7 @@ export const ERROR_EXAMPLES: Record<string, ErrorExample> = {
     right: pressTop(),
   },
   'sideBend.depth': { wrong: blend({}, sideBend('l'), 0.7), right: sideBend('l') },
+  // push-ups: the two elbow mistakes — not bending to 90°, and flaring the elbows out
+  'pushup.depth': { wrong: blend(pushupTop(), pushupDown(), 0.5), right: pushupDown() },
+  'pushup.flare': { wrong: pushupDownFlared(), right: pushupDown(), view: 'top' },
 };

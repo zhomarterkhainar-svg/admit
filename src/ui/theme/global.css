@@ -1246,6 +1246,10 @@ h3 {
   height: 88px;
   display: block;
 }
+.static-pose.wide {
+  width: 104px;
+  height: 52px;
+}
 
 /* ---------- workout HUD (over the camera) ---------- */
 .hud {

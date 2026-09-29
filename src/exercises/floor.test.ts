@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { extractFeatures } from '@/core/features/extract';
 import { blend, makePose, repSequence, type PoseEdit } from '@/core/reference/template';
-import type { PoseFrame } from '@/core/types';
+import { P, type PoseFrame } from '@/core/types';
 import { concat, runExercise } from '../../tests/helpers/run';
-import { elbow, hip } from './floorPose';
+import { elbow, facingCamera, flare, floorView, hip } from './floorPose';
 import { FLOOR_EXERCISES } from './registry';
 import { pushup } from './pushup';
-import { pushupDown, pushupTop } from './pushup/reference';
+import { pushupDown, pushupDownFlared, pushupTop } from './pushup/reference';
 import { plank } from './plank';
 import { plankPose } from './plank/reference';
 import { bridge } from './bridge';
@@ -82,6 +82,91 @@ describe('push-up', () => {
     const { reps, hintIds, last } = run(pushup, still({}, 2000));
     expect(reps).toHaveLength(0);
     expect(hintIds).toContain('setup.floorDown');
+    expect(last.paused).toBe(true);
+  });
+
+  it('tells a side view from a front view', () => {
+    expect(floorView(feat(pushupTop()))).toBe('side');
+    expect(floorView(feat(pushupDown()))).toBe('side');
+    expect(floorView(feat(facingCamera(pushupTop())))).toBe('front');
+    expect(floorView(feat(facingCamera(pushupDown())))).toBe('front');
+  });
+
+  it('measures the same elbow angle from the side and from the front', () => {
+    for (const p of [pushupTop(), pushupDown()]) {
+      expect(elbow(feat(facingCamera(p)))).toBeCloseTo(elbow(feat(p)), 0);
+    }
+  });
+
+  it('counts clean push-ups filmed from the front', () => {
+    const { reps, errors, hintIds } = run(
+      pushup,
+      repSequence(facingCamera(pushupDown()), {
+        start: facingCamera(pushupTop()),
+        reps: 2,
+        msPerRep: 2000,
+      }),
+    );
+    expect([...hintIds].filter((h) => h.startsWith('setup.'))).toEqual([]);
+    expect(reps).toHaveLength(2);
+    expect(reps.every((r) => r.counted && r.quality === 100)).toBe(true);
+    expect(errors.size).toBe(0);
+  });
+
+  it('rejects a shallow push-up from the front too', () => {
+    const { reps, errors } = run(
+      pushup,
+      repSequence(facingCamera(blend(pushupTop(), pushupDown(), 0.5)), {
+        start: facingCamera(pushupTop()),
+      }),
+    );
+    expect(reps[0]!.counted).toBe(false);
+    expect(errors).toContain('pushup.depth');
+  });
+
+  it('flags elbows flared out to the sides, from either camera angle', () => {
+    expect(flare(feat(pushupDown()))).toBeLessThan(50);
+    expect(flare(feat(pushupDownFlared()))).toBeGreaterThan(80);
+    for (const turn of [(e: PoseEdit) => e, facingCamera]) {
+      const bad = run(
+        pushup,
+        repSequence(turn(pushupDownFlared()), { start: turn(pushupTop()), msPerRep: 2400 }),
+      );
+      expect(bad.errors).toContain('pushup.flare');
+      const good = run(
+        pushup,
+        repSequence(turn(pushupDown()), { start: turn(pushupTop()), msPerRep: 2400 }),
+      );
+      expect(good.errors).not.toContain('pushup.flare');
+    }
+  });
+
+  it('flags sagging hips from the front', () => {
+    const { errors } = run(
+      pushup,
+      repSequence(facingCamera(pushupDown(0.15)), {
+        start: facingCamera(pushupTop(0.15)),
+        msPerRep: 2400,
+      }),
+    );
+    expect(errors).toContain('pushup.sag');
+  });
+
+  it('shows the elbow angle: the near arm from the side, both arms from the front', () => {
+    const side = pushup.gauges!(feat(pushupDown()));
+    expect(side).toHaveLength(1);
+    expect(side[0]!.deg).toBeLessThan(75);
+    expect(side[0]!.tone).toBe('good');
+    const front = pushup.gauges!(feat(facingCamera(pushupDown())));
+    expect(front.map((g) => g.at).sort()).toEqual([P.leftElbow, P.rightElbow].sort());
+    expect(pushup.gauges!(feat(pushupTop()))[0]!.tone).toBeUndefined();
+  });
+});
+
+describe('side-only floor exercises', () => {
+  it('ask to turn sideways when filmed from the front', () => {
+    const { hintIds, last } = run(plank, still(facingCamera(plankPose()), 2000));
+    expect(hintIds).toContain('setup.floorSide');
     expect(last.paused).toBe(true);
   });
 });

@@ -9,6 +9,7 @@ import { sfx } from '@/audio/sfx';
 import { OverlayCanvas } from '../overlay/OverlayCanvas';
 import { drawArrow } from '../overlay/drawArrow';
 import { drawGhost } from '../overlay/drawGhost';
+import { drawGauge } from '../overlay/drawGauge';
 import { GhostPreview } from '../overlay/GhostPreview';
 import { Particles } from '../overlay/particles';
 import { coverMapper } from '../overlay/drawSkeleton';
@@ -175,13 +176,16 @@ export function Workout<M>({
           }
           particles.draw(ctx);
           const h = hintRef.current;
-          if (!tick.frame || !h) return;
+          if (!tick.frame) return;
           // technique problem → show the correct pose as a ghost over the user
-          if (h.severity !== 'setup' && tick.features) {
+          if (h && h.severity !== 'setup' && tick.features) {
             const target = exercise.ghostFor?.(tick.features) ?? exercise.keyframes.peak;
             drawGhost(ctx, tick.frame, target, performance.now(), exercise.posture === 'floor');
           }
-          h.arrows?.forEach((a) => drawArrow(ctx, tick.frame!, a));
+          h?.arrows?.forEach((a) => drawArrow(ctx, tick.frame!, a));
+          // live angle readouts (the elbow in a push-up), unless the setup is wrong anyway
+          if (tick.features && h?.severity !== 'setup')
+            exercise.gauges?.(tick.features).forEach((g) => drawGauge(ctx, tick.frame!, g));
         }}
       />
       <div className="hud">
