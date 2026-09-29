@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { HandCursor, type Cursor } from '@/gestures/cursor';
-import { DwellTracker, type DwellTarget } from '@/gestures/dwell';
+import { DWELL_MS, DwellTracker, type DwellTarget } from '@/gestures/dwell';
+import { GrabDetector } from '@/gestures/grab';
 import { PoseGestureDetector, type PoseGesture } from '@/gestures/poseGestures';
 import type { PoseSource } from '@/core/vision/poseLoop';
 import { sfx } from '@/audio/sfx';
@@ -34,9 +35,9 @@ export function useGestures(handlers: Partial<Record<PoseGesture, () => void>>):
 }
 
 /**
- * Turns the pose stream into UI input: a hand cursor that "clicks" DwellButtons by hovering,
- * and whole-body gestures (hands up, crossed arms, swipes). The cursor is only shown while
- * at least one DwellButton is on screen.
+ * Turns the pose stream into UI input: a hand cursor that "clicks" DwellButtons by hovering
+ * (or at once by squeezing the hand into a fist), and whole-body gestures (hands up, crossed
+ * arms, swipes). The cursor is only shown while at least one DwellButton is on screen.
  */
 interface ProviderProps {
   loop: PoseSource;
@@ -47,6 +48,8 @@ interface ProviderProps {
 
 export function GestureProvider({ loop, children, enabled = true }: ProviderProps) {
   const buttons = useRef(new Map<string, Registered>());
+  /** bumped whenever a button appears or goes away (the cached rects are stale then) */
+  const version = useRef(0);
   const listeners = useRef(new Set<(g: PoseGesture) => void>());
   const cursorEl = useRef<HTMLDivElement>(null);
 
@@ -54,9 +57,11 @@ export function GestureProvider({ loop, children, enabled = true }: ProviderProp
     () => ({
       register(id, el, onSelect) {
         buttons.current.set(id, { el, onSelect });
+        version.current++;
         return () => {
           buttons.current.get(id)?.el.style.removeProperty('--dwell');
           buttons.current.delete(id);
+          version.current++;
         };
       },
       subscribe(fn) {
@@ -69,10 +74,18 @@ export function GestureProvider({ loop, children, enabled = true }: ProviderProp
 
   useEffect(() => {
     if (!enabled) return;
-    const dwell = new DwellTracker(1100);
+    const dwell = new DwellTracker(DWELL_MS);
     const detector = new PoseGestureDetector();
     const hand = new HandCursor();
+    const grab = new GrabDetector();
     let cursor: Cursor | null = null;
+    // button rects are cached: reading them on every pose tick forced a full layout 30×/s
+    let targets: DwellTarget[] = [];
+    let targetsAt = -Infinity;
+    let targetsVersion = -1;
+    const invalidate = () => (targetsAt = -Infinity);
+    window.addEventListener('resize', invalidate);
+    window.addEventListener('scroll', invalidate, true);
     // the camera delivers ~15–30 poses/s; the cursor is drawn every display frame (60+ Hz),
     // gliding toward the latest filtered position so it never steps or stutters
     const shown = { x: 0, y: 0, placed: false };
@@ -102,6 +115,9 @@ export function GestureProvider({ loop, children, enabled = true }: ProviderProp
     };
     raf = requestAnimationFrame(draw);
     let lastHover: string | null = null;
+    // the button under the cursor while the hand was still open: closing the hand into a fist
+    // moves the pose "fingertip" a little, the click goes to where the hand was pointing
+    let hoverOpen: string | null = null;
     // after a selection the next screen often has a button under the same spot:
     // freeze dwell briefly so it can't be selected by accident
     let cooldownUntil = 0;
@@ -110,26 +126,36 @@ export function GestureProvider({ loop, children, enabled = true }: ProviderProp
       for (const g of detector.update(tick.frame, tick.features))
         listeners.current.forEach((fn) => fn(g));
 
-      const W = window.innerWidth;
-      const H = window.innerHeight;
-      const targets: DwellTarget[] = [];
-      for (const [id, { el }] of buttons.current) {
-        const r = el.getBoundingClientRect();
-        if (r.width === 0 || r.height === 0 || el.closest('[aria-hidden="true"]')) continue;
-        targets.push({
-          id,
-          rect: { left: r.left / W, top: r.top / H, right: r.right / W, bottom: r.bottom / H },
-        });
+      if (tick.t - targetsAt > 300 || targetsVersion !== version.current) {
+        targetsAt = tick.t;
+        targetsVersion = version.current;
+        const W = window.innerWidth;
+        const H = window.innerHeight;
+        targets = [];
+        for (const [id, { el }] of buttons.current) {
+          const r = el.getBoundingClientRect();
+          if (r.width === 0 || r.height === 0 || el.closest('[aria-hidden="true"]')) continue;
+          targets.push({
+            id,
+            rect: { left: r.left / W, top: r.top / H, right: r.right / W, bottom: r.bottom / H },
+          });
+        }
       }
 
       cursor = hand.update(tick.frame, tick.t);
       if (!targets.length) cursor = null;
-      const st = dwell.update(cursor, targets, tick.t, tick.t < cooldownUntil);
+      // look at the cursor hand close up only while there is something to click
+      loop.trackHand?.(cursor?.hand ?? null);
+      const cooling = tick.t < cooldownUntil;
+      const st = dwell.update(cursor, targets, tick.t, cooling);
+      const fist = grab.update(cursor ? tick.hand : null, tick.t);
+      if (!fist.closed) hoverOpen = st.hoverId;
 
       const c = cursorEl.current;
       if (c) {
         c.style.opacity = cursor ? '1' : '0';
         c.style.setProperty('--dwell', String(st.progress));
+        c.classList.toggle('is-grab', !!cursor && fist.closed);
       }
       if (lastHover && lastHover !== st.hoverId) {
         const prev = buttons.current.get(lastHover)?.el;
@@ -142,15 +168,22 @@ export function GestureProvider({ loop, children, enabled = true }: ProviderProp
         el?.style.setProperty('--dwell', String(st.progress));
       }
       lastHover = st.hoverId;
-      if (st.selected) {
+      const squeezed = fist.grab && !cooling ? (hoverOpen ?? st.hoverId) : null;
+      const selected = st.selected ?? squeezed;
+      if (selected) {
         cooldownUntil = tick.t + 900;
+        dwell.lock(selected);
+        targetsAt = -Infinity; // the screen is about to change
         sfx.select();
-        buttons.current.get(st.selected)?.onSelect();
+        buttons.current.get(selected)?.onSelect();
       }
     });
     return () => {
       unsubscribe();
+      loop.trackHand?.(null);
       cancelAnimationFrame(raf);
+      window.removeEventListener('resize', invalidate);
+      window.removeEventListener('scroll', invalidate, true);
     };
   }, [loop, enabled]);
 

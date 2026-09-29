@@ -12,6 +12,12 @@ export interface DwellState {
   selected: string | null;
 }
 
+/**
+ * How long the hand cursor must rest on a button to press it. Long enough that sweeping the hand
+ * across the screen never clicks by accident; squeezing the hand into a fist clicks at once.
+ */
+export const DWELL_MS = 2200;
+
 /** Extra margin around the button that is already hovered: jitter at its edge must not reset it. */
 const STICKY_PAD = 0.035;
 const PAD = 0.01;
@@ -30,7 +36,7 @@ export class DwellTracker {
   private since = 0;
   private locked: string | null = null;
 
-  constructor(private readonly dwellMs = 1100) {}
+  constructor(private readonly dwellMs = DWELL_MS) {}
 
   /** @param frozen track hovering but make no progress (e.g. right after a selection) */
   update(
@@ -64,6 +70,11 @@ export class DwellTracker {
       return { hoverId: id, progress: 1, selected: id };
     }
     return { hoverId: id, progress, selected: null };
+  }
+
+  /** Treat `id` as just selected (by another input, e.g. a fist squeeze): no repeat until it is left. */
+  lock(id: string): void {
+    this.locked = id;
   }
 
   reset(): void {

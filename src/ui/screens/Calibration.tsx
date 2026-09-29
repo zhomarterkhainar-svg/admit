@@ -13,6 +13,7 @@ import { Check, Hand, SkipForward } from 'lucide-react';
 import { Mascot, Speech } from '../components/Mascot';
 import { ProgressBar } from '../components/ProgressBar';
 import { MirrorPip } from '../components/MirrorPip';
+import { CursorSetupTip } from '../components/CursorSetupTip';
 
 type Check = 'light' | 'person' | 'fullBody' | 'distance' | 'centered' | 'facing';
 const CHECKS: Check[] = ['light', 'person', 'fullBody', 'distance', 'centered', 'facing'];
@@ -112,7 +113,10 @@ export function Calibration() {
     <div className="page">
       <div className="page-inner center">
         <div className="cursor-step">
-          <Mascot mood="wave" size={220} bob />
+          <div className="cursor-step-help">
+            <Mascot mood="wave" size={120} bob />
+            <CursorSetupTip className="card" />
+          </div>
           <div className="intro-text" style={{ alignItems: 'flex-start', textAlign: 'left' }}>
             <h1 className="h1">{t('calib.cursorTitle')}</h1>
             <p className="lead">{t('calib.cursorText')}</p>

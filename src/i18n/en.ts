@@ -118,7 +118,7 @@ export const en = {
   'calib.facing': 'Facing the camera',
   'calib.ok': 'Great, I can see you!',
   'calib.cursorTitle': 'Raise your hand — it is your cursor',
-  'calib.cursorText': 'Hover the cursor over a button and hold until the ring fills up',
+  'calib.cursorText': 'Hover the cursor over a button and hold for 2 seconds — or squeeze your fist',
   'calib.ready': "I'm ready!",
   'calib.skip': 'Skip',
   'calib.skipSub': 'if the room is small',
@@ -279,7 +279,7 @@ export const en = {
   'menu.you': 'Your path',
   'results.exercises': 'Exercises',
   'help.cursor': 'Hand = cursor',
-  'help.hold': 'Hold on a button = select',
+  'help.hold': 'Hold 2 s or squeeze a fist = select',
   'help.cross': 'Cross arms = back or pause',
   // --- floor mode, leaderboard, profile, settings, gestures, tour ---
   'setup.floorBody.msg': "I can't see your whole body",
@@ -322,7 +322,7 @@ export const en = {
   'gest.cross': 'Arms crossed = pause',
   'gest.crossSub': 'Pause during an exercise, "back" in menus',
   'gest.cursor': 'Hand = cursor',
-  'gest.cursorSub': 'Raise a hand, point at a button and hold until the ring fills',
+  'gest.cursorSub': 'Raise a hand, point at a button and hold for 2 seconds until the ring fills',
   'gest.swipe': 'Hand swipe = flip',
   'gest.swipeSub': 'Sweep your hand sideways at chest height',
   'workout.seconds': 'seconds',
@@ -400,4 +400,13 @@ export const en = {
   'tour.final.title': 'Where to start?',
   'tour.final.text':
     'First do the Quick workout: 5 exercises, 2 minutes. You learn the gestures and the technique — then the challenge and the leaderboard!',
+  // --- hand cursor: how to stand, fist click ---
+  'tour.cursor.title': 'How to use the cursor',
+  'tour.cursor.text': 'The cursor is your hand. For it to follow you:',
+  'cursorTip.stand': 'Stand straight, facing the laptop, 1–2 metres away from it',
+  'cursorTip.level': 'Camera at chest height: laptop on a table, screen not tilted much',
+  'cursorTip.alone': 'Only you in front of the camera: other hands in view confuse the cursor',
+  'cursorTip.click': 'Raise a hand and point at a button. Click: hold 2 seconds or squeeze a fist',
+  'gest.fist': 'Squeeze a fist = click',
+  'gest.fistSub': 'Open palm on a button, then a fist: pressed at once, no waiting',
 } satisfies Record<I18nKey, string>;

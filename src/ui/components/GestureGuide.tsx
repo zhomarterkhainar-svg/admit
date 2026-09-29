@@ -1,4 +1,4 @@
-import { Hand, MoveHorizontal } from 'lucide-react';
+import { Hand, HandGrab, MoveHorizontal } from 'lucide-react';
 import { t, type I18nKey } from '@/i18n';
 import { CrossArmsIcon, HandsUpIcon } from './icons';
 
@@ -20,6 +20,12 @@ const GESTURES: { icon: React.ReactNode; title: I18nKey; sub: I18nKey; tone: str
     title: 'gest.cursor',
     sub: 'gest.cursorSub',
     tone: 'blue',
+  },
+  {
+    icon: <HandGrab size={36} strokeWidth={2.5} />,
+    title: 'gest.fist',
+    sub: 'gest.fistSub',
+    tone: 'gold',
   },
   {
     icon: <MoveHorizontal size={36} strokeWidth={2.5} />,
