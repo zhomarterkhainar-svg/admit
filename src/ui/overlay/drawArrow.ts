@@ -25,23 +25,29 @@ export function drawArrow(
   const x1 = x0 + ux * len;
   const y1 = y0 + uy * len;
 
-  ctx.save();
-  ctx.strokeStyle = '#ffc72c';
-  ctx.fillStyle = '#ffc72c';
-  ctx.lineWidth = 8 * s;
-  ctx.lineCap = 'round';
-  ctx.shadowColor = 'rgba(0,0,0,0.6)';
-  ctx.shadowBlur = 8 * s;
-  ctx.beginPath();
-  ctx.moveTo(x0, y0);
-  ctx.lineTo(x1, y1);
-  ctx.stroke();
   const h = 22 * s;
-  ctx.beginPath();
-  ctx.moveTo(x1 + ux * h, y1 + uy * h);
-  ctx.lineTo(x1 - uy * h * 0.8, y1 + ux * h * 0.8);
-  ctx.lineTo(x1 + uy * h * 0.8, y1 - ux * h * 0.8);
-  ctx.closePath();
-  ctx.fill();
+  ctx.save();
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  // dark outline first, then the gold arrow: readable on any camera background
+  for (const [color, extra] of [
+    ['rgba(60, 60, 60, 0.85)', 6 * s],
+    ['#ffc800', 0],
+  ] as const) {
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = 9 * s + extra;
+    ctx.beginPath();
+    ctx.moveTo(x0, y0);
+    ctx.lineTo(x1, y1);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x1 + ux * h, y1 + uy * h);
+    ctx.lineTo(x1 - uy * h * 0.8, y1 + ux * h * 0.8);
+    ctx.lineTo(x1 + uy * h * 0.8, y1 - ux * h * 0.8);
+    ctx.closePath();
+    ctx.fill();
+    if (extra) ctx.stroke();
+  }
   ctx.restore();
 }

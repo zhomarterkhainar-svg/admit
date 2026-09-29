@@ -9,6 +9,10 @@ import { BaselineEstimator } from '@/engine/baseline';
 import { useLoop } from '../engine';
 import { DwellButton } from '../gestures/DwellButton';
 import { OverlayCanvas } from '../overlay/OverlayCanvas';
+import { Check, Hand, SkipForward } from 'lucide-react';
+import { Mascot, Speech } from '../components/Mascot';
+import { ProgressBar } from '../components/ProgressBar';
+import { MirrorPip } from '../components/MirrorPip';
 
 type Check = 'light' | 'person' | 'single' | 'fullBody' | 'distance' | 'centered' | 'facing';
 const CHECKS: Check[] = ['light', 'person', 'single', 'fullBody', 'distance', 'centered', 'facing'];
@@ -66,44 +70,67 @@ export function Calibration() {
   }, [loop, step, setBaseline]);
 
   const allOk = CHECKS.every((k) => checks[k]);
-  return (
+  const okCount = CHECKS.filter((k) => checks[k]).length;
+  return step === 'frame' ? (
     <>
       <OverlayCanvas loop={loop} />
-      {step === 'frame' ? (
-        <div className="panel-layer">
-          <svg
-            className={`silhouette ${allOk ? 'ok' : ''}`}
-            viewBox="0 0 100 200"
-            aria-hidden="true"
-          >
-            <path d="M50 8a13 13 0 1 1 0 26a13 13 0 1 1 0-26M30 42h40l14 58l-10 3l-10-40v45l6 82h-12l-8-72l-8 72h-12l6-82v-45l-10 40l-10-3z" />
-          </svg>
-          <div className="calib-card">
-            <h2>{t('calib.title')}</h2>
-            <ul className="checklist">
-              {CHECKS.map((k) => (
-                <li key={k} className={checks[k] ? 'ok' : ''}>
-                  <span className="check-dot">{checks[k] ? '✓' : ''}</span>
-                  {t(`calib.${k}` as I18nKey)}
-                </li>
-              ))}
-            </ul>
+      <div className="panel-layer">
+        <svg className={`silhouette ${allOk ? 'ok' : ''}`} viewBox="0 0 100 200" aria-hidden="true">
+          <path d="M50 8a13 13 0 1 1 0 26a13 13 0 1 1 0-26M30 42h40l14 58l-10 3l-10-40v45l6 82h-12l-8-72l-8 72h-12l6-82v-45l-10 40l-10-3z" />
+        </svg>
+        <div className="calib-card">
+          <Speech mood={allOk ? 'cheer' : 'think'} size={64}>
+            {t(allOk ? 'calib.ok' : 'calib.title')}
+          </Speech>
+          <div className="calib-progress">
+            <ProgressBar value={okCount / CHECKS.length} />
+            <span className="quest-count num">
+              {okCount}/{CHECKS.length}
+            </span>
           </div>
-          <div className="calib-skip">
-            <DwellButton variant="ghost" icon="⏭" sub={t('calib.skipSub')} onSelect={setCalibrated}>
-              {t('calib.skip')}
+          <ul className="checklist">
+            {CHECKS.map((k) => (
+              <li key={k} className={checks[k] ? 'ok' : ''}>
+                <span className="check-dot">
+                  {checks[k] && <Check size={16} strokeWidth={4} />}
+                </span>
+                {t(`calib.${k}` as I18nKey)}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="calib-skip">
+          <DwellButton
+            variant="ghost"
+            icon={<SkipForward size={20} strokeWidth={2.75} />}
+            sub={t('calib.skipSub')}
+            onSelect={setCalibrated}
+          >
+            {t('calib.skip')}
+          </DwellButton>
+        </div>
+      </div>
+    </>
+  ) : (
+    <div className="page">
+      <div className="page-inner center">
+        <div className="cursor-step">
+          <Mascot mood="wave" size={220} bob />
+          <div className="intro-text" style={{ alignItems: 'flex-start', textAlign: 'left' }}>
+            <h1 className="h1">{t('calib.cursorTitle')}</h1>
+            <p className="lead">{t('calib.cursorText')}</p>
+            <MirrorPip />
+            <DwellButton
+              variant="primary"
+              onSelect={setCalibrated}
+              icon={<Hand size={28} strokeWidth={2.75} />}
+              tone="green"
+            >
+              {t('calib.ready')}
             </DwellButton>
           </div>
         </div>
-      ) : (
-        <div className="screen-dim center">
-          <h1 className="h1">{t('calib.cursorTitle')}</h1>
-          <p className="lead">{t('calib.cursorText')}</p>
-          <DwellButton variant="primary" onSelect={setCalibrated} icon="✋">
-            {t('calib.ready')}
-          </DwellButton>
-        </div>
-      )}
-    </>
+      </div>
+    </div>
   );
 }

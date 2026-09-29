@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-const COLORS = ['#ffc72c', '#00b5e2', '#2ee59d', '#ff4d5e', '#ffffff'];
+const COLORS = ['#58cc02', '#1cb0f6', '#ffc800', '#ff4b4b', '#ce82ff', '#ff9600'];
 
 /** CSS-only confetti rain for records and rank-ups. */
 export function Confetti({ pieces = 90 }: { pieces?: number }) {

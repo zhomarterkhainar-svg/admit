@@ -65,11 +65,11 @@ export function PoseCompare({ ruleId, joints }: { ruleId: string; joints?: reado
   return (
     <div className="pose-compare" aria-hidden="true">
       <figure className="bad">
-        <StaticPose edit={ex.wrong} color="#8a93b8" errorJoints={joints} />
+        <StaticPose edit={ex.wrong} color="#afafaf" errorJoints={joints} />
         <figcaption>✗ {t('compare.wrong')}</figcaption>
       </figure>
       <figure className="good">
-        <StaticPose edit={ex.right} color="#2ee59d" />
+        <StaticPose edit={ex.right} color="#58cc02" />
         <figcaption>✓ {t('compare.right')}</figcaption>
       </figure>
     </div>

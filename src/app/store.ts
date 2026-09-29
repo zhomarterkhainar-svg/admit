@@ -103,6 +103,7 @@ const muted0 = initialMuted();
 setMuted(muted0);
 const lang0 = initialLang();
 setI18nLang(lang0);
+if (typeof document !== 'undefined') document.documentElement.lang = lang0;
 
 /** Save locally and post to the world leaderboard (if configured) — never in demo mode. */
 function persist(p: Progress, demo: boolean, entry: LeaderboardEntry): void {
@@ -136,6 +137,7 @@ export const useApp = create<AppState>((set, get) => ({
 
   setLang: (lang) => {
     setI18nLang(lang);
+    document.documentElement.lang = lang;
     try {
       localStorage.setItem(LANG_KEY, lang);
     } catch {

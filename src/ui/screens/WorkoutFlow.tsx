@@ -11,10 +11,12 @@ import { useDemo, useLoop } from '../engine';
 import { DwellButton } from '../gestures/DwellButton';
 import { useGestures } from '../gestures/GestureProvider';
 import { GhostPreview } from '../overlay/GhostPreview';
-import { OverlayCanvas } from '../overlay/OverlayCanvas';
 import { Workout } from './Workout';
 import { PoseCompare } from '../components/PoseCompare';
 import { ERROR_EXAMPLES } from '@/exercises/errorExamples';
+import { Lightbulb, SkipForward, Target, Timer } from 'lucide-react';
+import { Speech } from '../components/Mascot';
+import { PauseModal } from '../components/PauseModal';
 
 const INTRO_SEC = 7;
 
@@ -62,7 +64,14 @@ export function WorkoutFlow() {
   return (
     <>
       {stage === 'intro' ? (
-        <Intro key={idx} step={current} label={stepLabel} onStart={() => setStage('active')} />
+        <Intro
+          key={idx}
+          step={current}
+          label={stepLabel}
+          index={idx}
+          total={steps.length}
+          onStart={() => setStage('active')}
+        />
       ) : (
         <Workout
           key={idx}
@@ -76,20 +85,18 @@ export function WorkoutFlow() {
         />
       )}
       {paused && (
-        <div className="screen-dim center pause">
-          <h1 className="h1">{t('pause.title')}</h1>
-          <div className="menu-col">
-            <DwellButton variant="primary" icon="▶" onSelect={() => setPaused(false)}>
-              {t('pause.resume')}
-            </DwellButton>
-            <DwellButton icon="⏭" onSelect={() => next([], 0)}>
+        <PauseModal
+          onResume={() => setPaused(false)}
+          onExit={() => go('menu')}
+          extra={
+            <DwellButton
+              icon={<SkipForward size={22} strokeWidth={2.75} />}
+              onSelect={() => next([], 0)}
+            >
               {t('pause.skip')}
             </DwellButton>
-            <DwellButton variant="ghost" icon="🏠" onSelect={() => go('menu')}>
-              {t('pause.exit')}
-            </DwellButton>
-          </div>
-        </div>
+          }
+        />
       )}
     </>
   );
@@ -98,13 +105,16 @@ export function WorkoutFlow() {
 function Intro({
   step,
   label,
+  index,
+  total,
   onStart,
 }: {
   step: ProgramStep;
   label?: string;
+  index: number;
+  total: number;
   onStart: () => void;
 }) {
-  const loop = useLoop();
   const ex = EXERCISES[step.id];
   const mistakes = [...ex.repRules, ...ex.frameRules]
     .filter((r) => ERROR_EXAMPLES[r.id])
@@ -134,39 +144,56 @@ function Intro({
   }, [ex]);
 
   return (
-    <>
-      <OverlayCanvas loop={loop} />
-      <div className="screen-dim intro">
-        <div className="intro-text">
-          {label && <div className="step">{label}</div>}
-          <h1 className="h1">{t(ex.name)}</h1>
-          <p className="lead">{t(ex.howTo)}</p>
-          <p className="target">
-            🎯 {step.target} × · ⏱ {step.timeLimitSec}s
-          </p>
-          <p className="muted">{t('intro.handsUp')}</p>
-          {mistakes.length > 0 && (
-            <div className="intro-mistakes">
-              <div className="step">{t('intro.mistakes')}</div>
-              {mistakes.map((r) => (
-                <div key={r.id} className="intro-mistake">
-                  <PoseCompare ruleId={r.id} joints={r.joints} />
-                  <div>
-                    <b>{t(r.message)}</b>
-                    <div className="muted">💡 {t(r.fix)}</div>
-                  </div>
-                </div>
-              ))}
+    <div className="page">
+      <div className="page-inner">
+        <div className="intro">
+          <div className="intro-text">
+            {total > 1 && (
+              <div className="steps" aria-label={label}>
+                {Array.from({ length: total }, (_, i) => (
+                  <span key={i} className={i < index ? 'done' : i === index ? 'now' : ''} />
+                ))}
+              </div>
+            )}
+            <h1 className="h1">{t(ex.name)}</h1>
+            <Speech mood="happy" size={84}>
+              {t(ex.howTo)}
+            </Speech>
+            <div className="target-row">
+              <span className="pill">
+                <Target size={18} strokeWidth={2.75} color="var(--green)" /> {step.target} ×
+              </span>
+              <span className="pill">
+                <Timer size={18} strokeWidth={2.75} color="var(--blue)" /> {step.timeLimitSec} s
+              </span>
             </div>
-          )}
-        </div>
-        <div className="intro-ghost">
-          <GhostPreview exercise={ex} />
-        </div>
-        <div className={`countdown ${left <= 3 ? 'hot' : ''}`} key={left}>
-          {left > 0 ? left : t('intro.go')}
+            {mistakes.length > 0 && (
+              <div className="intro-mistakes">
+                <div className="kicker">{t('intro.mistakes')}</div>
+                {mistakes.map((r) => (
+                  <div key={r.id} className="intro-mistake">
+                    <PoseCompare ruleId={r.id} joints={r.joints} />
+                    <div>
+                      <b>{t(r.message)}</b>
+                      <div className="fix">
+                        <Lightbulb size={16} strokeWidth={2.75} /> {t(r.fix)}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <p className="hands-hint">{t('intro.handsUp')}</p>
+          </div>
+          <div className="intro-ghost">
+            <span className="kicker">{t('workout.coach')}</span>
+            <GhostPreview exercise={ex} />
+            <div className={`countdown num ${left <= 3 ? 'hot' : ''}`} key={left}>
+              {left > 0 ? left : t('intro.go')}
+            </div>
+          </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

@@ -1,19 +1,34 @@
+import { useState } from 'react';
+import {
+  Award,
+  Dumbbell,
+  Flame,
+  Globe,
+  ScrollText,
+  Sparkles,
+  Swords,
+  Target,
+  Trophy,
+  Volume2,
+  VolumeX,
+  Zap,
+} from 'lucide-react';
 import { useApp } from '@/app/store';
 import { plural, t, type Lang } from '@/i18n';
 import { FULL, QUICK } from '@/game/program';
 import { rankFor } from '@/game/ranks';
 import { dayKey, questFor } from '@/game/daily';
 import { EXERCISES } from '@/exercises/registry';
-import { useState } from 'react';
-import { useLoop } from '../engine';
 import { DwellButton } from '../gestures/DwellButton';
-import { OverlayCanvas } from '../overlay/OverlayCanvas';
+import { Speech } from '../components/Mascot';
+import { ProgressBar } from '../components/ProgressBar';
+import { MirrorPip } from '../components/MirrorPip';
 
 const LANGS: Lang[] = ['ru', 'kk', 'en'];
 const LANG_LABEL: Record<Lang, string> = { ru: 'Русский', kk: 'Қазақша', en: 'English' };
+const ICON = { size: 30, strokeWidth: 2.75 } as const;
 
 export function Menu() {
-  const loop = useLoop();
   const { go, startProgram, lang, setLang, muted, toggleMute, progress, playerName } = useApp();
   const { rank, next, progress: rp } = rankFor(progress.totalXp);
   const [today] = useState(() => dayKey(Date.now()));
@@ -24,92 +39,161 @@ export function Menu() {
   // a streak only counts if it reached today or yesterday
   const streakDays =
     progress.streak.lastDay && isRecent(progress.streak.lastDay, today) ? progress.streak.days : 0;
+  const achCount = Object.keys(progress.achievements).length;
 
   return (
-    <>
-      <OverlayCanvas loop={loop} />
-      <div className="screen-dim menu">
-        <header className="menu-head">
-          <div className="logo">QOZĞAL</div>
-          <div className="player">
-            <span className="rank-icon">{rank.icon}</span>
-            <div>
-              <div className="player-name">{playerName}</div>
-              <div className="player-rank">
-                {t(rank.key)} · {progress.totalXp} XP
-              </div>
-              {next && (
-                <div className="xp-bar">
-                  <div style={{ width: `${Math.round(rp * 100)}%` }} />
-                </div>
-              )}
-            </div>
+    <div className="page menu">
+      <div className="page-inner">
+        <header className="topbar">
+          <div className="logo">qozğal</div>
+          <div className="stats-row">
+            <span
+              className={`chip ${streakDays ? 'chip-orange' : ''}`}
+              title={`${streakDays} ${plural(streakDays, 'streak.days')}`}
+            >
+              <Flame size={24} strokeWidth={2.5} fill={streakDays ? 'currentColor' : 'none'} />
+              <span className="num">{streakDays}</span>
+            </span>
+            <span className="chip chip-gold" title={t('results.xp')}>
+              <Zap size={24} strokeWidth={2.5} fill="currentColor" />
+              <span className="num">{progress.totalXp} XP</span>
+            </span>
+            <span className="chip chip-purple" title={t('ach.title')}>
+              <Award size={24} strokeWidth={2.5} />
+              <span className="num">
+                {achCount} {plural(achCount, 'ach.count')}
+              </span>
+            </span>
           </div>
         </header>
-        <div className="menu-status">
-          {streakDays > 0 && (
-            <div className="chip">
-              🔥 {streakDays} {plural(streakDays, 'streak.days')}
+
+        <div className="menu-layout">
+          <section className="menu-main" aria-label={t('menu.modes')}>
+            <Speech mood="wave" size={72} className="menu-greet">
+              {t('menu.greet')}
+            </Speech>
+            <div className="menu-grid">
+              <DwellButton
+                variant="primary"
+                tone="green"
+                icon={<Zap {...ICON} fill="currentColor" />}
+                sub={t('menu.quickSub')}
+                onSelect={() => startProgram(QUICK)}
+              >
+                {t('menu.quick')}
+              </DwellButton>
+              <DwellButton
+                tone="blue"
+                icon={<Dumbbell {...ICON} />}
+                sub={t('menu.fullSub')}
+                onSelect={() => startProgram(FULL)}
+              >
+                {t('menu.full')}
+              </DwellButton>
+              <DwellButton
+                tone="purple"
+                icon={<Target {...ICON} />}
+                sub={t('menu.pickSub')}
+                onSelect={() => go('pick')}
+              >
+                {t('menu.pick')}
+              </DwellButton>
+              <DwellButton
+                tone="orange"
+                icon={<Sparkles {...ICON} />}
+                sub={t('menu.freeSub')}
+                onSelect={() => go('free')}
+              >
+                {t('menu.free')}
+              </DwellButton>
+              <DwellButton
+                tone="red"
+                icon={<Swords {...ICON} />}
+                sub={t('menu.challengeSub')}
+                onSelect={() => go('challenge')}
+              >
+                {t('menu.challenge')}
+              </DwellButton>
+              <DwellButton
+                tone="gold"
+                icon={<Trophy {...ICON} />}
+                sub={t('ach.title')}
+                onSelect={() => go('records')}
+              >
+                {t('menu.records')}
+              </DwellButton>
             </div>
-          )}
-          <div className={`chip quest ${questDone ? 'done' : ''}`}>
-            📜 {t('quest.title')}: {quest.target} × {t(EXERCISES[quest.exercise].name)}
-            <span className="quest-bar">
-              <span style={{ width: `${(questProgress / quest.target) * 100}%` }} />
-            </span>{' '}
-            {questDone ? '✓' : `${questProgress}/${quest.target}`} · +{quest.xp} XP
-          </div>
-          <div className="chip">
-            🏅 {Object.keys(progress.achievements).length}{' '}
-            {plural(Object.keys(progress.achievements).length, 'ach.count')}
-          </div>
+          </section>
+
+          <aside className="menu-side" aria-label={t('menu.you')}>
+            <div className="card profile">
+              <span className="avatar" aria-hidden="true">
+                {rank.icon}
+              </span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="profile-name">{playerName}</div>
+                <div className="profile-rank">
+                  {t(rank.key)} · <span className="num">{progress.totalXp}</span> XP
+                </div>
+                {next && <ProgressBar value={rp} tone="gold" label={t(next.key)} />}
+              </div>
+            </div>
+            <div className={`card quest ${questDone ? 'done' : ''}`}>
+              <h2>
+                <ScrollText size={22} strokeWidth={2.5} color="var(--orange)" /> {t('quest.title')}
+              </h2>
+              <div>
+                {quest.target} × {t(EXERCISES[quest.exercise].name)}
+              </div>
+              <div className="quest-row">
+                <ProgressBar
+                  value={questDone ? 1 : questProgress / quest.target}
+                  tone={questDone ? 'green' : 'gold'}
+                />
+                <span className="quest-count num">
+                  {questDone ? '✓' : `${questProgress}/${quest.target}`}
+                </span>
+              </div>
+              <div className="chip chip-gold" style={{ padding: 0 }}>
+                <Zap size={18} strokeWidth={2.5} fill="currentColor" /> +{quest.xp} XP
+              </div>
+            </div>
+            <MirrorPip />
+            <div className="side-buttons">
+              <DwellButton
+                variant="ghost"
+                icon={<Globe size={22} strokeWidth={2.5} />}
+                sub={LANG_LABEL[lang]}
+                onSelect={() => setLang(LANGS[(LANGS.indexOf(lang) + 1) % LANGS.length]!)}
+              >
+                {t('menu.lang')}
+              </DwellButton>
+              <DwellButton
+                variant="ghost"
+                icon={
+                  muted ? (
+                    <VolumeX size={22} strokeWidth={2.5} />
+                  ) : (
+                    <Volume2 size={22} strokeWidth={2.5} />
+                  )
+                }
+                sub={t(muted ? 'menu.off' : 'menu.on')}
+                onSelect={toggleMute}
+              >
+                {t('menu.sound')}
+              </DwellButton>
+            </div>
+          </aside>
         </div>
-        <div className="menu-grid">
-          <DwellButton
-            variant="primary"
-            icon="⚡"
-            sub={t('menu.quickSub')}
-            onSelect={() => startProgram(QUICK)}
-          >
-            {t('menu.quick')}
-          </DwellButton>
-          <DwellButton icon="🏋️" sub={t('menu.fullSub')} onSelect={() => startProgram(FULL)}>
-            {t('menu.full')}
-          </DwellButton>
-          <DwellButton icon="🎯" sub={t('menu.pickSub')} onSelect={() => go('pick')}>
-            {t('menu.pick')}
-          </DwellButton>
-          <DwellButton icon="🤖" sub={t('menu.freeSub')} onSelect={() => go('free')}>
-            {t('menu.free')}
-          </DwellButton>
-          <DwellButton icon="🏹" sub={t('menu.challengeSub')} onSelect={() => go('challenge')}>
-            {t('menu.challenge')}
-          </DwellButton>
-          <DwellButton icon="🏆" onSelect={() => go('records')}>
-            {t('menu.records')}
-          </DwellButton>
-          <div className="menu-small">
-            <DwellButton
-              variant="ghost"
-              icon="🌐"
-              sub={LANG_LABEL[lang]}
-              onSelect={() => setLang(LANGS[(LANGS.indexOf(lang) + 1) % LANGS.length]!)}
-            >
-              {t('menu.lang')}
-            </DwellButton>
-            <DwellButton
-              variant="ghost"
-              icon={muted ? '🔇' : '🔊'}
-              sub={t(muted ? 'menu.off' : 'menu.on')}
-              onSelect={toggleMute}
-            >
-              {t('menu.sound')}
-            </DwellButton>
-          </div>
-        </div>
-        <footer className="gesture-help">{t('menu.gestures')}</footer>
+        <footer className="gesture-help">
+          {t('menu.gestures')
+            .split(' · ')
+            .map((part) => (
+              <span key={part}>{part}</span>
+            ))}
+        </footer>
       </div>
-    </>
+    </div>
   );
 }
 

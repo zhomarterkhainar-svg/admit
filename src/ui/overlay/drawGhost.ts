@@ -42,6 +42,6 @@ export function drawGhost(
       visibility: 1,
     })),
   };
-  const alpha = 0.35 + 0.1 * Math.sin(now / 300);
-  drawSkeleton(ctx, ghost, { color: '#ffc72c', alpha, lineWidth: 10, head: true });
+  const alpha = 0.45 + 0.1 * Math.sin(now / 300);
+  drawSkeleton(ctx, ghost, { color: '#1cb0f6', alpha, lineWidth: 10, head: true });
 }

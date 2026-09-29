@@ -14,6 +14,9 @@ import { Particles } from '../overlay/particles';
 import { coverMapper } from '../overlay/drawSkeleton';
 import { P } from '@/core/types';
 import { ExerciseRecognizer } from '@/ml/recognizer';
+import { Flame, Timer, X } from 'lucide-react';
+import { HintBanner } from '../components/HintBanner';
+import { ProgressBar } from '../components/ProgressBar';
 
 interface Props<M> {
   loop: PoseSource;
@@ -150,8 +153,8 @@ export function Workout<M>({
               c.x,
               c.y,
               burstRef.current === 'perfect'
-                ? ['#ffc72c', '#fff3c4', '#ffffff']
-                : ['#2ee59d', '#00b5e2'],
+                ? ['#ffc800', '#ff9600', '#fff5d3']
+                : ['#58cc02', '#1cb0f6', '#d7ffb8'],
               burstRef.current === 'perfect' ? 48 : 28,
             );
             burstRef.current = null;
@@ -169,52 +172,56 @@ export function Workout<M>({
       />
       <div className="hud">
         <div className="hud-top">
-          <div className="exercise-name">
-            {step && <span className="step">{step}</span>}
+          <div className="hud-chip">
+            {step && <span className="step num">{step}</span>}
             {t(exercise.name)}
           </div>
-          {hint ? (
-            <div className={`hint-card sev-${hint.severity}`} key={hint.id}>
-              <div className="hint-msg">{t(hint.message)}</div>
-              <div className="hint-fix">{t(hint.fix)}</div>
-            </div>
-          ) : praise ? (
-            <div className="hint-card sev-ok">
-              <div className="hint-msg">{t('praise.fixed')}</div>
-            </div>
-          ) : null}
+          <ProgressBar
+            value={(ui?.counted ?? 0) / target}
+            label={`${ui?.counted ?? 0} / ${target}`}
+          />
+          <div className={`hud-chip timer-chip num ${remaining <= 10 ? 'low' : ''}`}>
+            <Timer size={20} strokeWidth={2.75} /> {remaining}
+          </div>
         </div>
-        <div className={`timer ${remaining <= 10 ? 'low' : ''}`}>
-          {remaining}
-          <small>{t('workout.timeLeft')}</small>
-        </div>
-        <div className="rep-counter">
-          <span className="rep-now">{ui?.counted ?? 0}</span>
-          <span className="rep-target">/ {target}</span>
+        <HintBanner hint={hint ?? null} praise={praise} />
+        <div className="rep-card">
+          <div className="rep-line">
+            <span className="rep-now" key={ui?.counted ?? 0}>
+              {ui?.counted ?? 0}
+            </span>
+            <span className="rep-target num">/ {target}</span>
+          </div>
+          <span className="kicker">{t('workout.reps')}</span>
           {ui && ui.attempted > ui.counted && (
             <span className="rep-missed">
-              {t('workout.notCounted')}: {ui.attempted - ui.counted}
+              <X size={16} strokeWidth={3} /> {t('workout.notCounted')}: {ui.attempted - ui.counted}
             </span>
           )}
         </div>
-        <div className="phase-bar">
-          <div
-            className="phase-fill"
-            style={{ height: `${Math.round((ui?.progress ?? 0) * 100)}%` }}
-          />
-          <div className="phase-goal" />
+        <div className="depth-meter" aria-hidden="true">
+          <div className="depth-track">
+            <div
+              className="depth-fill"
+              style={{ height: `${Math.round((ui?.progress ?? 0) * 100)}%` }}
+            />
+            <div className="depth-goal" />
+          </div>
+          <span className="kicker">{t('workout.depth')}</span>
         </div>
         {cleanRun >= 2 && (
-          <div className="clean-streak" key={cleanRun}>
-            🔥 {cleanRun} {t('workout.cleanStreak')}
+          <div className="clean-streak" key={`streak-${cleanRun}`}>
+            <Flame size={18} strokeWidth={2.75} fill="currentColor" /> {cleanRun}{' '}
+            {t('workout.cleanStreak')}
           </div>
         )}
         <div className="mini-coach" aria-hidden="true">
+          <span className="kicker">{t('workout.coach')}</span>
           <GhostPreview exercise={exercise} />
         </div>
         <div className="pause-hint">{t('workout.pauseHint')}</div>
         {flash && (
-          <div key={flash.key} className={`rep-flash flash-${flash.kind}`}>
+          <div key={`flash-${flash.key}`} className={`rep-flash flash-${flash.kind}`}>
             {flash.kind === 'perfect'
               ? t('workout.perfect')
               : flash.kind === 'good'

@@ -1,6 +1,7 @@
 import { t } from '@/i18n';
 import type { WorkoutSummary } from '@/game/summary';
 import type { Rank } from '@/game/ranks';
+import { mascotUrl } from '../mascot/mascot';
 
 export interface CardData {
   playerName: string;
@@ -11,79 +12,134 @@ export interface CardData {
 
 const W = 1080;
 const H = 1350;
-/** text never crosses the gold frame */
-const MAX_TEXT = W - 180;
+const MAX_TEXT = W - 160;
+const FAMILY = `'Nunito Variable', Nunito, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif`;
+const font = (size: number, weight = 800) => `${weight} ${size}px ${FAMILY}`;
+
+const C = {
+  green: '#58cc02',
+  greenD: '#58a700',
+  ink: '#3c3c3c',
+  ink2: '#777777',
+  line: '#e5e5e5',
+  gold: '#ffc800',
+  goldD: '#e5a500',
+  purple: '#ce82ff',
+  blue: '#1cb0f6',
+  orange: '#ff9600',
+  red: '#ff4b4b',
+};
+
+function loadImage(src: string): Promise<HTMLImageElement | null> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
+}
 
 /** Renders a 1080×1350 social card (Instagram portrait) with the workout summary. */
-export function renderCard(d: CardData): HTMLCanvasElement {
+export async function renderCard(d: CardData): Promise<HTMLCanvasElement> {
+  // canvas text does not wait for web fonts on its own
+  await Promise.all([
+    document.fonts?.load(font(64, 900)),
+    document.fonts?.load(font(30, 800)),
+  ]).catch(() => undefined);
+  const mascot = await loadImage(mascotUrl('cheer'));
+
   const c = document.createElement('canvas');
   c.width = W;
   c.height = H;
   const ctx = c.getContext('2d')!;
-  const g = ctx.createLinearGradient(0, 0, 0, H);
-  g.addColorStop(0, '#141b33');
-  g.addColorStop(1, '#0b1020');
-  ctx.fillStyle = g;
+  ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, W, H);
 
-  // gold frame
-  ctx.strokeStyle = '#ffc72c';
-  ctx.lineWidth = 6;
-  ctx.strokeRect(36, 36, W - 72, H - 72);
+  // green header band with the logo
+  ctx.fillStyle = C.green;
+  roundRect(ctx, 0, 0, W, 330, 0);
+  ctx.fill();
+  ctx.fillStyle = C.greenD;
+  ctx.fillRect(0, 318, W, 12);
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#ffffff';
+  ctx.font = font(96, 900);
+  ctx.fillText('qozğal', 70, 150);
+  ctx.font = font(34, 800);
+  wrap(ctx, t('app.tagline'), 70, 212, 560, 44);
+  if (mascot) ctx.drawImage(mascot, W - 400, 30, 330, 363);
 
-  const font = (size: number, weight = 800) =>
-    `${weight} ${size}px Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif`;
   ctx.textAlign = 'center';
-  ctx.fillStyle = '#ffc72c';
-  ctx.font = font(120, 900);
-  ctx.fillText('QOZĞAL', W / 2, 200);
-  ctx.fillStyle = '#9aa4c7';
-  ctx.font = font(36, 600);
-  ctx.fillText(t('app.tagline'), W / 2, 260, MAX_TEXT);
-
-  ctx.fillStyle = '#f4f6ff';
-  ctx.font = font(64);
-  ctx.fillText(`${d.rank.icon} ${d.playerName}`, W / 2, 380, MAX_TEXT);
-  ctx.fillStyle = '#9aa4c7';
-  ctx.font = font(34, 600);
-  ctx.fillText(`${t(d.rank.key)} · ${d.totalXp} XP`, W / 2, 430);
+  ctx.fillStyle = C.goldD;
+  ctx.font = font(64, 900);
+  ctx.fillText(t('results.done'), W / 2, 470, MAX_TEXT);
+  ctx.fillStyle = C.ink;
+  ctx.font = font(52, 900);
+  ctx.fillText(`${d.rank.icon} ${d.playerName}`, W / 2, 560, MAX_TEXT);
+  ctx.fillStyle = C.ink2;
+  ctx.font = font(32, 800);
+  ctx.fillText(`${t(d.rank.key)} · ${d.totalXp} XP`, W / 2, 610);
 
   const s = d.summary;
-  const stats: [string, string][] = [
-    [`${s.counted}/${s.attempted}`, t('results.reps')],
-    [`${s.cleanPct}%`, t('results.clean')],
-    [`${s.quality}`, t('results.quality')],
-    [s.smoothness !== null ? `${s.smoothness}%` : '—', t('results.smoothness')],
-    [`~${s.kcal}`, t('results.kcal')],
-    [`+${s.xp}`, t('results.xp')],
+  const stats: [string, string, string][] = [
+    [`+${s.xp}`, t('results.xp'), C.gold],
+    [`${s.counted}/${s.attempted}`, t('results.reps'), C.purple],
+    [`${s.cleanPct}%`, t('results.clean'), C.green],
+    [`${s.quality}`, t('results.quality'), C.orange],
+    [s.smoothness !== null ? `${s.smoothness}%` : '—', t('results.smoothness'), C.blue],
+    [`~${s.kcal}`, t('results.kcal'), C.red],
   ];
-  stats.forEach(([value, label], i) => {
-    const col = i % 2;
-    const row = Math.floor(i / 2);
-    const x = 120 + col * 440;
-    const y = 520 + row * 190;
-    ctx.fillStyle = 'rgba(255,255,255,0.06)';
-    roundRect(ctx, x, y, 400, 160, 28);
+  stats.forEach(([value, label, color], i) => {
+    const col = i % 3;
+    const row = Math.floor(i / 3);
+    const w = 290;
+    const x = 70 + col * (w + 25);
+    const y = 680 + row * 230;
+    // Duolingo stat tile: coloured frame + label strip, white body
+    ctx.fillStyle = color;
+    roundRect(ctx, x, y, w, 200, 28);
     ctx.fill();
-    ctx.fillStyle = i === 5 ? '#ffc72c' : '#f4f6ff';
-    ctx.font = font(80, 900);
-    ctx.fillText(value, x + 200, y + 95);
-    ctx.fillStyle = '#9aa4c7';
-    ctx.font = font(30, 600);
-    ctx.fillText(label, x + 200, y + 138, 370);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = font(26, 900);
+    ctx.fillText(label.toUpperCase(), x + w / 2, y + 40, w - 30);
+    roundRect(ctx, x + 5, y + 58, w - 10, 137, 24);
+    ctx.fill();
+    ctx.fillStyle = color === C.gold ? C.goldD : color;
+    ctx.font = font(72, 900);
+    ctx.fillText(value, x + w / 2, y + 152, w - 30);
   });
 
-  ctx.fillStyle = '#2ee59d';
-  ctx.font = font(40);
+  ctx.fillStyle = C.green;
+  ctx.font = font(40, 900);
   const line =
     s.bestCleanStreak >= 3
       ? `🔥 ${s.bestCleanStreak} ${t('workout.cleanStreak')}`
       : t('praise.fixed');
-  ctx.fillText(line, W / 2, 1150, MAX_TEXT);
-  ctx.fillStyle = '#9aa4c7';
-  ctx.font = font(30, 600);
-  ctx.fillText(new Date(s.startedAt).toLocaleDateString(), W / 2, 1230);
+  ctx.fillText(line, W / 2, 1200, MAX_TEXT);
+  ctx.fillStyle = C.ink2;
+  ctx.font = font(30, 800);
+  ctx.fillText(new Date(s.startedAt).toLocaleDateString(), W / 2, 1270);
   return c;
+}
+
+function wrap(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  max: number,
+  lh: number,
+) {
+  let line = '';
+  for (const word of text.split(' ')) {
+    const test = line ? `${line} ${word}` : word;
+    if (ctx.measureText(test).width > max && line) {
+      ctx.fillText(line, x, y);
+      line = word;
+      y += lh;
+    } else line = test;
+  }
+  if (line) ctx.fillText(line, x, y);
 }
 
 function roundRect(
@@ -105,7 +161,7 @@ function roundRect(
 
 /** Web Share (phones) with a PNG file; falls back to downloading the image. */
 export async function shareCard(d: CardData): Promise<'shared' | 'downloaded'> {
-  const canvas = renderCard(d);
+  const canvas = await renderCard(d);
   const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, 'image/png'));
   if (!blob) throw new Error('toBlob failed');
   const file = new File([blob], 'qozgal.png', { type: 'image/png' });

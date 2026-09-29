@@ -57,7 +57,7 @@ export function GhostPreview<M>({
       const world = makePose(blend(rest, target, k)).world;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawSkeleton(ctx, fitFrame(world, canvas.width, canvas.height), {
-        color: '#ffc72c',
+        color: '#1cb0f6',
         lineWidth: 9,
         head: true,
       });

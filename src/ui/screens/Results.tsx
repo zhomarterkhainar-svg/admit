@@ -1,16 +1,32 @@
 import { useEffect } from 'react';
+import {
+  Activity,
+  Dumbbell,
+  Flame,
+  House,
+  Lightbulb,
+  RotateCcw,
+  ScrollText,
+  Share2,
+  Star,
+  Target,
+  Timer,
+  Trophy,
+  Zap,
+} from 'lucide-react';
 import { useApp } from '@/app/store';
 import { t, type I18nKey } from '@/i18n';
 import { speak } from '@/audio/tts';
 import { sfx } from '@/audio/sfx';
 import { EXERCISES } from '@/exercises/registry';
 import { rankFor } from '@/game/ranks';
-import { useLoop } from '../engine';
 import { DwellButton } from '../gestures/DwellButton';
 import { useGestures } from '../gestures/GestureProvider';
-import { OverlayCanvas } from '../overlay/OverlayCanvas';
 import { Confetti } from '../components/Confetti';
+import { Mascot } from '../components/Mascot';
 import { PoseCompare } from '../components/PoseCompare';
+import { ProgressBar } from '../components/ProgressBar';
+import { StatBox } from '../components/StatBox';
 import { shareCard } from '../share/shareCard';
 
 const fmtTime = (ms: number) => {
@@ -28,7 +44,6 @@ function fixFor(id: string): { msg: I18nKey; fix: I18nKey; joints: readonly numb
 }
 
 export function Results() {
-  const loop = useLoop();
   const { summary, xpBefore, progress, program, startProgram, go, questCompleted, playerName } =
     useApp();
   useGestures({ crossArms: () => go('menu') });
@@ -49,141 +64,191 @@ export function Results() {
   }, [summary, rankUp]);
 
   if (!summary) return null;
+  const perfect = summary.attempted > 0 && summary.topErrors.length === 0;
 
   return (
     <>
-      <OverlayCanvas loop={loop} />
       {(rankUp || summary.cleanPct === 100) && <Confetti />}
-      <div className="screen-dim results">
-        <h1 className="h1">{t('results.title')}</h1>
-        <div className="stats">
-          <Stat label={t('results.reps')} value={`${summary.counted}/${summary.attempted}`} />
-          <Stat label={t('results.clean')} value={`${summary.cleanPct}%`} />
-          <Stat label={t('results.quality')} value={`${summary.quality}`} />
-          {summary.smoothness !== null && (
-            <Stat label={t('results.smoothness')} value={`${summary.smoothness}%`} />
-          )}
-          <Stat label={t('results.time')} value={fmtTime(summary.durationMs)} />
-          <Stat label={t('results.kcal')} value={`~${summary.kcal}`} />
-          <Stat label={t('results.xp')} value={`+${summary.xp}`} accent />
-        </div>
+      <div className="page">
+        <div className="page-inner v-center">
+          <div className="results-head">
+            <Mascot mood={perfect || rankUp ? 'cheer' : 'happy'} size={110} bob />
+            <div className="results-headline">
+              <h1 className="results-title">{t('results.done')}</h1>
+              {questCompleted && (
+                <div className="quest-done">
+                  <ScrollText size={18} strokeWidth={2.75} /> {t('quest.done')} +{questCompleted.xp}{' '}
+                  XP
+                </div>
+              )}
+            </div>
+          </div>
 
-        <div className="results-body">
-          <section className="card">
-            <table className="ex-table">
-              <tbody>
+          <div className="stats">
+            <StatBox
+              label={t('results.xp')}
+              value={`+${summary.xp}`}
+              color="gold"
+              icon={<Zap size={24} strokeWidth={2.5} fill="currentColor" />}
+            />
+            <StatBox
+              label={t('results.reps')}
+              value={`${summary.counted}/${summary.attempted}`}
+              color="purple"
+              icon={<Dumbbell size={24} strokeWidth={2.5} />}
+            />
+            <StatBox
+              label={t('results.clean')}
+              value={`${summary.cleanPct}%`}
+              color="green"
+              icon={<Target size={24} strokeWidth={2.5} />}
+            />
+            <StatBox
+              label={t('results.quality')}
+              value={summary.quality}
+              color="orange"
+              icon={<Star size={24} strokeWidth={2.5} fill="currentColor" />}
+            />
+            {summary.smoothness !== null && (
+              <StatBox
+                label={t('results.smoothness')}
+                value={`${summary.smoothness}%`}
+                color="blue"
+                icon={<Activity size={24} strokeWidth={2.5} />}
+              />
+            )}
+            <StatBox
+              label={t('results.time')}
+              value={fmtTime(summary.durationMs)}
+              sub={`~${summary.kcal} ${t('results.kcal')}`}
+              color="red"
+              icon={<Timer size={24} strokeWidth={2.5} />}
+            />
+          </div>
+
+          <div className="results-body">
+            <section className="card">
+              <h2>
+                <Dumbbell size={20} strokeWidth={2.75} color="var(--purple)" />{' '}
+                {t('results.exercises')}
+              </h2>
+              <div className="ex-list">
                 {summary.results.map((r, i) => {
                   const counted = r.reps.filter((x) => x.counted).length;
                   const clean = r.reps.filter((x) => x.counted && x.errors.length === 0).length;
                   return (
-                    <tr key={i}>
-                      <td>{t(EXERCISES[r.id].name)}</td>
-                      <td>
+                    <div className="ex-row" key={i}>
+                      <span>{t(EXERCISES[r.id].name)}</span>
+                      <span className="num muted">
                         {counted}
                         {r.target > 0 && `/${r.target}`}
-                      </td>
-                      <td className="bar-cell">
-                        <div className="mini-bar">
-                          <div
-                            style={{
-                              width: `${r.reps.length ? (clean / r.reps.length) * 100 : 0}%`,
-                            }}
-                          />
+                      </span>
+                      <ProgressBar value={r.reps.length ? clean / r.reps.length : 0} />
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+
+            <section className="card">
+              <h2>
+                <Lightbulb size={20} strokeWidth={2.75} color="var(--gold-d)" />
+                {t('results.topErrors')}
+              </h2>
+              {summary.attempted === 0 ? (
+                <p className="muted">—</p>
+              ) : perfect ? (
+                <div className="all-clean">
+                  <Mascot mood="cheer" size={64} />
+                  {t('results.noErrors')}
+                </div>
+              ) : (
+                <ol className="errors">
+                  {summary.topErrors.map((e, i) => {
+                    const f = fixFor(e.id);
+                    return (
+                      <li key={e.id}>
+                        <div>
+                          <b>{f ? t(f.msg) : e.id}</b>{' '}
+                          <span className="times num">
+                            × {e.count} {t('results.times')}
+                          </span>
+                          {f && (
+                            <div className="fix">
+                              <Lightbulb size={16} strokeWidth={2.75} /> {t(f.fix)}
+                            </div>
+                          )}
                         </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </section>
-
-          <section className="card">
-            <h2>{t('results.topErrors')}</h2>
-            {summary.attempted === 0 ? (
-              <p className="muted">—</p>
-            ) : summary.topErrors.length === 0 ? (
-              <p className="lead">{t('results.noErrors')}</p>
-            ) : (
-              <ol className="errors">
-                {summary.topErrors.map((e, i) => {
-                  const f = fixFor(e.id);
-                  return (
-                    <li key={e.id} className={i === 0 ? 'with-compare' : ''}>
-                      <div>
-                        <b>
-                          {i + 1}. {f ? t(f.msg) : e.id}
-                        </b>{' '}
-                        · {e.count} {t('results.times')}
-                        {f && <div className="muted">💡 {t(f.fix)}</div>}
-                      </div>
-                      {i === 0 && <PoseCompare ruleId={e.id} joints={f?.joints} />}
-                    </li>
-                  );
-                })}
-              </ol>
-            )}
-          </section>
-        </div>
-
-        {questCompleted && (
-          <div className="quest-done">
-            📜 {t('quest.done')} +{questCompleted.xp} XP
+                        {i === 0 && <PoseCompare ruleId={e.id} joints={f?.joints} />}
+                      </li>
+                    );
+                  })}
+                </ol>
+              )}
+            </section>
           </div>
-        )}
-        <div className={`rank-line ${rankUp ? 'rank-up' : ''}`}>
-          {summary.bestCleanStreak >= 3 && (
-            <span className="muted">
-              🔥 {summary.bestCleanStreak} {t('workout.cleanStreak')} ·{' '}
-            </span>
-          )}
-          <span className="rank-icon">{after.rank.icon}</span>
-          {rankUp && <b>{t('results.rankUp')} </b>}
-          {t(after.rank.key)} · {progress.totalXp} XP
-          {after.next && (
-            <span className="muted">
-              {' '}
-              · {after.next.minXp - progress.totalXp} XP {t('results.toNext')} «{t(after.next.key)}»
-            </span>
-          )}
-        </div>
 
-        <div className="menu-row">
-          <DwellButton
-            variant="primary"
-            icon="↻"
-            onSelect={() =>
-              summary.programId === 'free' ? go('free') : program && startProgram({ ...program })
-            }
-          >
-            {t('results.again')}
-          </DwellButton>
-          <DwellButton icon="🏆" onSelect={() => go('records')}>
-            {t('results.records')}
-          </DwellButton>
-          <DwellButton
-            variant="ghost"
-            icon="📤"
-            onSelect={() =>
-              void shareCard({ playerName, rank: after.rank, totalXp: progress.totalXp, summary })
-            }
-          >
-            {t('results.share')}
-          </DwellButton>
-          <DwellButton variant="ghost" icon="🏠" onSelect={() => go('menu')}>
-            {t('results.menu')}
-          </DwellButton>
+          <div className={`rank-line ${rankUp ? 'rank-up' : ''}`}>
+            <span className="avatar small" aria-hidden="true">
+              {after.rank.icon}
+            </span>
+            {rankUp && <b>{t('results.rankUp')}</b>}
+            <span>
+              {t(after.rank.key)} · <span className="num">{progress.totalXp}</span> XP
+            </span>
+            {after.next && (
+              <>
+                <ProgressBar value={after.progress} tone="gold" />
+                <span className="muted">
+                  {after.next.minXp - progress.totalXp} XP {t('results.toNext')} «
+                  {t(after.next.key)}»
+                </span>
+              </>
+            )}
+            {summary.bestCleanStreak >= 3 && (
+              <span className="chip chip-orange">
+                <Flame size={18} strokeWidth={2.75} fill="currentColor" />
+                {summary.bestCleanStreak} {t('workout.cleanStreak')}
+              </span>
+            )}
+          </div>
+
+          <div className="menu-row">
+            <DwellButton
+              variant="primary"
+              icon={<RotateCcw size={24} strokeWidth={2.75} />}
+              onSelect={() =>
+                summary.programId === 'free' ? go('free') : program && startProgram({ ...program })
+              }
+            >
+              {t('results.again')}
+            </DwellButton>
+            <DwellButton
+              icon={<Trophy size={24} strokeWidth={2.75} />}
+              tone="gold"
+              onSelect={() => go('records')}
+            >
+              {t('results.records')}
+            </DwellButton>
+            <DwellButton
+              variant="blue"
+              icon={<Share2 size={22} strokeWidth={2.75} />}
+              onSelect={() =>
+                void shareCard({ playerName, rank: after.rank, totalXp: progress.totalXp, summary })
+              }
+            >
+              {t('results.share')}
+            </DwellButton>
+            <DwellButton
+              variant="ghost"
+              icon={<House size={22} strokeWidth={2.75} />}
+              onSelect={() => go('menu')}
+            >
+              {t('results.menu')}
+            </DwellButton>
+          </div>
         </div>
       </div>
     </>
-  );
-}
-
-export function Stat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
-  return (
-    <div className={`stat ${accent ? 'accent' : ''}`}>
-      <div className="stat-value">{value}</div>
-      <div className="stat-label">{label}</div>
-    </div>
   );
 }

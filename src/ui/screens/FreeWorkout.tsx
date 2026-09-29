@@ -15,6 +15,11 @@ import { drawArrow } from '../overlay/drawArrow';
 import { drawGhost } from '../overlay/drawGhost';
 import { Particles } from '../overlay/particles';
 import { coverMapper } from '../overlay/drawSkeleton';
+import { Flag, Sparkles, Timer } from 'lucide-react';
+import { HintBanner } from '../components/HintBanner';
+import { Mascot } from '../components/Mascot';
+import { ProgressBar } from '../components/ProgressBar';
+import { PauseModal } from '../components/PauseModal';
 
 const DURATION_SEC = 120;
 
@@ -123,7 +128,7 @@ export function FreeWorkout() {
             const ls = tick.frame.image[P.leftShoulder]!;
             const rs = tick.frame.image[P.rightShoulder]!;
             const c = map((ls.x + rs.x) / 2, (ls.y + rs.y) / 2);
-            particles.burst(c.x, c.y, ['#2ee59d', '#00b5e2', '#ffc72c'], 30);
+            particles.burst(c.x, c.y, ['#58cc02', '#1cb0f6', '#ffc800'], 30);
             burst.current = false;
           }
           particles.draw(ctx);
@@ -139,30 +144,30 @@ export function FreeWorkout() {
       />
       <div className="hud">
         <div className="hud-top">
-          <div className="exercise-name">
-            <span className="step">🤖 AI</span>
+          <div className="hud-chip">
+            <Sparkles size={20} strokeWidth={2.75} color="var(--orange)" />
             {active ? t(EXERCISES[active].name) : t('free.waiting')}
           </div>
-          {hint ? (
-            <div className={`hint-card sev-${hint.severity}`} key={hint.id}>
-              <div className="hint-msg">{t(hint.message)}</div>
-              <div className="hint-fix">{t(hint.fix)}</div>
-            </div>
-          ) : !active ? (
-            <div className="hint-card sev-setup">
-              <div className="hint-msg">{t('free.start')}</div>
-              <div className="hint-fix">{t('free.startSub')}</div>
-            </div>
-          ) : null}
+          <ProgressBar value={1 - left / DURATION_SEC} tone="blue" />
+          <div className={`hud-chip timer-chip num ${left <= 10 ? 'low' : ''}`}>
+            <Timer size={20} strokeWidth={2.75} /> {left}
+          </div>
         </div>
-        <div className={`timer ${left <= 10 ? 'low' : ''}`}>
-          {left}
-          <small>{t('workout.timeLeft')}</small>
-        </div>
+        {hint ? (
+          <HintBanner hint={hint} />
+        ) : !active ? (
+          <div className="feedback tone-setup">
+            <Mascot mood="wave" size={76} />
+            <div className="feedback-body">
+              <div className="feedback-title">{t('free.start')}</div>
+              <div className="feedback-fix">{t('free.startSub')}</div>
+            </div>
+          </div>
+        ) : null}
         <div className="free-tiles">
           {EXERCISE_IDS.map((id) => (
             <div key={id} className={`free-tile ${id === active ? 'on' : ''}`}>
-              <div className="free-count" key={ui?.counts[id]}>
+              <div className="free-count num" key={ui?.counts[id]}>
                 {ui?.counts[id] ?? 0}
               </div>
               <div className="free-name">{t(EXERCISES[id].name)}</div>
@@ -172,20 +177,18 @@ export function FreeWorkout() {
         <div className="pause-hint">{t('free.finishHint')}</div>
       </div>
       {paused && (
-        <div className="screen-dim center pause">
-          <h1 className="h1">{t('pause.title')}</h1>
-          <div className="menu-col">
-            <DwellButton variant="primary" icon="▶" onSelect={() => setPaused(false)}>
-              {t('pause.resume')}
-            </DwellButton>
-            <DwellButton icon="🏁" onSelect={() => finishRef.current()}>
+        <PauseModal
+          onResume={() => setPaused(false)}
+          onExit={() => go('menu')}
+          extra={
+            <DwellButton
+              icon={<Flag size={22} strokeWidth={2.75} />}
+              onSelect={() => finishRef.current()}
+            >
               {t('free.finish')}
             </DwellButton>
-            <DwellButton variant="ghost" icon="🏠" onSelect={() => go('menu')}>
-              {t('pause.exit')}
-            </DwellButton>
-          </div>
-        </div>
+          }
+        />
       )}
     </>
   );

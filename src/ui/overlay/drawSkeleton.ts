@@ -17,6 +17,8 @@ export interface SkeletonStyle {
 }
 
 const MIN_VIS = 0.5;
+/** joints that get a dot: every bone end plus the nose (no finger / mouth points) */
+const JOINTS = new Set<number>([0, ...POSE_CONNECTIONS.flat()]);
 
 /** Draws the pose onto a canvas that is laid over the video with object-fit: cover semantics. */
 export function drawSkeleton(
@@ -24,8 +26,8 @@ export function drawSkeleton(
   frame: PoseFrame,
   {
     errorJoints = new Set(),
-    color = '#2ee59d',
-    errorColor = '#ff4d5e',
+    color = '#58cc02',
+    errorColor = '#ff4b4b',
     alpha = 1,
     lineWidth = 6,
     mirror = true,
@@ -66,13 +68,16 @@ export function drawSkeleton(
     ctx.stroke();
   }
   pts.forEach((p, i) => {
-    if (i < 11 && i !== 0) return; // skip face details except nose
+    if (!JOINTS.has(i)) return;
     if (p.v < MIN_VIS) return;
     const bad = errorJoints.has(i);
     ctx.fillStyle = bad ? errorColor : '#ffffff';
+    ctx.strokeStyle = bad ? '#ffffff' : 'rgba(60, 60, 60, 0.55)';
+    ctx.lineWidth = (bad ? 3 : 2) * scale;
     ctx.beginPath();
     ctx.arc(p.x, p.y, (bad ? 10 + 6 * pulse : 6) * scale, 0, Math.PI * 2);
     ctx.fill();
+    ctx.stroke();
   });
   ctx.restore();
 }

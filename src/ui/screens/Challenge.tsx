@@ -6,13 +6,32 @@ import { sfx } from '@/audio/sfx';
 import { EXERCISES } from '@/exercises/registry';
 import { ExerciseRunner } from '@/engine/runner';
 import type { Hint } from '@/engine/types';
-import { ChallengeGame, type ActiveCommand } from '@/game/challenge';
+import { ChallengeGame, type ActiveCommand, type CommandId } from '@/game/challenge';
 import { useDemo, useLoop } from '../engine';
 import { DwellButton } from '../gestures/DwellButton';
 import { useGestures } from '../gestures/GestureProvider';
 import { OverlayCanvas } from '../overlay/OverlayCanvas';
 import { drawArrow } from '../overlay/drawArrow';
 import { Confetti } from '../components/Confetti';
+import {
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight,
+  Flame,
+  Heart,
+  House,
+  RotateCcw,
+  Shield,
+  Star,
+  Swords,
+  Timer,
+  Trophy,
+  Zap,
+} from 'lucide-react';
+import { HintBanner } from '../components/HintBanner';
+import { Mascot, Speech } from '../components/Mascot';
+import { PauseModal } from '../components/PauseModal';
+import { StatBox } from '../components/StatBox';
 
 type Pop = { text: string; kind: 'hit' | 'clean' | 'miss' | 'warn'; key: number };
 
@@ -181,77 +200,92 @@ export function Challenge() {
         }}
       />
       {stage === 'ready' ? (
-        <div className="screen-dim center">
-          <h1 className="h1">🏹 {t('ch.title')}</h1>
-          <p className="lead">{t('ch.rules')}</p>
-          <p className="muted">{t('intro.handsUp')}</p>
-          <div className="countdown-big" key={count}>
-            {count <= 3 ? (count > 0 ? count : t('intro.go')) : ''}
+        <div className="page">
+          <div className="page-inner center">
+            <h1 className="h1">{t('ch.title')}</h1>
+            <Speech mood="cheer" size={110}>
+              {t('ch.rules')}
+            </Speech>
+            <div className={`countdown-big num ${count > 3 ? 'wait' : ''}`} key={count}>
+              {count <= 3 ? (
+                count > 0 ? (
+                  count
+                ) : (
+                  t('intro.go')
+                )
+              ) : (
+                <Swords size={56} strokeWidth={2.5} />
+              )}
+            </div>
+            <p className="hands-hint">{t('intro.handsUp')}</p>
           </div>
         </div>
       ) : (
         <div className="hud challenge-hud">
           <div className="ch-top">
-            <div className="ch-lives">
+            <div className="hud-chip hearts" aria-label={`${view?.lives ?? 3}/3`}>
               {Array.from({ length: 3 }, (_, i) => (
-                <span key={i} className={i < (view?.lives ?? 3) ? 'life' : 'life lost'}>
-                  ❤
-                </span>
+                <Heart
+                  key={i}
+                  size={28}
+                  strokeWidth={2.5}
+                  color={i < (view?.lives ?? 3) ? 'var(--red)' : 'var(--line)'}
+                  fill={i < (view?.lives ?? 3) ? 'var(--red)' : 'var(--line)'}
+                />
               ))}
             </div>
-            <div className="ch-score">
+            <div className="hud-chip ch-score num">
+              <Zap size={30} strokeWidth={2.5} fill="currentColor" />
               {view?.score ?? 0}
               {view && view.multiplier > 1 && <span className="ch-mult">×{view.multiplier}</span>}
             </div>
-            <div className={`timer ch-timer ${view && view.timeLeft <= 10 ? 'low' : ''}`}>
-              {view?.timeLeft ?? 60}
+            <div className={`hud-chip timer-chip num ${view && view.timeLeft <= 10 ? 'low' : ''}`}>
+              <Timer size={20} strokeWidth={2.75} /> {view?.timeLeft ?? 60}
             </div>
           </div>
           {view?.command && (
-            <div className="ch-command" key={view.command.n}>
+            <div className="ch-command" key={`cmd-${view.command.n}`}>
               <div className="ch-ring" style={{ '--left': view.windowLeft } as React.CSSProperties}>
-                <span>{view.command.def.icon}</span>
+                <span>
+                  <CommandIcon id={view.command.def.id} />
+                </span>
               </div>
               <div className="ch-cmd-text">{t(`ch.cmd.${view.command.def.id}` as I18nKey)}</div>
             </div>
           )}
-          {view?.hint && (
-            <div className={`hint-card ch-hint sev-${view.hint.severity}`}>
-              <div className="hint-msg">{t(view.hint.message)}</div>
-              <div className="hint-fix">{t(view.hint.fix)}</div>
-            </div>
-          )}
+          <HintBanner hint={view?.hint ?? null} className="ch-hint" />
           {pop && (
-            <div key={pop.key} className={`ch-pop pop-${pop.kind}`}>
+            <div key={`pop-${pop.key}`} className={`ch-pop pop-${pop.kind}`}>
               {pop.text}
             </div>
           )}
           {view && view.combo > 1 && (
             <div className="ch-combo">
-              🔥 {view.combo} {t('ch.combo')}
+              <Flame size={22} strokeWidth={2.75} fill="currentColor" /> {view.combo}{' '}
+              {t('ch.combo')}
             </div>
           )}
         </div>
       )}
-      {paused && (
-        <div className="screen-dim center pause">
-          <h1 className="h1">{t('pause.title')}</h1>
-          <div className="menu-col">
-            <DwellButton variant="primary" icon="▶" onSelect={() => setPaused(false)}>
-              {t('pause.resume')}
-            </DwellButton>
-            <DwellButton variant="ghost" icon="🏠" onSelect={() => go('menu')}>
-              {t('pause.exit')}
-            </DwellButton>
-          </div>
-        </div>
-      )}
+      {paused && <PauseModal onResume={() => setPaused(false)} onExit={() => go('menu')} />}
     </>
   );
 }
 
+const CMD_ICON: Record<CommandId, typeof ArrowDown> = {
+  squat: ArrowDown,
+  jumpingJack: Star,
+  press: Shield,
+  bendLeft: ArrowLeft,
+  bendRight: ArrowRight,
+};
+
+function CommandIcon({ id }: { id: CommandId }) {
+  const Icon = CMD_ICON[id];
+  return <Icon size={48} strokeWidth={3} color="var(--green-d)" />;
+}
+
 export function ChallengeResults() {
-  const loop = useLoop();
   const { challenge, go } = useApp();
   useGestures({ crossArms: () => go('menu') });
   useEffect(() => {
@@ -264,41 +298,54 @@ export function ChallengeResults() {
   if (!challenge) return null;
   return (
     <>
-      <OverlayCanvas loop={loop} />
       {challenge.record && <Confetti />}
-      <div className="screen-dim results">
-        <h1 className="h1">{t('ch.over')}</h1>
-        {challenge.record && <div className="record-badge">🏆 {t('ch.record')}</div>}
-        <div className="ch-final">{challenge.score}</div>
-        <div className="stats">
-          <Mini label={t('ch.hits')} value={challenge.hits} />
-          <Mini label={t('ch.cleanHits')} value={challenge.clean} />
-          <Mini label={t('ch.misses')} value={challenge.misses} />
-          <Mini label={t('ch.bestCombo')} value={challenge.bestCombo} />
-          <Mini label={t('results.xp')} value={`+${challenge.xp}`} />
-        </div>
-        <div className="menu-row">
-          <DwellButton variant="primary" icon="↻" onSelect={() => go('challenge')}>
-            {t('ch.again')}
-          </DwellButton>
-          <DwellButton icon="🏆" onSelect={() => go('records')}>
-            {t('results.records')}
-          </DwellButton>
-          <DwellButton variant="ghost" icon="🏠" onSelect={() => go('menu')}>
-            {t('results.menu')}
-          </DwellButton>
+      <div className="page">
+        <div className="page-inner center">
+          <div className="results-head">
+            <Mascot mood={challenge.record ? 'cheer' : 'happy'} size={120} bob />
+            <div>
+              <h1 className="results-title">{t('ch.over')}</h1>
+              {challenge.record && (
+                <div className="record-badge">
+                  <Trophy size={20} strokeWidth={2.75} /> {t('ch.record')}
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="ch-final num">{challenge.score}</div>
+          <div className="stats" style={{ width: 'min(820px, 100%)' }}>
+            <StatBox label={t('ch.hits')} value={challenge.hits} color="green" />
+            <StatBox label={t('ch.cleanHits')} value={challenge.clean} color="blue" />
+            <StatBox label={t('ch.misses')} value={challenge.misses} color="red" />
+            <StatBox label={t('ch.bestCombo')} value={challenge.bestCombo} color="orange" />
+            <StatBox label={t('results.xp')} value={`+${challenge.xp}`} color="gold" />
+          </div>
+          <div className="menu-row">
+            <DwellButton
+              variant="primary"
+              icon={<RotateCcw size={24} strokeWidth={2.75} />}
+              onSelect={() => go('challenge')}
+            >
+              {t('ch.again')}
+            </DwellButton>
+            <DwellButton
+              icon={<Trophy size={24} strokeWidth={2.75} />}
+              tone="gold"
+              onSelect={() => go('records')}
+            >
+              {t('results.records')}
+            </DwellButton>
+            <DwellButton
+              variant="ghost"
+              icon={<House size={22} strokeWidth={2.75} />}
+              onSelect={() => go('menu')}
+            >
+              {t('results.menu')}
+            </DwellButton>
+          </div>
         </div>
       </div>
     </>
-  );
-}
-
-function Mini({ label, value }: { label: string; value: number | string }) {
-  return (
-    <div className="stat">
-      <div className="stat-value">{value}</div>
-      <div className="stat-label">{label}</div>
-    </div>
   );
 }
 
