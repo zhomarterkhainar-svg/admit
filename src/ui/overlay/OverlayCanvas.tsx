@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import type { PoseSource, PoseTick } from '@/core/vision/poseLoop';
 import { drawSkeleton } from './drawSkeleton';
+import { fitCanvas } from './canvasSize';
 
 export interface OverlayProps {
   loop: PoseSource;
@@ -22,14 +23,7 @@ export function OverlayCanvas({ loop, onDraw, errorJoints }: OverlayProps) {
   useEffect(() => {
     const canvas = ref.current!;
     const ctx = canvas.getContext('2d')!;
-    const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = canvas.clientWidth * dpr;
-      canvas.height = canvas.clientHeight * dpr;
-    };
-    resize();
-    const ro = new ResizeObserver(resize);
-    ro.observe(canvas);
+    const unfit = fitCanvas(canvas);
     const unsub = loop.subscribe((tick) => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       if (tick.frame) drawSkeleton(ctx, tick.frame, { errorJoints: errRef.current });
@@ -37,7 +31,7 @@ export function OverlayCanvas({ loop, onDraw, errorJoints }: OverlayProps) {
     });
     return () => {
       unsub();
-      ro.disconnect();
+      unfit();
     };
   }, [loop]);
 

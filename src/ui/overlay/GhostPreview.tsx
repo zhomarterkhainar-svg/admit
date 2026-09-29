@@ -3,6 +3,7 @@ import { blend, makePose } from '@/core/reference/template';
 import type { PoseFrame } from '@/core/types';
 import type { ExerciseDefinition } from '@/engine/types';
 import { drawSkeleton } from './drawSkeleton';
+import { fitCanvas, watchVisible } from './canvasSize';
 
 /** Fixed frame for the whole animation: fits the union of rest/peak poses into the canvas. */
 const STANDING_BOX = { minX: -0.62, maxX: 0.62, minY: -1.2, maxY: 0.95 };
@@ -65,14 +66,15 @@ export function GhostPreview<M>({
     const canvas = ref.current!;
     const ctx = canvas.getContext('2d')!;
     let raf = 0;
+    let visible = true;
+    let lastDraw = 0;
     const start = performance.now();
     const box = exercise.posture === 'floor' ? boxFor(exercise.keyframes) : STANDING_BOX;
     const draw = (now: number) => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      if (canvas.width !== canvas.clientWidth * dpr) {
-        canvas.width = canvas.clientWidth * dpr;
-        canvas.height = canvas.clientHeight * dpr;
-      }
+      raf = requestAnimationFrame(draw);
+      // a slow 2 s loop looks the same at 30 fps; nothing to draw while scrolled away or hidden
+      if (!visible || document.hidden || now - lastDraw < 32) return;
+      lastDraw = now;
       const cycle = (now - start) / periodMs;
       const k = (1 - Math.cos(2 * Math.PI * cycle)) / 2;
       const { rest, peak, peakAlt } = exercise.keyframes;
@@ -84,10 +86,20 @@ export function GhostPreview<M>({
         lineWidth: 9,
         head: true,
       });
-      raf = requestAnimationFrame(draw);
     };
+    const unfit = fitCanvas(canvas, () => (lastDraw = 0));
+    const unwatch = watchVisible(canvas, (v) => (visible = v));
     raf = requestAnimationFrame(draw);
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+      unfit();
+      unwatch();
+    };
   }, [exercise, periodMs]);
-  return <canvas ref={ref} className="ghost-preview" />;
+  // the wrapper takes the layout size; the canvas just fills it (see fitCanvas)
+  return (
+    <div className="ghost-preview">
+      <canvas ref={ref} />
+    </div>
+  );
 }

@@ -43,8 +43,8 @@ function StaticPose({
   useEffect(() => {
     const canvas = ref.current!;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width = canvas.clientWidth * dpr;
-    canvas.height = canvas.clientHeight * dpr;
+    canvas.width = Math.round(canvas.clientWidth * dpr);
+    canvas.height = Math.round(canvas.clientHeight * dpr);
     const ctx = canvas.getContext('2d')!;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     const frame = fitTight(makePose(edit).world, canvas.width, canvas.height);

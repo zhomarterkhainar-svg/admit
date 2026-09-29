@@ -417,6 +417,13 @@ h3 {
   -webkit-mask: radial-gradient(circle, transparent 64%, #000 65%);
   mask: radial-gradient(circle, transparent 64%, #000 65%);
 }
+/* the hand is squeezed into a fist: the cursor "presses" */
+.hand-cursor.is-grab {
+  background: radial-gradient(circle, var(--green) 0 34%, rgba(255, 255, 255, 0.92) 35% 50%, transparent 51%);
+  box-shadow:
+    0 0 0 6px var(--green),
+    0 4px 12px rgba(88, 167, 0, 0.45);
+}
 
 /* ---------- mascot + speech bubble ---------- */
 .mascot {
@@ -853,6 +860,15 @@ h3 {
 }
 .cursor-step .mirror {
   width: 100%;
+  max-height: 34vh;
+}
+.cursor-step-help {
+  width: min(460px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
 }
 
 /* ---------- mirror (live camera thumbnail) ---------- */
@@ -867,6 +883,8 @@ h3 {
   max-width: 100%;
 }
 .mirror canvas {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
   height: 100%;
@@ -1031,25 +1049,44 @@ h3 {
 }
 .pick-card {
   flex-direction: column;
-  justify-content: flex-end;
+  align-items: stretch;
   text-align: center;
   min-height: clamp(250px, 52vh, 460px);
   padding: 12px;
 }
+/* picture on top grows, the name stays visible under it */
 .pick-card .dwell-text {
-  align-items: center;
+  flex: 1 1 auto;
+  align-items: stretch;
+}
+.pick-card .dwell-label {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 .ghost-preview {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: block;
+}
+/* the canvas never takes part in layout: its bitmap size must not feed back into its box */
+.ghost-preview > canvas {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   display: block;
 }
 .pick-card .ghost-preview {
-  position: relative;
-  flex: 1;
+  flex: 1 1 auto;
+  height: auto;
   min-height: 160px;
   border-radius: 12px;
   background: var(--blue-l);
+  overflow: hidden;
 }
 .page-head {
   display: flex;

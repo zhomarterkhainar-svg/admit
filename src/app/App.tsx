@@ -69,7 +69,7 @@ export function App() {
               {DEV && status.state === 'ready' ? (
                 <LiveDebug
                   loop={source}
-                  info={`${status.tracker.model}/${status.tracker.delegate}`}
+                  info={`${status.tracker.model}/${status.tracker.delegate}/${status.tracker.where}`}
                 />
               ) : (
                 <GestureProvider loop={source} enabled={!demo}>
