@@ -10,6 +10,10 @@ export interface HistoryEntry {
   cleanPct: number;
   xp: number;
   durationMs: number;
+  /** attempted reps (held seconds for a plank) per exercise id in this session */
+  tried?: Record<string, number>;
+  /** technique rule id → share (0..1) of that exercise's reps in this session with the error */
+  errorRates?: Record<string, number>;
 }
 
 export interface ScoreEntry {
@@ -115,6 +119,31 @@ export function saveProgress(
   }
 }
 
+/**
+ * Per exercise: how many reps were tried and, for every technique rule, which share of them had
+ * that error. Framing problems (setup.*) and "wrong exercise" are not technique and are skipped.
+ */
+export function errorStats(
+  s: WorkoutSummary,
+): Pick<HistoryEntry, 'tried' | 'errorRates'> {
+  const tried: Record<string, number> = {};
+  const counts: Record<string, number> = {};
+  for (const r of s.results) {
+    tried[r.id] = (tried[r.id] ?? 0) + r.reps.length;
+    for (const rep of r.reps)
+      for (const id of new Set(rep.errors)) {
+        if (id.startsWith('setup.') || id === 'wrongExercise') continue;
+        counts[id] = (counts[id] ?? 0) + 1;
+      }
+  }
+  const errorRates: Record<string, number> = {};
+  for (const [id, n] of Object.entries(counts)) {
+    const of = tried[id.split('.')[0]!];
+    if (of) errorRates[id] = Math.min(1, n / of);
+  }
+  return { tried, errorRates };
+}
+
 export function recordWorkout(p: Progress, s: WorkoutSummary, name: string): Progress {
   const entry: HistoryEntry = {
     at: s.startedAt,
@@ -125,6 +154,7 @@ export function recordWorkout(p: Progress, s: WorkoutSummary, name: string): Pro
     cleanPct: s.cleanPct,
     xp: s.xp,
     durationMs: s.durationMs,
+    ...errorStats(s),
   };
   return {
     ...p,

@@ -20,6 +20,8 @@ import { speak } from '@/audio/tts';
 import { sfx } from '@/audio/sfx';
 import { ALL_EXERCISES } from '@/exercises/registry';
 import { rankFor } from '@/game/ranks';
+import { errorProgress } from '@/game/errorProgress';
+import { ErrorTrend } from '../components/ErrorTrend';
 import { DwellButton } from '../gestures/DwellButton';
 import { useGestures } from '../gestures/GestureProvider';
 import { Confetti } from '../components/Confetti';
@@ -66,6 +68,9 @@ export function Results() {
 
   if (!summary) return null;
   const perfect = summary.attempted > 0 && summary.topErrors.length === 0;
+  // the session just finished is the last history entry
+  const trends =
+    progress.history.at(-1)?.at === summary.startedAt ? errorProgress(progress.history) : [];
 
   return (
     <>
@@ -168,13 +173,17 @@ export function Results() {
                 <ol className="errors">
                   {summary.topErrors.map((e, i) => {
                     const f = fixFor(e.id);
+                    const trend = trends.find((x) => x.id === e.id);
                     return (
                       <li key={e.id}>
                         <div>
-                          <b>{f ? t(f.msg) : e.id}</b>{' '}
-                          <span className="times num">
-                            × {e.count} {plural(e.count, 'results.times')}
-                          </span>
+                          <div className="err-head">
+                            <b>{f ? t(f.msg) : e.id}</b>
+                            <span className="times num">
+                              × {e.count} {plural(e.count, 'results.times')}
+                            </span>
+                            {trend && <ErrorTrend before={trend.before} now={trend.now} />}
+                          </div>
                           {f && (
                             <div className="fix">
                               <Lightbulb size={16} strokeWidth={2.75} /> {t(f.fix)}

@@ -449,4 +449,12 @@ export const en = {
   'duel.reps': 'reps',
   'duel.clean': 'clean',
   'duel.rematch': 'Rematch',
+  // --- progress on mistakes ---
+  'progress.was': 'was',
+  'progress.now': 'now',
+  'progress.first': 'at first',
+  'progress.last': 'lately',
+  'progress.remember': "I'll remember it and show your progress next time",
+  'progress.title': 'Working on mistakes',
+  'progress.empty': 'Do a couple of workouts — I will show which mistakes are going away',
 } satisfies Record<I18nKey, string>;

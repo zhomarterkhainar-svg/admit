@@ -448,6 +448,14 @@ export const ru = {
   'duel.reps': 'повторов',
   'duel.clean': 'чистых',
   'duel.rematch': 'Реванш',
+  // --- progress on mistakes ---
+  'progress.was': 'было',
+  'progress.now': 'сейчас',
+  'progress.first': 'в начале',
+  'progress.last': 'теперь',
+  'progress.remember': 'Запомню и в следующий раз покажу прогресс',
+  'progress.title': 'Работа над ошибками',
+  'progress.empty': 'Пройди пару тренировок — покажу, какие ошибки уходят',
 } as const;
 
 export type I18nKey = keyof typeof ru;

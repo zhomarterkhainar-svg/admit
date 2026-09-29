@@ -450,4 +450,12 @@ export const kk = {
   'duel.reps': 'қайталау',
   'duel.clean': 'таза',
   'duel.rematch': 'Реванш',
+  // --- progress on mistakes ---
+  'progress.was': 'бұрын',
+  'progress.now': 'қазір',
+  'progress.first': 'басында',
+  'progress.last': 'енді',
+  'progress.remember': 'Есте сақтаймын, келесі жолы прогресті көрсетемін',
+  'progress.title': 'Қателермен жұмыс',
+  'progress.empty': 'Бірнеше жаттығудан өт — қай қателер кетіп жатқанын көрсетемін',
 } satisfies Record<I18nKey, string>;
