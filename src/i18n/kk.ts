@@ -167,6 +167,8 @@ export const kk = {
   'results.topErrors': 'Неге көңіл бөлу керек',
   'results.noErrors': 'Бірде-бір қате жоқ — сен нағыз батырсың! 🏆',
   'results.times': 'рет',
+  'results.times.one': 'рет',
+  'results.times.few': 'рет',
   'results.again': 'Қайтадан',
   'results.menu': 'Мәзір',
   'results.records': 'Рекордтар',

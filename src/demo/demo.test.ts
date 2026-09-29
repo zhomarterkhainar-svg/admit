@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { blend, makePose } from '@/core/reference/template';
 import { EXERCISES, EXERCISE_IDS } from '@/exercises/registry';
 import { runExercise } from '../../tests/helpers/run';
-import { DEMO_SCRIPTS } from './scripts';
+import { COMMANDS } from '@/game/challenge';
+import { DEMO_SCRIPTS, challengeDemo, type DemoRep } from './scripts';
 
 /** The demo must actually show the error mode: every script has counted reps AND detected mistakes. */
 describe('demo choreography', () => {
@@ -26,5 +27,35 @@ describe('demo choreography', () => {
       ).toBe(true);
       expect(errors.size).toBeGreaterThanOrEqual(1);
     });
+  }
+});
+
+function framesFor(script: DemoRep[]) {
+  const frames = [];
+  let t = 0;
+  for (let i = 0; i < 12; i++) frames.push(makePose(script[0]!.rest, (t += 33)));
+  for (const r of script) {
+    const n = Math.round(r.ms / 33);
+    for (let i = 0; i <= n; i++)
+      frames.push(makePose(blend(r.rest, r.peak, Math.sin((Math.PI * i) / n)), (t += 33)));
+    for (let i = 0; i < 21; i++) frames.push(makePose(r.rest, (t += 33)));
+  }
+  return { frames, ms: t };
+}
+
+/** In the challenge demo the athlete must answer every command in time, on the right side. */
+describe('challenge demo', () => {
+  for (const cmd of Object.values(COMMANDS)) {
+    for (const n of [0, 1]) {
+      it(`${cmd.id} #${n}: a counted rep within the shortest (3 s) window`, () => {
+        const { frames, ms } = framesFor(challengeDemo(cmd.id, n));
+        const { reps } = runExercise(EXERCISES[cmd.exercise], frames);
+        const hit = reps.find((r) => r.counted && (!cmd.side || r.side === cmd.side));
+        expect(hit, 'a counted rep on the commanded side').toBeDefined();
+        expect(hit!.endT - (frames[0]?.t ?? 0) + 350, `reaction ${ms} ms`).toBeLessThan(
+          n === 1 ? 5000 : 3000,
+        );
+      });
+    }
   }
 });

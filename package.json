@@ -36,7 +36,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.12.0",
     "prettier": "^3.9.9",
-    "puppeteer-core": "^24.43.1",
+    "puppeteer-core": "^25.12.0",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.70.1",
     "vite": "^8.3.1",

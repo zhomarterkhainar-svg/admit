@@ -165,6 +165,8 @@ export const ru = {
   'results.topErrors': 'Над чем поработать',
   'results.noErrors': 'Ни одной ошибки — ты настоящий батыр! 🏆',
   'results.times': 'раз',
+  'results.times.one': 'раз',
+  'results.times.few': 'раза',
   'results.again': 'Ещё раз',
   'results.menu': 'Меню',
   'results.records': 'Рекорды',

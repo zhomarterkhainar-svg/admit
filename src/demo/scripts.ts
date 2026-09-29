@@ -1,6 +1,7 @@
 import { P } from '@/core/types';
 import { blend, type PoseEdit } from '@/core/reference/template';
 import type { ExerciseId } from '@/exercises/registry';
+import type { CommandId } from '@/game/challenge';
 import { squatDown } from '@/exercises/squat/reference';
 import { jackOpen } from '@/exercises/jumpingJack/reference';
 import { lungeDown } from '@/exercises/lunge/reference';
@@ -109,3 +110,39 @@ export const DEMO_MIX: DemoRep[] = [
   DEMO_SCRIPTS.lunge[0]!,
   DEMO_SCRIPTS.lunge[2]!,
 ];
+
+/**
+ * Batyr Challenge demo: the virtual athlete reacts to each command with the right move (and the
+ * right side). Every fourth command starts with a sloppy try, so the "almost — fix this" hint shows.
+ */
+export function challengeDemo(cmd: CommandId, n: number): DemoRep[] {
+  const sloppy = n % 4 === 1;
+  switch (cmd) {
+    case 'squat':
+      return sloppy
+        ? [rep(blend({}, squatDown(), 0.55), 1300), rep(squatDown(), 1600)]
+        : [rep(squatDown(), 1600)];
+    case 'jumpingJack':
+      return [rep(jackOpen(), 1000)];
+    case 'press':
+      return sloppy
+        ? [
+            rep(
+              pressTop({
+                [P.leftElbow]: [0.36, -0.75],
+                [P.rightElbow]: [-0.36, -0.75],
+                [P.leftWrist]: [0.22, -1.0],
+                [P.rightWrist]: [-0.22, -1.0],
+              }),
+              1300,
+              pressStart(),
+            ),
+            rep(pressTop(), 1400, pressStart()),
+          ]
+        : [rep(pressTop(), 1400, pressStart())];
+    case 'bendLeft':
+      return [rep(sideBend('l'), 1600)];
+    case 'bendRight':
+      return [rep(sideBend('r'), 1600)];
+  }
+}

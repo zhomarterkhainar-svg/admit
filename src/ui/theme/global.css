@@ -2145,8 +2145,12 @@ h3 {
 .toast {
   position: absolute;
   z-index: 70;
-  bottom: 72px;
-  right: 16px;
+  /* top centre: never covers the hand targets at the bottom of result screens */
+  top: 16px;
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  width: max-content;
   display: flex;
   gap: 14px;
   align-items: center;
@@ -2186,7 +2190,7 @@ h3 {
 }
 @keyframes toast-in {
   from {
-    transform: translateY(30px) scale(0.9);
+    transform: translateY(-30px) scale(0.9);
     opacity: 0;
   }
   to {
@@ -2502,9 +2506,6 @@ h3 {
     min-width: 0;
     flex: 1 1 40%;
   }
-  .toast {
-    bottom: 56px;
-  }
   .demo-badge {
     font-size: 11px;
     padding: 3px 4px 3px 10px;
@@ -2572,4 +2573,48 @@ h3 {
 }
 .page-inner.center .speech {
   max-width: 680px;
+}
+
+/* big monitors and TVs: the user stands 2–3 m away, so scale the interface up */
+@media (min-width: 1500px) and (min-height: 860px) {
+  .page-inner,
+  .welcome-head,
+  .welcome-hero,
+  .hud-top,
+  .feedback,
+  .rep-card,
+  .depth-meter,
+  .mini-coach,
+  .clean-streak,
+  .ch-top,
+  .ch-command,
+  .ch-combo,
+  .free-tiles,
+  .modal-card,
+  .toast,
+  .calib-card,
+  .calib-skip {
+    zoom: 1.2;
+  }
+}
+@media (min-width: 1800px) and (min-height: 1000px) {
+  .page-inner,
+  .welcome-head,
+  .welcome-hero,
+  .hud-top,
+  .feedback,
+  .rep-card,
+  .depth-meter,
+  .mini-coach,
+  .clean-streak,
+  .ch-top,
+  .ch-command,
+  .ch-combo,
+  .free-tiles,
+  .modal-card,
+  .toast,
+  .calib-card,
+  .calib-skip {
+    zoom: 1.4;
+  }
 }

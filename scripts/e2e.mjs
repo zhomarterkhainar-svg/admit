@@ -53,6 +53,8 @@ async function open(w, h, mobile = false) {
   page.errors = [];
   page.on('console', (m) => m.type() === 'error' && page.errors.push(m.text()));
   page.on('pageerror', (e) => page.errors.push(String(e)));
+  // hidden tabs get no video frames: keep the page under test in front
+  await page.bringToFront();
   await page.goto(`${BASE}?e2e`, { waitUntil: 'networkidle0' });
   return page;
 }
@@ -146,10 +148,14 @@ try {
     }
     await go(page, 'challenge');
     check(await waitFor(page, '.ch-command', 20000), 'challenge: commands appear');
-    await sleep(5000);
+    // commands come and go: sample for a while, never more than one card at a time
+    let most = 0;
+    for (let i = 0; i < 25; i++) {
+      most = Math.max(most, await page.$$eval('.ch-command', (els) => els.length));
+      await sleep(200);
+    }
     await shot(page, 'challenge');
-    const cards = await page.$$eval('.ch-command', (els) => els.length);
-    check(cards === 1, `challenge: exactly one command card (${cards})`);
+    check(most === 1, `challenge: one command card at a time (max ${most})`);
     check(await waitFor(page, '.ch-final', 90000), 'challenge: game over screen');
     await sleep(1200);
     await reach(page, 'challenge results');

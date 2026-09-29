@@ -165,6 +165,8 @@ export const en = {
   'results.topErrors': 'What to work on',
   'results.noErrors': 'Not a single mistake — you are a true batyr! 🏆',
   'results.times': 'times',
+  'results.times.one': 'time',
+  'results.times.few': 'times',
   'results.again': 'Again',
   'results.menu': 'Menu',
   'results.records': 'Records',

@@ -15,7 +15,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { useApp } from '@/app/store';
-import { t, type I18nKey } from '@/i18n';
+import { plural, t, type I18nKey } from '@/i18n';
 import { speak } from '@/audio/tts';
 import { sfx } from '@/audio/sfx';
 import { EXERCISES } from '@/exercises/registry';
@@ -171,7 +171,7 @@ export function Results() {
                         <div>
                           <b>{f ? t(f.msg) : e.id}</b>{' '}
                           <span className="times num">
-                            × {e.count} {t('results.times')}
+                            × {e.count} {plural(e.count, 'results.times')}
                           </span>
                           {f && (
                             <div className="fix">

@@ -37,10 +37,15 @@ export class DemoActor implements PoseSource {
 
   /** Start performing an exercise's demo choreography ('mix' = all exercises, null = stand still). */
   perform(id: ExerciseId | 'mix' | null): void {
-    this.script = id === 'mix' ? DEMO_MIX : id ? DEMO_SCRIPTS[id] : [];
+    this.performScript(id === 'mix' ? DEMO_MIX : id ? DEMO_SCRIPTS[id] : []);
+  }
+
+  /** Loop a custom choreography, starting after a short "reaction" delay. */
+  performScript(script: DemoRep[], delayMs = 800): void {
+    this.script = script;
     this.rest = this.script[0]?.rest ?? {};
     this.repIdx = 0;
-    this.repStart = performance.now() + 800;
+    this.repStart = performance.now() + delayMs;
   }
 
   private pose(t: number): PoseEdit {

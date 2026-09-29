@@ -48,18 +48,27 @@ export function HintBanner({
     );
   const look = LOOK[hint.severity];
   const Icon = look.icon;
+  const kicker = t(`sev.${hint.severity}` as I18nKey);
   return (
     <div className={`feedback tone-${hint.severity} ${className}`} key={hint.id} role="alert">
       <Mascot mood={look.mood} size={76} />
       <div className="feedback-body">
         <div className="feedback-kicker">
-          <Icon size={18} strokeWidth={3} /> {t(`sev.${hint.severity}` as I18nKey)}
+          <Icon size={18} strokeWidth={3} /> {kicker}
         </div>
-        <div className="feedback-title">{t(hint.message)}</div>
+        <div className="feedback-title">{withoutKicker(t(hint.message), kicker)}</div>
         <div className="feedback-fix">
           <Lightbulb size={20} strokeWidth={2.5} /> {t(hint.fix)}
         </div>
       </div>
     </div>
   );
+}
+
+/** «Не засчитано: неглубокий присед» under the «Не засчитано» kicker → «Неглубокий присед». */
+export function withoutKicker(message: string, kicker: string): string {
+  const prefix = `${kicker.toLowerCase()}:`;
+  if (!message.toLowerCase().startsWith(prefix)) return message;
+  const rest = message.slice(prefix.length).trim();
+  return rest.charAt(0).toUpperCase() + rest.slice(1);
 }

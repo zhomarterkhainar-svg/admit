@@ -7,6 +7,7 @@ import { EXERCISES } from '@/exercises/registry';
 import { ExerciseRunner } from '@/engine/runner';
 import type { Hint } from '@/engine/types';
 import { ChallengeGame, type ActiveCommand, type CommandId } from '@/game/challenge';
+import { challengeDemo } from '@/demo/scripts';
 import { useDemo, useLoop } from '../engine';
 import { DwellButton } from '../gestures/DwellButton';
 import { useGestures } from '../gestures/GestureProvider';
@@ -106,7 +107,7 @@ export function Challenge() {
       for (const e of events) {
         if (e.type === 'command') {
           runner = new ExerciseRunner(EXERCISES[e.command.def.exercise], baseline);
-          demo?.perform(e.command.def.exercise);
+          demo?.performScript(challengeDemo(e.command.def.id, e.command.n), 350);
           speak((tr) => tr(`ch.cmd.${e.command.def.id}` as I18nKey));
         } else if (e.type === 'hit') {
           if (e.clean) sfx.perfect();
