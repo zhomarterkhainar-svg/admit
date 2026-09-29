@@ -2,13 +2,17 @@ import { LandmarkSmoother } from '../filters/landmarkSmoother';
 import { extractFeatures } from '../features/extract';
 import type { FrameFeatures, PoseFrame } from '../types';
 import type { PoseTracker } from './poseTracker';
+import { PersonLock, torsoColor, type Rgb } from './personLock';
 
 export interface PoseTick {
   /** ms, performance.now() */
   t: number;
   frame: PoseFrame | null;
   features: FrameFeatures | null;
+  /** everyone detected in the frame, including passers-by */
   people: number;
+  /** people in frame who are NOT the locked player (ignored by everything downstream) */
+  others?: number;
   /** inference frames per second (EMA) */
   fps: number;
   /** last inference time, ms */
@@ -22,6 +26,8 @@ export type PoseListener = (tick: PoseTick) => void;
 /** Anything that emits pose ticks: the live camera loop or the scripted demo actor. */
 export interface PoseSource {
   subscribe(fn: PoseListener): () => void;
+  /** forget the followed person and lock onto whoever stands in front now (camera only) */
+  resetLock?(): void;
 }
 
 type VideoWithRVFC = HTMLVideoElement & {
@@ -44,6 +50,9 @@ export class PoseLoop implements PoseSource {
   private brightness: number | undefined;
   private lastBrightnessT = 0;
   private probe: CanvasRenderingContext2D | null = null;
+  private colorProbe: CanvasRenderingContext2D | null = null;
+  private lastColorT = 0;
+  private readonly lock = new PersonLock();
 
   constructor(
     private readonly video: VideoWithRVFC,
@@ -83,6 +92,33 @@ export class PoseLoop implements PoseSource {
     }
   }
 
+  resetLock(): void {
+    this.lock.reset();
+  }
+
+  /**
+   * Clothing colour of each person's torso, for telling people apart. Sampled whenever there is
+   * more than one person, and a few times a second otherwise to keep the player's colour fresh.
+   */
+  private torsoColors(people: PoseFrame[], now: number): (Rgb | null)[] | null {
+    if (people.length === 0 || (people.length === 1 && now - this.lastColorT < 300)) return null;
+    this.lastColorT = now;
+    const W = 96;
+    const H = 54;
+    try {
+      this.colorProbe ??= Object.assign(document.createElement('canvas'), {
+        width: W,
+        height: H,
+      }).getContext('2d', { willReadFrequently: true });
+      if (!this.colorProbe) return null;
+      this.colorProbe.drawImage(this.video, 0, 0, W, H);
+      const px = this.colorProbe.getImageData(0, 0, W, H).data;
+      return people.map((p) => torsoColor(p.image, px, W, H));
+    } catch {
+      return null;
+    }
+  }
+
   subscribe(fn: PoseListener): () => void {
     this.listeners.add(fn);
     return () => this.listeners.delete(fn);
@@ -113,8 +149,17 @@ export class PoseLoop implements PoseSource {
     const now = performance.now();
     if (this.video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA && this.video.videoWidth > 0) {
       const t0 = performance.now();
-      const { frame: raw, people } = this.tracker.detect(this.video, now);
+      const all = this.tracker.detect(this.video, now);
       const inferenceMs = performance.now() - t0;
+      // follow the player only: passers-by never reach the smoother, features or gestures
+      const colors = this.torsoColors(all, now);
+      const idx = this.lock.pick(
+        all.map((p, i) => ({ image: p.image, color: colors?.[i] ?? null })),
+        now,
+        this.video.videoWidth / this.video.videoHeight,
+      );
+      const raw = idx >= 0 ? all[idx]! : null;
+      const people = all.length;
       this.measureBrightness(now);
       if (this.lastT) this.fps = 0.9 * this.fps + 0.1 * (1000 / Math.max(now - this.lastT, 1));
       this.lastT = now;
@@ -137,6 +182,7 @@ export class PoseLoop implements PoseSource {
         frame,
         features,
         people,
+        others: people - (raw ? 1 : 0),
         fps: this.fps,
         inferenceMs,
         brightness: this.brightness,

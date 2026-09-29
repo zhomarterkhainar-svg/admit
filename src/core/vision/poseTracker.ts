@@ -10,18 +10,14 @@ const CDN_MODEL = (m: PoseModel) =>
 
 const base = import.meta.env.BASE_URL;
 
-export interface PoseDetection {
-  /** largest person in frame, or null */
-  frame: PoseFrame | null;
-  /** number of people detected (for "only one person" setup hint) */
-  people: number;
-}
+/** Up to this many people are detected, so the player can be told apart from passers-by. */
+const MAX_PEOPLE = 3;
 
 /**
  * Thin wrapper over MediaPipe PoseLandmarker.
  * - prefers self-hosted wasm/models, falls back to CDN
  * - prefers GPU delegate, falls back to CPU
- * - picks the biggest person when several are visible
+ * - returns everyone in frame; PersonLock (in PoseLoop) decides which one is the player
  */
 export class PoseTracker {
   private lastTs = -1;
@@ -47,7 +43,7 @@ export class PoseTracker {
           const landmarker = await PoseLandmarker.createFromOptions(fileset, {
             baseOptions: { modelAssetPath: src.model, delegate },
             runningMode: 'VIDEO',
-            numPoses: 2,
+            numPoses: MAX_PEOPLE,
             minPoseDetectionConfidence: 0.5,
             minPosePresenceConfidence: 0.5,
             minTrackingConfidence: 0.5,
@@ -62,42 +58,25 @@ export class PoseTracker {
     throw lastError;
   }
 
-  detect(source: HTMLVideoElement, tMs: number): PoseDetection {
+  /** Everyone in the frame, in no particular order (MediaPipe may reorder people between frames). */
+  detect(source: HTMLVideoElement, tMs: number): PoseFrame[] {
     // MediaPipe requires strictly increasing timestamps
     const ts = tMs <= this.lastTs ? this.lastTs + 1 : tMs;
     this.lastTs = ts;
     const res = this.landmarker.detectForVideo(source, ts);
-    const people = res.landmarks.length;
-    if (people === 0) return { frame: null, people };
-
-    let best = 0;
-    let bestArea = -1;
-    res.landmarks.forEach((lms, i) => {
-      const xs = lms.map((l) => l.x);
-      const ys = lms.map((l) => l.y);
-      const area = (Math.max(...xs) - Math.min(...xs)) * (Math.max(...ys) - Math.min(...ys));
-      if (area > bestArea) {
-        bestArea = area;
-        best = i;
-      }
-    });
-
     const toLm = (l: { x: number; y: number; z: number; visibility?: number }): Landmark => ({
       x: l.x,
       y: l.y,
       z: l.z,
       visibility: l.visibility ?? 1,
     });
-    return {
-      people,
-      frame: {
-        t: tMs,
-        image: res.landmarks[best]!.map(toLm),
-        world: res.worldLandmarks[best]!.map(toLm),
-        width: source.videoWidth,
-        height: source.videoHeight,
-      },
-    };
+    return res.landmarks.map((lms, i) => ({
+      t: tMs,
+      image: lms.map(toLm),
+      world: (res.worldLandmarks[i] ?? []).map(toLm),
+      width: source.videoWidth,
+      height: source.videoHeight,
+    }));
   }
 
   close(): void {

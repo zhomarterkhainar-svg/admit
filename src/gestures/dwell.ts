@@ -12,9 +12,18 @@ export interface DwellState {
   selected: string | null;
 }
 
+/** Extra margin around the button that is already hovered: jitter at its edge must not reset it. */
+const STICKY_PAD = 0.035;
+const PAD = 0.01;
+
+const inside = (c: { x: number; y: number }, r: DwellTarget['rect'], pad: number) =>
+  c.x >= r.left - pad && c.x <= r.right + pad && c.y >= r.top - pad && c.y <= r.bottom + pad;
+
 /**
  * "Hover to click": holding the cursor over a target for `dwellMs` selects it.
  * After a selection the same target cannot fire again until the cursor leaves it.
+ * The hovered target is "sticky" (a wider margin to leave it than to enter it), so a slightly
+ * shaky hand near the edge keeps filling the ring instead of starting over.
  */
 export class DwellTracker {
   private hoverId: string | null = null;
@@ -30,15 +39,11 @@ export class DwellTracker {
     t: number,
     frozen = false,
   ): DwellState {
-    const pad = 0.01;
+    const current = this.hoverId ? targets.find((tg) => tg.id === this.hoverId) : undefined;
     const hit = cursor
-      ? targets.find(
-          (tg) =>
-            cursor.x >= tg.rect.left - pad &&
-            cursor.x <= tg.rect.right + pad &&
-            cursor.y >= tg.rect.top - pad &&
-            cursor.y <= tg.rect.bottom + pad,
-        )
+      ? current && inside(cursor, current.rect, STICKY_PAD)
+        ? current
+        : targets.find((tg) => inside(cursor, tg.rect, PAD))
       : undefined;
     const id = hit?.id ?? null;
 

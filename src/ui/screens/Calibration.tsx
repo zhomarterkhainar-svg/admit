@@ -14,18 +14,13 @@ import { Mascot, Speech } from '../components/Mascot';
 import { ProgressBar } from '../components/ProgressBar';
 import { MirrorPip } from '../components/MirrorPip';
 
-type Check = 'light' | 'person' | 'single' | 'fullBody' | 'distance' | 'centered' | 'facing';
-const CHECKS: Check[] = ['light', 'person', 'single', 'fullBody', 'distance', 'centered', 'facing'];
+type Check = 'light' | 'person' | 'fullBody' | 'distance' | 'centered' | 'facing';
+const CHECKS: Check[] = ['light', 'person', 'fullBody', 'distance', 'centered', 'facing'];
 
-function evaluate(
-  f: FrameFeatures | null,
-  people: number,
-  brightness?: number,
-): Record<Check, boolean> {
+function evaluate(f: FrameFeatures | null, brightness?: number): Record<Check, boolean> {
   return {
     light: brightness === undefined || brightness >= DARK_THRESHOLD,
     person: !!f,
-    single: people <= 1,
     fullBody: !!f && f.visibility.feet > 0.5 && f.bodyHeightFrac < 1.02,
     distance: !!f && f.bodyHeightFrac > 0.45,
     centered: !!f && f.center.x > 0.25 && f.center.x < 0.75,
@@ -38,20 +33,22 @@ export function Calibration() {
   const loop = useLoop();
   const setCalibrated = useApp((s) => s.setCalibrated);
   const setBaseline = useApp((s) => s.setBaseline);
-  const [checks, setChecks] = useState<Record<Check, boolean>>(evaluate(null, 0));
+  const [checks, setChecks] = useState<Record<Check, boolean>>(evaluate(null));
   const [step, setStep] = useState<'frame' | 'cursor'>('frame');
   const okSince = useRef<number | null>(null);
 
   useEffect(() => {
     speak((tr) => tr('calib.title'));
-  }, []);
+    // whoever stands in front of the camera now is the player; people behind are ignored
+    loop.resetLock?.();
+  }, [loop]);
 
   useEffect(() => {
     if (step !== 'frame') return;
     let last = 0;
     const estimator = new BaselineEstimator(30);
     return loop.subscribe((tick) => {
-      const c = evaluate(tick.features, tick.people, tick.brightness);
+      const c = evaluate(tick.features, tick.brightness);
       const all = CHECKS.every((k) => c[k]);
       // while the user stands correctly, learn how they stand (personal baseline)
       if (all && tick.features) estimator.add(tick.features);
