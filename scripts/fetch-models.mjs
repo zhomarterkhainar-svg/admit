@@ -1,5 +1,5 @@
 // Self-hosts MediaPipe wasm + models in public/ so the deployed app never depends on a third-party CDN.
-import { cpSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -14,7 +14,9 @@ const MODELS = {
 const wasmSrc = join(root, 'node_modules/@mediapipe/tasks-vision/wasm');
 const wasmDst = join(root, 'public/wasm');
 if (existsSync(wasmSrc)) {
-  cpSync(wasmSrc, wasmDst, { recursive: true });
+  // File-by-file copy: fs.cpSync fails with EIO on Windows for OneDrive / non-ASCII paths.
+  mkdirSync(wasmDst, { recursive: true });
+  for (const file of readdirSync(wasmSrc)) copyFileSync(join(wasmSrc, file), join(wasmDst, file));
   console.log('[models] wasm copied → public/wasm');
 } else {
   console.warn('[models] @mediapipe/tasks-vision not installed yet, skipping wasm copy');
