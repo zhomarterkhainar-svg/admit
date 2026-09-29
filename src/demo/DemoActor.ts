@@ -6,6 +6,8 @@ import { DEMO_MIX, DEMO_SCRIPTS, type DemoRep } from './scripts';
 
 const HOLD_MS = 700;
 const FPS = 30;
+const FIT_TOP = 0.12;
+const FIT_SCALE = 0.9;
 
 /**
  * A virtual athlete that emits synthetic pose ticks like the camera loop does.
@@ -57,8 +59,12 @@ export class DemoActor implements PoseSource {
   private step(): void {
     const t = performance.now();
     const frame = makePose(this.pose(t), t);
-    // a little sensor noise so it looks alive
     for (const l of frame.image) {
+      // the template puts the feet at ~1.03 of the frame height: fit the whole body (head
+      // ~0.14 → feet ~0.87) so the virtual athlete stands fully inside the picture
+      l.y = FIT_TOP + (l.y - 0.2) * FIT_SCALE;
+      l.x = 0.5 + (l.x - 0.5) * FIT_SCALE;
+      // a little sensor noise so it looks alive
       l.x += (Math.random() - 0.5) * 0.002;
       l.y += (Math.random() - 0.5) * 0.002;
     }
