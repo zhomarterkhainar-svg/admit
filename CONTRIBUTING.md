@@ -4,7 +4,7 @@
 2. Маленькие коммиты в стиле Conventional Commits: `feat(lunge): count reps per leg`, `fix(ui): …`, `test(rules): …`.
 3. Перед push: `npm run lint && npm run typecheck && npm test`.
 4. PR в `main`, в описании `Closes #N`, скрин/GIF. Ревью ≤ 15 мин. **Без squash** — жюри смотрит историю.
-5. `main` автоматически деплоится на Vercel (preview-ссылка на каждый PR).
+5. Деплой на Netlify: `npm run build && npx netlify-cli deploy --prod --dir dist` (настройки в `netlify.toml`).
 
 ## Добавить упражнение (шаблон — `src/exercises/squat`)
 

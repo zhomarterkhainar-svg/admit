@@ -44,6 +44,10 @@ const browser = await puppeteer.launch({
     '--use-fake-device-for-media-stream',
     '--autoplay-policy=no-user-gesture-required',
     '--enable-unsafe-swiftshader',
+    // several tabs in one headless browser: never throttle the one under test
+    '--disable-background-timer-throttling',
+    '--disable-backgrounding-occluded-windows',
+    '--disable-renderer-backgrounding',
   ],
 });
 
@@ -117,10 +121,11 @@ try {
         .getState()
         .startProgram({ id: 'single', steps: [{ id: 'squat', target: 5, timeLimitSec: 30 }] }),
     );
-    check(
-      await waitFor(page, '.feedback.tone-setup', 20000),
-      'camera: empty room → concrete setup hint',
+    const hinted = await waitFor(page, '.feedback.tone-setup', 20000);
+    const frames = await page.evaluate(
+      () => document.querySelector('video')?.getVideoPlaybackQuality().totalVideoFrames ?? 0,
     );
+    check(hinted, `camera: empty room → concrete setup hint (camera frames: ${frames})`);
     check(!page.errors.length, `camera: no console errors ${page.errors.slice(0, 2).join(' | ')}`);
     await page.close();
   }

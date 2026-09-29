@@ -23,10 +23,10 @@ create policy "insert" on public.scores for insert
 ```
 
 2. **Project Settings → API**: скопируйте `Project URL` и `anon public` key.
-3. В Vercel → Project → **Settings → Environment Variables** добавьте:
+3. Перед сборкой задайте переменные (в `.env` при локальной сборке или в Netlify → **Site configuration → Environment variables**):
    - `VITE_SUPABASE_URL` = Project URL
    - `VITE_SUPABASE_ANON_KEY` = anon key
-4. Redeploy. В «Рекордах» появится переключатель **«Мир / Это устройство»**.
+4. Пересоберите и задеплойте. В «Рекордах» появится переключатель **«Мир / Это устройство»**.
 
-`vercel.json` уже разрешает запросы к `*.supabase.co` в CSP. Anon key публичный по дизайну Supabase:
+`netlify.toml` (и `vercel.json`) уже разрешает запросы к `*.supabase.co` в CSP. Anon key публичный по дизайну Supabase:
 защиту обеспечивают RLS-политики выше (только чтение и вставка, с ограничениями).
