@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { lazy, Suspense, useRef, useState } from 'react';
 import { usePoseEngine } from '@/ui/hooks/usePoseEngine';
 import { DemoContext, EngineContext, VideoContext } from '@/ui/engine';
 import { GestureProvider } from '@/ui/gestures/GestureProvider';
@@ -16,8 +16,9 @@ import { Profile } from '@/ui/screens/Profile';
 import { Settings } from '@/ui/screens/Settings';
 import { FloorMode } from '@/ui/screens/FloorMode';
 import { Games } from '@/ui/screens/Games';
-import { Duel } from '@/ui/screens/Duel';
-import { Dance } from '@/ui/screens/Dance';
+// the game modes load on demand: their code (music synth, dance judge, duel) is not needed to start
+const Duel = lazy(() => import('@/ui/screens/Duel').then((m) => ({ default: m.Duel })));
+const Dance = lazy(() => import('@/ui/screens/Dance').then((m) => ({ default: m.Dance })));
 import { AchievementToasts } from '@/ui/components/AchievementToasts';
 import { unlockAudio } from '@/audio/sfx';
 import { DemoActor } from '@/demo/DemoActor';
@@ -28,7 +29,7 @@ import { useApp, type Screen } from './store';
 
 const DEV = new URLSearchParams(location.search).has('dev');
 
-const SCREENS: Record<Screen, () => React.ReactNode> = {
+const SCREENS: Record<Screen, React.ComponentType> = {
   calibration: Calibration,
   menu: Menu,
   pick: ExercisePicker,
@@ -79,7 +80,9 @@ export function App() {
                 />
               ) : (
                 <GestureProvider loop={source} enabled={!demo}>
-                  <Current key={screen} />
+                  <Suspense fallback={null}>
+                    <Current key={screen} />
+                  </Suspense>
                   <AchievementToasts />
                 </GestureProvider>
               )}
