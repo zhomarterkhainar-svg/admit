@@ -56,6 +56,16 @@ export interface FrameFeatures {
   wristLift: LR<number>;
   /** shoulder width in aspect-corrected image units (for normalizing distances) */
   shoulderWidth: number;
+  /**
+   * angle of the shoulders→ankles line from the horizontal, degrees, in the image:
+   * ~90 standing, ~0–25 lying / in a plank or push-up (floor exercises, side view)
+   */
+  bodyTilt: number;
+  /**
+   * how far the hips are off the straight shoulders→ankles line, in body lengths (image):
+   * + = hips sag toward the floor, − = hips piked up. Meaningful when lying (bodyTilt small).
+   */
+  hipOffset: number;
   /** fraction of frame height covered by the body (nose → ankles) */
   bodyHeightFrac: number;
   /** hip center in normalized image coords */

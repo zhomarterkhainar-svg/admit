@@ -3,7 +3,7 @@ import { FeedbackArbiter } from './arbiter';
 import { BaselineEstimator, personalize, type Baseline } from './baseline';
 import { smoothnessScore } from './dtw';
 import { RuleTracker } from './ruleTracker';
-import { DARK_THRESHOLD, NO_PERSON, TOO_DARK, setupRules } from './setupRules';
+import { DARK_THRESHOLD, NO_PERSON, TOO_DARK, floorSetupRules, setupRules } from './setupRules';
 import type { ExerciseDefinition, FrameRule, Hint, RepSummary, RuleContext } from './types';
 
 export type RunnerEvent =
@@ -49,6 +49,11 @@ export class ExerciseRunner<M> {
   /** depth trajectory: rolling pre-rep buffer + samples during the rep */
   private trail: { t: number; v: number }[] = [];
   private repTrail: { t: number; v: number }[] | null = null;
+  /** time-based exercises: ms held toward the next second, and what went wrong during it */
+  private held = 0;
+  private heldLastT: number | null = null;
+  private heldSince = 0;
+  private heldErrors = new Set<string>();
 
   /**
    * @param baseline personal standing baseline (from calibration); if omitted it is
@@ -59,7 +64,9 @@ export class ExerciseRunner<M> {
     private baseline: Baseline | null = null,
   ) {
     this.phase = def.initialPhase;
-    this.setup = new RuleTracker(setupRules(def.needs, def.view));
+    this.setup = new RuleTracker(
+      def.posture === 'floor' ? floorSetupRules() : setupRules(def.needs, def.view),
+    );
     this.form = new RuleTracker(def.frameRules);
   }
 
@@ -80,11 +87,14 @@ export class ExerciseRunner<M> {
       if (out.hint) events.push({ type: 'hint', hint: out.hint, speak: out.speak });
       return this.state(null, events, true, []);
     }
-    if (!this.baseline && this.phase === this.def.initialPhase) {
-      this.autoBaseline.add(f);
-      this.baseline = this.autoBaseline.value;
+    // the standing baseline means nothing for someone lying on the floor
+    if (this.def.posture !== 'floor') {
+      if (!this.baseline && this.phase === this.def.initialPhase) {
+        this.autoBaseline.add(f);
+        this.baseline = this.autoBaseline.value;
+      }
+      f = personalize(f, this.baseline);
     }
-    f = personalize(f, this.baseline);
     const depth = Math.min(1, Math.max(0, this.def.progress(f)));
     this.trail.push({ t: f.t, v: depth });
     while (this.trail.length && f.t - this.trail[0]!.t > 600) this.trail.shift();
@@ -107,6 +117,9 @@ export class ExerciseRunner<M> {
       if (this.metrics) this.metrics = this.def.track(this.metrics, f, ctx);
       formActive = this.form.update(f, ctx);
       if (this.metrics) formActive.forEach((r) => this.repErrors.add(r.id));
+      if (this.def.hold) this.stepHold(f.t, this.def.hold.phase, formActive, events);
+    } else {
+      this.heldLastT = null;
     }
 
     const extra = paused ? [] : (env.extraHints ?? []);
@@ -137,6 +150,7 @@ export class ExerciseRunner<M> {
     this.phase = proposed;
     this.phaseSince = f.t;
     this.pending = null;
+    if (this.def.hold) return; // time-based: no reps, see stepHold
 
     if (from === this.def.repStart) {
       this.repTrail = [...this.trail];
@@ -150,6 +164,44 @@ export class ExerciseRunner<M> {
         events.push({ type: 'rep', rep: this.finishRep(f.t) });
       }
     }
+  }
+
+  /**
+   * Plank-style exercises: every full second in the hold phase is one counted unit whose
+   * quality drops for each form problem seen during that second. Leaving the phase stops the clock.
+   */
+  private stepHold(t: number, phase: string, active: FrameRule[], events: RunnerEvent[]): void {
+    if (this.phase !== phase) {
+      this.heldLastT = null;
+      return;
+    }
+    if (this.heldLastT === null) {
+      this.heldLastT = t;
+      this.heldSince = t;
+      return;
+    }
+    this.held += Math.min(t - this.heldLastT, 250); // a stalled camera must not add time
+    this.heldLastT = t;
+    active.forEach((r) => this.heldErrors.add(r.id));
+    if (this.held < 1000) return;
+    this.held -= 1000;
+    let quality = 100;
+    for (const id of this.heldErrors) {
+      const rule = this.def.frameRules.find((r) => r.id === id);
+      if (rule) quality -= QUALITY_PENALTY[rule.severity];
+    }
+    const rep: RepSummary = {
+      index: this.reps.length,
+      startT: this.heldSince,
+      endT: t,
+      counted: true,
+      quality: Math.max(0, quality),
+      errors: [...this.heldErrors],
+    };
+    this.reps.push(rep);
+    this.heldErrors = new Set();
+    this.heldSince = t;
+    events.push({ type: 'rep', rep });
   }
 
   private finishRep(t: number): RepSummary {

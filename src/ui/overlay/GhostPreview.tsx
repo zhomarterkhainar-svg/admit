@@ -5,14 +5,36 @@ import type { ExerciseDefinition } from '@/engine/types';
 import { drawSkeleton } from './drawSkeleton';
 
 /** Fixed frame for the whole animation: fits the union of rest/peak poses into the canvas. */
-const BOX = { minX: -0.62, maxX: 0.62, minY: -1.2, maxY: 0.95 };
+const STANDING_BOX = { minX: -0.62, maxX: 0.62, minY: -1.2, maxY: 0.95 };
+type Box = typeof STANDING_BOX;
 
-export function fitFrame(world: PoseFrame['world'], w: number, h: number): PoseFrame {
-  const bw = BOX.maxX - BOX.minX;
-  const bh = BOX.maxY - BOX.minY;
+/** Floor exercises lie sideways: frame their own keyframes (with a margin) instead. */
+function boxFor(keyframes: ExerciseDefinition<unknown>['keyframes']): Box {
+  const pts = [keyframes.rest, keyframes.peak, keyframes.peakAlt ?? {}].flatMap(
+    (e) => makePose(e).world,
+  );
+  const xs = pts.map((p) => p.x);
+  const ys = pts.map((p) => p.y);
+  const m = 0.15;
+  return {
+    minX: Math.min(...xs) - m,
+    maxX: Math.max(...xs) + m,
+    minY: Math.min(...ys) - m,
+    maxY: Math.max(...ys) + m,
+  };
+}
+
+export function fitFrame(
+  world: PoseFrame['world'],
+  w: number,
+  h: number,
+  box: Box = STANDING_BOX,
+): PoseFrame {
+  const bw = box.maxX - box.minX;
+  const bh = box.maxY - box.minY;
   const k = 0.92 * Math.min(w / bw, h / bh); // px per meter
-  const cx = w / 2;
-  const cy = h / 2 - ((BOX.minY + BOX.maxY) / 2) * k;
+  const cx = w / 2 - ((box.minX + box.maxX) / 2) * k;
+  const cy = h / 2 - ((box.minY + box.maxY) / 2) * k;
   return {
     t: 0,
     width: w,
@@ -44,6 +66,7 @@ export function GhostPreview<M>({
     const ctx = canvas.getContext('2d')!;
     let raf = 0;
     const start = performance.now();
+    const box = exercise.posture === 'floor' ? boxFor(exercise.keyframes) : STANDING_BOX;
     const draw = (now: number) => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       if (canvas.width !== canvas.clientWidth * dpr) {
@@ -56,7 +79,7 @@ export function GhostPreview<M>({
       const target = peakAlt && Math.floor(cycle) % 2 === 1 ? peakAlt : peak;
       const world = makePose(blend(rest, target, k)).world;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      drawSkeleton(ctx, fitFrame(world, canvas.width, canvas.height), {
+      drawSkeleton(ctx, fitFrame(world, canvas.width, canvas.height, box), {
         color: '#1cb0f6',
         lineWidth: 9,
         head: true,

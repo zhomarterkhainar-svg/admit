@@ -17,6 +17,7 @@ import { ExerciseRecognizer } from '@/ml/recognizer';
 import { Flame, Timer, X } from 'lucide-react';
 import { HintBanner } from '../components/HintBanner';
 import { ProgressBar } from '../components/ProgressBar';
+import { DepthMeter } from '../components/DepthMeter';
 import { CrossArmsIcon } from '../components/icons';
 
 interface Props<M> {
@@ -71,8 +72,10 @@ export function Workout<M>({
       setTimeout(() => doneRef.current(runner.reps, activeMs), 900);
     };
 
-    // kNN recognizer: "you seem to be doing a different exercise"
+    // kNN recognizer: "you seem to be doing a different exercise" (standing exercises only)
     const recognizer = new ExerciseRecognizer();
+    const floor = exercise.posture === 'floor';
+    const hold = !!exercise.hold;
     const wrongHint: Hint = {
       id: 'wrongExercise',
       severity: 'validity',
@@ -91,8 +94,9 @@ export function Workout<M>({
       if (lastT !== null) activeMs += tick.t - lastT;
       lastT = tick.t;
 
-      const rec = recognizer.update(tick.features);
+      const rec = floor ? null : recognizer.update(tick.features);
       const wrong =
+        rec !== null &&
         rec.label !== null &&
         rec.label !== exercise.id &&
         rec.share >= 0.75 &&
@@ -106,6 +110,15 @@ export function Workout<M>({
         if (e.type === 'hint' && e.speak) {
           sfx.hint();
           speak((tr) => `${tr(e.hint.message)}. ${tr(e.hint.fix)}`);
+        } else if (e.type === 'rep' && hold) {
+          // a held second: a soft tick every 5 s instead of a fanfare every second
+          lastCountedT = tick.t;
+          if (st.counted % 5 === 0) {
+            sfx.rep();
+            speakIfIdle(String(st.counted));
+            setFlash({ kind: 'good', key: e.rep.index });
+          }
+          if (st.counted >= target) finish();
         } else if (e.type === 'rep') {
           const kind = !e.rep.counted ? 'miss' : e.rep.errors.length === 0 ? 'perfect' : 'good';
           if (kind === 'miss') sfx.notCounted();
@@ -166,7 +179,7 @@ export function Workout<M>({
           // technique problem → show the correct pose as a ghost over the user
           if (h.severity !== 'setup' && tick.features) {
             const target = exercise.ghostFor?.(tick.features) ?? exercise.keyframes.peak;
-            drawGhost(ctx, tick.frame, target);
+            drawGhost(ctx, tick.frame, target, performance.now(), exercise.posture === 'floor');
           }
           h.arrows?.forEach((a) => drawArrow(ctx, tick.frame!, a));
         }}
@@ -193,23 +206,14 @@ export function Workout<M>({
             </span>
             <span className="rep-target num">/ {target}</span>
           </div>
-          <span className="kicker">{t('workout.reps')}</span>
+          <span className="kicker">{t(exercise.hold ? 'workout.seconds' : 'workout.reps')}</span>
           {ui && ui.attempted > ui.counted && (
             <span className="rep-missed">
               <X size={16} strokeWidth={3} /> {t('workout.notCounted')}: {ui.attempted - ui.counted}
             </span>
           )}
         </div>
-        <div className="depth-meter" aria-hidden="true">
-          <div className="depth-track">
-            <div
-              className="depth-fill"
-              style={{ height: `${Math.round((ui?.progress ?? 0) * 100)}%` }}
-            />
-            <div className="depth-goal" />
-          </div>
-          <span className="kicker">{t('workout.depth')}</span>
-        </div>
+        <DepthMeter value={ui?.progress ?? 0} label={exercise.meterLabel} />
         {cleanRun >= 2 && (
           <div className="clean-streak" key={`streak-${cleanRun}`}>
             <Flame size={18} strokeWidth={2.75} fill="currentColor" /> {cleanRun}{' '}
@@ -228,7 +232,9 @@ export function Workout<M>({
             {flash.kind === 'perfect'
               ? t('workout.perfect')
               : flash.kind === 'good'
-                ? '+1'
+                ? exercise.hold
+                  ? `${ui?.counted ?? 0} ${t('workout.sec')}`
+                  : '+1'
                 : t('workout.miss')}
           </div>
         )}

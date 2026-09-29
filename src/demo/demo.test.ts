@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { blend, makePose } from '@/core/reference/template';
-import { EXERCISES, EXERCISE_IDS } from '@/exercises/registry';
+import { EXERCISES, EXERCISE_IDS, FLOOR_EXERCISES, FLOOR_EXERCISE_IDS } from '@/exercises/registry';
 import { runExercise } from '../../tests/helpers/run';
 import { COMMANDS } from '@/game/challenge';
 import { DEMO_SCRIPTS, challengeDemo, type DemoRep } from './scripts';
@@ -57,5 +57,21 @@ describe('challenge demo', () => {
         );
       });
     }
+  }
+});
+
+/** Floor mode demo: reps are counted, mistakes detected; the plank clock runs and sees sagging. */
+describe('floor demo choreography', () => {
+  for (const id of FLOOR_EXERCISE_IDS) {
+    it(`${id}: counts and detects the scripted mistakes`, () => {
+      const { frames } = framesFor(DEMO_SCRIPTS[id]);
+      const { reps, errors } = runExercise(FLOOR_EXERCISES[id], frames);
+      expect(reps.filter((r) => r.counted).length).toBeGreaterThanOrEqual(2);
+      expect(errors.size).toBeGreaterThanOrEqual(1);
+      if (!FLOOR_EXERCISES[id].hold) {
+        expect(reps.length, 'every scripted rep is recognized').toBe(DEMO_SCRIPTS[id].length);
+        expect(reps.some((r) => !r.counted)).toBe(true);
+      }
+    });
   }
 });

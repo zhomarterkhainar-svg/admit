@@ -1,4 +1,4 @@
-import type { ExerciseId } from '@/exercises/registry';
+import type { AnyExerciseId, ExerciseId } from '@/exercises/registry';
 import type { QuestState, Streak } from '@/storage/progress';
 
 /** Local calendar day, YYYY-MM-DD. */
@@ -44,7 +44,7 @@ export function questFor(day: string): QuestDef {
 export function advanceQuest(
   q: QuestState | null,
   today: string,
-  countedByExercise: Partial<Record<ExerciseId, number>>,
+  countedByExercise: Partial<Record<AnyExerciseId, number>>,
 ): { quest: QuestState; completed: boolean; def: QuestDef } {
   const def = questFor(today);
   const cur = q && q.day === today ? q : { day: today, progress: 0, done: false };

@@ -1,12 +1,15 @@
 import { P } from '@/core/types';
 import { blend, type PoseEdit } from '@/core/reference/template';
-import type { ExerciseId } from '@/exercises/registry';
+import type { AnyExerciseId } from '@/exercises/registry';
 import type { CommandId } from '@/game/challenge';
 import { squatDown } from '@/exercises/squat/reference';
 import { jackOpen } from '@/exercises/jumpingJack/reference';
 import { lungeDown } from '@/exercises/lunge/reference';
 import { pressStart, pressTop } from '@/exercises/press/reference';
 import { sideBend } from '@/exercises/sideBend/reference';
+import { pushupDown, pushupTop } from '@/exercises/pushup/reference';
+import { plankPose } from '@/exercises/plank/reference';
+import { bridgeDown, bridgeUp, bridgeUpFar } from '@/exercises/bridge/reference';
 
 /** One scripted repetition: rest → peak → rest. */
 export interface DemoRep {
@@ -21,7 +24,7 @@ const rep = (peak: PoseEdit, ms = 2000, rest: PoseEdit = {}): DemoRep => ({ rest
  * Demo choreography per exercise: good reps mixed with typical mistakes so the error mode
  * can be seen without a camera. The engine is NOT told about the mistakes — it detects them.
  */
-export const DEMO_SCRIPTS: Record<ExerciseId, DemoRep[]> = {
+export const DEMO_SCRIPTS: Record<AnyExerciseId, DemoRep[]> = {
   squat: [
     rep(squatDown()),
     rep(blend({}, squatDown(), 0.55)), // too shallow → not counted
@@ -93,6 +96,25 @@ export const DEMO_SCRIPTS: Record<ExerciseId, DemoRep[]> = {
     rep(sideBend('r')),
     rep(blend({}, sideBend('l'), 0.7)), // too small → not counted
     rep(sideBend('l')),
+  ],
+  pushup: [
+    rep(pushupDown(), 2200, pushupTop()),
+    rep(blend(pushupTop(), pushupDown(), 0.5), 1800, pushupTop()), // too shallow → not counted
+    rep(pushupDown(), 2200, pushupTop()),
+    rep(pushupDown(0.15), 2600, pushupTop(0.15)), // hips sag
+    rep(pushupDown(), 2200, pushupTop()),
+  ],
+  plank: [
+    rep(plankPose(), 4000, plankPose()),
+    rep(plankPose(0.13), 3200, plankPose()), // hips sag, the coach says so
+    rep(plankPose(), 4000, plankPose()),
+    rep(plankPose(-0.12), 3200, plankPose()), // hips piked up
+  ],
+  bridge: [
+    rep(bridgeUp(), 2200, bridgeDown()),
+    rep(blend(bridgeDown(), bridgeUp(), 0.6), 1800, bridgeDown()), // half bridge → not counted
+    rep(bridgeUp(), 2200, bridgeDown()),
+    rep(bridgeUpFar(), 2400, bridgeDown()), // feet too far
   ],
 };
 
