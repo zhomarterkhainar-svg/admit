@@ -7,6 +7,7 @@ import { ALL_EXERCISES } from '@/exercises/registry';
 import type { ExerciseResult } from '@/game/summary';
 import type { ProgramStep } from '@/game/program';
 import type { RepSummary } from '@/engine/types';
+import type { Replay } from '@/game/replay';
 import { useDemo, useLoop } from '../engine';
 import { DwellButton } from '../gestures/DwellButton';
 import { useGestures } from '../gestures/GestureProvider';
@@ -50,8 +51,14 @@ export function WorkoutFlow() {
 
   if (!current) return null;
 
-  const next = (reps: RepSummary[], activeMs: number) => {
-    results.current.push({ id: current.id, target: current.target, reps, durationMs: activeMs });
+  const next = (reps: RepSummary[], activeMs: number, replay: Replay | null = null) => {
+    results.current.push({
+      id: current.id,
+      target: current.target,
+      reps,
+      durationMs: activeMs,
+      ...(replay ? { replay } : {}),
+    });
     setPaused(false);
     if (idx + 1 >= steps.length) {
       finishWorkout(results.current, startedAt, Date.now());

@@ -516,6 +516,56 @@
   background: var(--blue-l);
   color: var(--blue-d);
 }
+/* slow-motion replay of the worst rep (results, "what to work on") */
+.err-replay {
+  width: 210px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.err-replay-stage {
+  position: relative;
+  height: 128px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--red-l);
+}
+.err-replay-stage canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.err-replay-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--red);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 900;
+}
+.err-replay-text {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  line-height: 1.25;
+}
+.err-replay-text .fix {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--ink-2);
+  font-size: 12px;
+}
+.err-replay-text .fix svg {
+  display: none;
+}
+
 /* results: the trend rides on the error's title line */
 .err-head {
   display: flex;

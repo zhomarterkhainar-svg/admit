@@ -22,6 +22,7 @@ import { ALL_EXERCISES } from '@/exercises/registry';
 import { rankFor } from '@/game/ranks';
 import { errorProgress } from '@/game/errorProgress';
 import { ErrorTrend } from '../components/ErrorTrend';
+import { ErrorReplay } from '../components/ErrorReplay';
 import { DwellButton } from '../gestures/DwellButton';
 import { useGestures } from '../gestures/GestureProvider';
 import { Confetti } from '../components/Confetti';
@@ -71,6 +72,11 @@ export function Results() {
   // the session just finished is the last history entry
   const trends =
     progress.history.at(-1)?.at === summary.startedAt ? errorProgress(progress.history) : [];
+  // slow-motion replay: the worst rep showing the top error if there is one, else any worst rep
+  const replays = summary.results.flatMap((r) => (r.replay ? [r.replay] : []));
+  const topId = summary.topErrors[0]?.id;
+  const replay = replays.find((r) => r.ruleId === topId) ?? replays.find((r) => r.ruleId);
+  const replayRule = replay?.ruleId ? fixFor(replay.ruleId) : null;
 
   return (
     <>
@@ -182,7 +188,9 @@ export function Results() {
                             <span className="times num">
                               × {e.count} {plural(e.count, 'results.times')}
                             </span>
-                            {trend && <ErrorTrend before={trend.before} now={trend.now} />}
+                            {trend && trend.before !== null && (
+                            <ErrorTrend before={trend.before} now={trend.now} />
+                          )}
                           </div>
                           {f && (
                             <div className="fix">
@@ -190,12 +198,26 @@ export function Results() {
                             </div>
                           )}
                         </div>
-                        {i === 0 && <PoseCompare ruleId={e.id} joints={f?.joints} />}
+                        {i === 0 &&
+                          (replay && replayRule ? (
+                            <ErrorReplay
+                              replay={replay}
+                              message={replayRule.msg}
+                              fix={replayRule.fix}
+                              joints={replayRule.joints}
+                              caption={replay.ruleId !== e.id}
+                            />
+                          ) : (
+                            <PoseCompare ruleId={e.id} joints={f?.joints} />
+                          ))}
                       </li>
                     );
                   })}
                 </ol>
               )}
+              {summary.topErrors.some(
+                (e) => trends.find((x) => x.id === e.id)?.before === null,
+              ) && <ErrorTrend before={null} now={null} />}
             </section>
           </div>
 
