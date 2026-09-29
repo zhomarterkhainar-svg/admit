@@ -17,6 +17,7 @@ import { Settings } from '@/ui/screens/Settings';
 import { FloorMode } from '@/ui/screens/FloorMode';
 import { Games } from '@/ui/screens/Games';
 import { Duel } from '@/ui/screens/Duel';
+import { Dance } from '@/ui/screens/Dance';
 import { AchievementToasts } from '@/ui/components/AchievementToasts';
 import { unlockAudio } from '@/audio/sfx';
 import { DemoActor } from '@/demo/DemoActor';
@@ -42,6 +43,7 @@ const SCREENS: Record<Screen, () => React.ReactNode> = {
   floor: FloorMode,
   games: Games,
   duel: Duel,
+  dance: Dance,
 };
 
 export function App() {

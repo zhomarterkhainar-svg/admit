@@ -48,8 +48,17 @@ function fixFor(id: string): { msg: I18nKey; fix: I18nKey; joints: readonly numb
 }
 
 export function Results() {
-  const { summary, xpBefore, progress, program, startProgram, go, questCompleted, playerName } =
-    useApp();
+  const {
+    summary,
+    xpBefore,
+    progress,
+    program,
+    startProgram,
+    go,
+    openBoard,
+    questCompleted,
+    playerName,
+  } = useApp();
   useGestures({ crossArms: () => go('menu') });
 
   const before = rankFor(xpBefore);
@@ -259,7 +268,7 @@ export function Results() {
             <DwellButton
               icon={<Trophy size={24} strokeWidth={2.75} />}
               tone="gold"
-              onSelect={() => go('records')}
+              onSelect={() => openBoard('workout')}
             >
               {t('results.records')}
             </DwellButton>

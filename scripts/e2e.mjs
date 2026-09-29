@@ -145,7 +145,7 @@ try {
     await sleep(1200);
     await shot(page, 'results');
     await reach(page, 'results');
-    for (const screen of ['records', 'menu', 'pick', 'profile', 'settings', 'floor', 'games', 'duel']) {
+    for (const screen of ['records', 'menu', 'pick', 'profile', 'settings', 'floor', 'games', 'duel', 'dance']) {
       await go(page, screen);
       await sleep(900);
       await shot(page, screen);

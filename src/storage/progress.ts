@@ -20,8 +20,10 @@ export interface ScoreEntry {
   name: string;
   score: number;
   at: number;
-  mode: 'challenge' | 'workout';
+  mode: 'challenge' | 'workout' | 'dance';
 }
+
+export const SCORE_MODES: readonly ScoreEntry['mode'][] = ['challenge', 'workout', 'dance'];
 
 /** Lifetime counters that drive achievements. */
 export interface LifetimeStats {
@@ -32,6 +34,8 @@ export interface LifetimeStats {
   workouts: number;
   freeWorkouts: number;
   challenges: number;
+  /** Qara Zhorga songs danced */
+  dances: number;
   bestCombo: number;
   bestCleanStreak: number;
   questsDone: number;
@@ -69,6 +73,7 @@ export const EMPTY_STATS: LifetimeStats = {
   workouts: 0,
   freeWorkouts: 0,
   challenges: 0,
+  dances: 0,
   bestCombo: 0,
   bestCleanStreak: 0,
   questsDone: 0,
@@ -171,10 +176,22 @@ export function recordChallenge(
   at: number,
   xp: number,
 ): Progress {
+  return recordScore(p, 'challenge', score, name, at, xp);
+}
+
+/** A game score (challenge, dance) on the device board, plus the XP it earned. */
+export function recordScore(
+  p: Progress,
+  mode: ScoreEntry['mode'],
+  score: number,
+  name: string,
+  at: number,
+  xp: number,
+): Progress {
   return {
     ...p,
     totalXp: p.totalXp + xp,
-    scores: addScore(p.scores, { name, score, at, mode: 'challenge' }),
+    scores: addScore(p.scores, { name, score, at, mode }),
   };
 }
 
@@ -186,7 +203,7 @@ const WEEK_MS = 8 * 86_400_000;
  */
 function addScore(scores: ScoreEntry[], e: ScoreEntry): ScoreEntry[] {
   const all = [...scores, e];
-  return (['challenge', 'workout'] as const).flatMap((mode) => {
+  return SCORE_MODES.flatMap((mode) => {
     const ofMode = all.filter((s) => s.mode === mode).sort((a, b) => b.score - a.score);
     const top = new Set(ofMode.slice(0, 20));
     return ofMode.filter((s) => top.has(s) || e.at - s.at <= WEEK_MS).slice(0, 200);

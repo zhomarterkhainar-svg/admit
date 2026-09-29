@@ -1,6 +1,8 @@
 // Tiny synthesized SFX — no audio assets needed.
 let ctx: AudioContext | null = null;
 const ac = () => (ctx ??= new AudioContext());
+/** The app's one AudioContext (the dance music shares it with the sound effects). */
+export const audioContext = ac;
 
 /** Call from a user gesture once (browsers block audio before interaction). */
 export function unlockAudio(): void {

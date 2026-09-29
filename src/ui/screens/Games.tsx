@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { ArrowLeft, Swords, Users } from 'lucide-react';
+import { ArrowLeft, Music, Swords, Users } from 'lucide-react';
 import { useApp, type Screen } from '@/app/store';
 import { t, type I18nKey } from '@/i18n';
 import { DwellButton } from '../gestures/DwellButton';
@@ -32,6 +32,14 @@ export const GAMES: GameCard[] = [
     sub: 'duel.sub',
     icon: <Users {...ICON} />,
     tone: 'blue',
+    isNew: true,
+  },
+  {
+    screen: 'dance',
+    title: 'dance.title',
+    sub: 'dance.sub',
+    icon: <Music {...ICON} />,
+    tone: 'purple',
     isNew: true,
   },
 ];

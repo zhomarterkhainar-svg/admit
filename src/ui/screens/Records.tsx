@@ -23,6 +23,7 @@ const initial = (name: string) => [...name][0]?.toUpperCase() ?? '?';
 const MODES: { mode: Mode; label: I18nKey; play: I18nKey }[] = [
   { mode: 'challenge', label: 'lb.challenge', play: 'lb.playChallenge' },
   { mode: 'workout', label: 'lb.workout', play: 'lb.playWorkout' },
+  { mode: 'dance', label: 'lb.dance', play: 'lb.playDance' },
 ];
 const SIZE = 10;
 
@@ -33,7 +34,7 @@ const SIZE = 10;
  */
 export function Records() {
   const { playerName, go, startProgram } = useApp();
-  const [mode, setMode] = useState<Mode>('challenge');
+  const [mode, setMode] = useState<Mode>(() => useApp.getState().boardMode);
   const cycle = (d: 1 | -1) =>
     setMode((m) => {
       const i = MODES.findIndex((x) => x.mode === m);

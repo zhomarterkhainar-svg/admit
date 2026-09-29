@@ -9,7 +9,7 @@ create table public.scores (
   id bigint generated always as identity primary key,
   name text not null check (char_length(name) between 1 and 32),
   score integer not null check (score between 0 and 100000),
-  mode text not null check (mode in ('challenge', 'workout')),
+  mode text not null check (mode in ('challenge', 'workout', 'dance')),
   at timestamptz not null default now()
 );
 create index scores_mode_score on public.scores (mode, score desc);
@@ -20,6 +20,14 @@ create policy "read" on public.scores for select using (true);
 -- anyone can add a score, but only a sane one and only "now" (the app never sends `at`; the default now() is used)
 create policy "insert" on public.scores for insert
   with check (at between now() - interval '5 minutes' and now() + interval '5 minutes');
+```
+
+   Если таблица уже была создана раньше (без режима «Қара жорға»), разрешите новый режим:
+
+```sql
+alter table public.scores drop constraint scores_mode_check;
+alter table public.scores add constraint scores_mode_check
+  check (mode in ('challenge', 'workout', 'dance'));
 ```
 
 2. **Project Settings → API**: скопируйте `Project URL` и `anon public` key.
