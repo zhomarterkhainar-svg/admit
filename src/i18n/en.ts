@@ -388,7 +388,7 @@ export const en = {
     'A reaction game: 60 seconds, do what I shout. A depth meter on the side, just like in workouts. Come here once you are comfortable with the workout.',
   'tour.records.title': 'Leaderboard',
   'tour.records.text':
-    'The best batyrs: the top 3 on the podium, everyone else below. Score points and climb!',
+    'The best batyrs: the top 3 on the podium, everyone else next to it — with your place and the points to the next one. Score points and climb!',
   'tour.profile.title': 'Profile',
   'tour.profile.text':
     'Your nickname, rank, achievements and technique chart. I gave you a random name — change it if you like.',
@@ -409,4 +409,14 @@ export const en = {
   'cursorTip.click': 'Raise a hand and point at a button. Click: hold 2 seconds or squeeze a fist',
   'gest.fist': 'Squeeze a fist = click',
   'gest.fistSub': 'Open palm on a button, then a fist: pressed at once, no waiting',
+  // --- leaderboard v2 ---
+  'lb.playChallenge': 'Play',
+  'lb.playWorkout': 'Train',
+  'lb.free': 'Free — take it!',
+  'lb.freeShort': 'Free',
+  'lb.placeN': '#{n}',
+  'lb.best': 'best',
+  'lb.notYet': "You're not on the board yet — play and take a place",
+  'lb.gap': 'To the next place:',
+  'lb.leader': "You're the leader — keep the crown!",
 } satisfies Record<I18nKey, string>;

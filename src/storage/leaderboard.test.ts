@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { loadProgress, type Progress } from './progress';
-import { LocalLeaderboard, periodStart, SupabaseLeaderboard } from './leaderboard';
+import { LocalLeaderboard, myPlace, periodStart, SupabaseLeaderboard } from './leaderboard';
 
 const NOW = new Date('2026-09-29T15:00:00').getTime();
 const H = 3_600_000;
@@ -31,6 +31,24 @@ describe('local leaderboard', () => {
     const d = new Date(periodStart('today', NOW));
     expect([d.getHours(), d.getMinutes()]).toEqual([0, 0]);
     expect(periodStart('all', NOW)).toBe(0);
+  });
+});
+
+describe('my place on the board', () => {
+  const row = (name: string, score: number) => ({ name, score, mode: 'challenge' as const, at: 0 });
+  const rows = [row('A', 900), row('B', 800), row('B', 700), row('C', 800), row('D', 500)];
+
+  it('finds the best row and the points needed to climb one place', () => {
+    expect(myPlace(rows, 'A')).toEqual({ place: 1, score: 900, gap: 0 });
+    expect(myPlace(rows, 'B')).toEqual({ place: 2, score: 800, gap: 101 });
+    // a tie with the row above: beat the next higher score
+    expect(myPlace(rows, 'C')).toEqual({ place: 4, score: 800, gap: 101 });
+    expect(myPlace(rows, 'D')).toEqual({ place: 5, score: 500, gap: 301 });
+  });
+
+  it('is null when the player is not on the board', () => {
+    expect(myPlace(rows, 'Z')).toBeNull();
+    expect(myPlace([], 'A')).toBeNull();
   });
 });
 

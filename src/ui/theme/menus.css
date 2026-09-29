@@ -53,17 +53,50 @@
   vertical-align: -3px;
   color: var(--blue);
 }
-.lb-empty {
-  margin: auto;
-  font-size: 20px;
-}
 .lb-body {
   flex: 1;
+  min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-  gap: 40px;
-  align-items: end;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: stretch;
   animation: fade 0.25s ease-out;
+}
+/* the podium stands on a lit stage that fills the column */
+.lb-stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 360px;
+  padding: 16px 20px 0;
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--line);
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 20% 22%, rgba(255, 200, 0, 0.22) 0 6px, transparent 7px),
+    radial-gradient(circle at 78% 16%, rgba(28, 176, 246, 0.2) 0 5px, transparent 6px),
+    radial-gradient(circle at 64% 34%, rgba(206, 130, 255, 0.22) 0 4px, transparent 5px),
+    radial-gradient(circle at 32% 40%, rgba(88, 204, 2, 0.2) 0 4px, transparent 5px),
+    radial-gradient(ellipse at 50% 100%, var(--gold-l) 0%, transparent 65%),
+    linear-gradient(var(--bg) 0%, var(--blue-l) 100%);
+}
+.lb-stage-title {
+  position: absolute;
+  left: 18px;
+  top: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--gold-d);
+}
+.lb-empty-speech {
+  position: absolute;
+  left: 50%;
+  top: 44px;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100% - 32px);
 }
 .podium {
   list-style: none;
@@ -105,9 +138,10 @@
     0 0 0 7px var(--gold);
 }
 .podium-ava.empty {
-  background: var(--bg-soft);
+  background: var(--bg);
   color: var(--ink-3);
   box-shadow: 0 0 0 3px var(--line);
+  border: 3px dashed var(--line);
 }
 .podium-crown {
   position: absolute;
@@ -140,34 +174,121 @@
   color: #fff;
 }
 .p1 .podium-block {
-  height: 190px;
+  height: clamp(120px, 34vh, 320px);
   background: linear-gradient(var(--gold), var(--gold-d));
 }
 .p2 .podium-block {
-  height: 140px;
+  height: clamp(90px, 25vh, 240px);
   background: linear-gradient(#c9d3dc, #9aa9b8);
 }
 .p3 .podium-block {
-  height: 100px;
+  height: clamp(66px, 18vh, 170px);
   background: linear-gradient(#e8a86d, #c77b3f);
+}
+.lb-stage .podium-ava {
+  width: clamp(64px, 11vh, 96px);
+  height: clamp(64px, 11vh, 96px);
+  font-size: clamp(28px, 5vh, 42px);
+}
+.lb-stage .podium-col.p1 .podium-ava {
+  width: clamp(84px, 15vh, 128px);
+  height: clamp(84px, 15vh, 128px);
+  font-size: clamp(36px, 7vh, 56px);
+}
+.lb-stage .podium-name {
+  font-size: clamp(17px, 2.6vh, 22px);
+}
+.lb-stage .podium-score {
+  font-size: clamp(15px, 2.4vh, 20px);
 }
 .podium-col.me .podium-name {
   color: var(--blue-d);
+}
+
+/* right column: "you" + places 4..10 */
+.lb-side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  min-height: 0;
+}
+.lb-me {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border-color: var(--blue-b);
+  background: var(--blue-l);
+}
+.lb-me.out {
+  border-color: var(--gold);
+  background: var(--gold-l);
+}
+.lb-me-ava {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 24px;
+  font-weight: 900;
+  box-shadow:
+    0 0 0 3px var(--bg),
+    0 0 0 5px var(--blue-b);
+}
+.lb-me-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  font-size: 15px;
+  color: var(--ink-2);
+}
+.lb-me-text b {
+  font-size: 19px;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lb-me-place {
+  font-weight: 900;
+  color: var(--blue-d);
+}
+.lb-me-gap {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 900;
+  color: var(--green-d);
+}
+.lb-me-gap.gold {
+  color: var(--gold-d);
+}
+.lb-play {
+  min-height: 60px;
+  padding: 10px 16px;
+}
+.lb-play .dwell-label {
+  font-size: 17px;
 }
 .lb-lines {
   list-style: none;
   margin: 0;
   padding: 0;
-  align-self: stretch;
+  flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
 }
 .lb-lines li {
+  flex: 1;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 8px;
+  min-height: 42px;
+  padding: 6px 10px;
   border-bottom: 2px solid var(--line);
   font-size: 18px;
 }
@@ -178,6 +299,14 @@
   background: var(--blue-l);
   border-radius: 12px;
   border-color: transparent;
+}
+.lb-lines li.free {
+  color: var(--ink-3);
+  font-size: 16px;
+}
+.lb-lines .ava.empty {
+  background: var(--bg);
+  border: 2px dashed var(--line);
 }
 .lb-place {
   width: 28px;
@@ -714,7 +843,10 @@
   }
   .lb-body {
     align-items: start;
-    gap: 20px;
+    gap: 16px;
+  }
+  .lb-stage {
+    min-height: 300px;
   }
   .floor-grid {
     grid-template-columns: 1fr 1fr;
@@ -736,15 +868,26 @@
   .p3 .podium-block {
     height: 64px;
   }
-  .podium-ava {
+  .podium-ava,
+  .lb-stage .podium-ava {
     width: 48px;
     height: 48px;
     font-size: 22px;
   }
-  .podium-col.p1 .podium-ava {
+  .podium-col.p1 .podium-ava,
+  .lb-stage .podium-col.p1 .podium-ava {
     width: 62px;
     height: 62px;
     font-size: 28px;
+  }
+  .lb-stage .podium-name {
+    font-size: 15px;
+  }
+  .lb-me {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .lb-play {
+    grid-column: 1 / -1;
   }
   .page-head .tabs {
     width: 100%;
