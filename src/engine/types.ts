@@ -77,6 +77,15 @@ export interface ExerciseDefinition<M = Record<string, number>> {
   howTo: I18nKey;
   /** camera view the rules assume */
   view: 'front' | 'side';
+  /**
+   * 'floor': done lying on the floor, filmed from the side (push-ups, plank, bridge).
+   * Such exercises get floor framing checks and no standing baseline correction.
+   */
+  posture?: 'stand' | 'floor';
+  /** time-based exercise (plank): every second spent in `phase` counts as one unit */
+  hold?: { phase: string };
+  /** label under the side meter (default: "depth") */
+  meterLabel?: I18nKey;
   /** landmark groups that must be visible */
   needs: ReadonlyArray<keyof FrameFeatures['visibility']>;
   phases: readonly string[];

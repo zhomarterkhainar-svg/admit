@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { extractFeatures } from '@/core/features/extract';
 import { makePose, type PoseEdit } from '@/core/reference/template';
 import { P } from '@/core/types';
-import { computeCursor } from './cursor';
+import { HandCursor, computeCursor } from './cursor';
 import { DwellTracker } from './dwell';
 import { PoseGestureDetector, type PoseGesture } from './poseGestures';
 
@@ -82,6 +82,38 @@ describe('cursor', () => {
   });
 });
 
+describe('hand cursor smoothing', () => {
+  it('a shaking hand gives a steady cursor', () => {
+    const hc = new HandCursor();
+    const xs: number[] = [];
+    for (let i = 0; i < 60; i++) {
+      const jitter = (i % 2 ? 1 : -1) * 0.02; // ±2 cm landmark noise every frame
+      const c = hc.update(makePose(pointAt(-0.2 + jitter, -0.6 + jitter), i * 33), i * 33);
+      if (i >= 30) xs.push(c!.x);
+    }
+    const raw = [0, 1].map(
+      (k) => computeCursor(makePose(pointAt(-0.2 + (k ? 0.02 : -0.02), -0.6)), null)!.x,
+    );
+    const rawSpread = Math.abs(raw[0]! - raw[1]!);
+    expect(Math.max(...xs) - Math.min(...xs)).toBeLessThan(rawSpread * 0.35);
+  });
+
+  it('keeps the cursor through a short tracking dropout, hides it after a longer one', () => {
+    const hc = new HandCursor();
+    for (let i = 0; i < 10; i++) hc.update(makePose(pointAt(-0.2, -0.6), i * 33), i * 33);
+    expect(hc.update(null, 400)).not.toBeNull();
+    expect(hc.update(null, 700)).toBeNull();
+  });
+
+  it('still reaches the screen corner on a fast sweep', () => {
+    const hc = new HandCursor();
+    let c = null;
+    for (let i = 0; i < 20; i++) c = hc.update(makePose(pointAt(-0.5, -0.95), i * 33), i * 33);
+    expect(c!.x).toBeGreaterThan(0.8);
+    expect(c!.y).toBeLessThan(0.2);
+  });
+});
+
 describe('dwell', () => {
   const targets = [{ id: 'start', rect: { left: 0.4, top: 0.4, right: 0.6, bottom: 0.6 } }];
 
@@ -94,6 +126,13 @@ describe('dwell', () => {
     d.update({ x: 0.1, y: 0.1 }, targets, 2600);
     d.update({ x: 0.5, y: 0.5 }, targets, 2700);
     expect(d.update({ x: 0.5, y: 0.5 }, targets, 3700).selected).toBe('start');
+  });
+
+  it('a shaky hand at the edge of the hovered button keeps filling the ring', () => {
+    const d = new DwellTracker(1000);
+    d.update({ x: 0.59, y: 0.5 }, targets, 0);
+    d.update({ x: 0.62, y: 0.5 }, targets, 300); // just outside, within the sticky margin
+    expect(d.update({ x: 0.59, y: 0.5 }, targets, 600).progress).toBeCloseTo(0.6);
   });
 
   it('resets progress when the cursor leaves', () => {

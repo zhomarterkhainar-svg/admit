@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useRef, type ReactNode } from 'react';
-import { computeCursor, type Cursor } from '@/gestures/cursor';
+import { HandCursor, type Cursor } from '@/gestures/cursor';
 import { DwellTracker, type DwellTarget } from '@/gestures/dwell';
 import { PoseGestureDetector, type PoseGesture } from '@/gestures/poseGestures';
 import type { PoseSource } from '@/core/vision/poseLoop';
@@ -71,13 +71,42 @@ export function GestureProvider({ loop, children, enabled = true }: ProviderProp
     if (!enabled) return;
     const dwell = new DwellTracker(1100);
     const detector = new PoseGestureDetector();
+    const hand = new HandCursor();
     let cursor: Cursor | null = null;
+    // the camera delivers ~15–30 poses/s; the cursor is drawn every display frame (60+ Hz),
+    // gliding toward the latest filtered position so it never steps or stutters
+    const shown = { x: 0, y: 0, placed: false };
+    let lastDraw = performance.now();
+    let raf = 0;
+    const draw = (now: number) => {
+      const c = cursorEl.current;
+      const dt = Math.min(now - lastDraw, 100);
+      lastDraw = now;
+      if (c && cursor) {
+        const W = window.innerWidth;
+        const H = window.innerHeight;
+        if (!shown.placed) {
+          shown.x = cursor.x * W;
+          shown.y = cursor.y * H;
+          shown.placed = true;
+        } else {
+          const k = 1 - Math.exp(-dt / 55);
+          shown.x += (cursor.x * W - shown.x) * k;
+          shown.y += (cursor.y * H - shown.y) * k;
+        }
+        c.style.transform = `translate3d(${shown.x.toFixed(1)}px, ${shown.y.toFixed(1)}px, 0)`;
+      } else {
+        shown.placed = false;
+      }
+      raf = requestAnimationFrame(draw);
+    };
+    raf = requestAnimationFrame(draw);
     let lastHover: string | null = null;
     // after a selection the next screen often has a button under the same spot:
     // freeze dwell briefly so it can't be selected by accident
     let cooldownUntil = 0;
 
-    return loop.subscribe((tick) => {
+    const unsubscribe = loop.subscribe((tick) => {
       for (const g of detector.update(tick.frame, tick.features))
         listeners.current.forEach((fn) => fn(g));
 
@@ -93,13 +122,13 @@ export function GestureProvider({ loop, children, enabled = true }: ProviderProp
         });
       }
 
-      cursor = targets.length && tick.frame ? computeCursor(tick.frame, cursor) : null;
+      cursor = hand.update(tick.frame, tick.t);
+      if (!targets.length) cursor = null;
       const st = dwell.update(cursor, targets, tick.t, tick.t < cooldownUntil);
 
       const c = cursorEl.current;
       if (c) {
         c.style.opacity = cursor ? '1' : '0';
-        if (cursor) c.style.transform = `translate(${cursor.x * W}px, ${cursor.y * H}px)`;
         c.style.setProperty('--dwell', String(st.progress));
       }
       if (lastHover && lastHover !== st.hoverId) {
@@ -119,6 +148,10 @@ export function GestureProvider({ loop, children, enabled = true }: ProviderProp
         buttons.current.get(st.selected)?.onSelect();
       }
     });
+    return () => {
+      unsubscribe();
+      cancelAnimationFrame(raf);
+    };
   }, [loop, enabled]);
 
   return (

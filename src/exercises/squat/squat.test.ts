@@ -66,10 +66,11 @@ describe('squat', () => {
     expect(last.paused).toBe(true);
   });
 
-  it('asks to stay alone when two people are in frame', () => {
+  it('keeps counting when someone else walks through the frame', () => {
+    // PersonLock hands the runner only the player; a passer-by must not pause counting
     const { hintIds, runner } = run(repSequence(squatDown(), { reps: 1 }), 2);
-    expect(hintIds).toContain('setup.multiplePeople');
-    expect(runner.reps).toHaveLength(0);
+    expect([...hintIds].some((id) => id.startsWith('setup.'))).toBe(false);
+    expect(runner.reps).toHaveLength(1);
   });
 });
 

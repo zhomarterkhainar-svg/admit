@@ -60,6 +60,15 @@ export function extractFeatures(frame: PoseFrame): FrameFeatures {
   const kneeInwardL = (g(im, P.leftAnkle).x - g(im, P.leftKnee).x) / shoulderWidthN;
   const kneeInwardR = (g(im, P.rightKnee).x - g(im, P.rightAnkle).x) / shoulderWidthN;
 
+  // floor exercises (side view): the body line from the shoulders to the ankles
+  const ankleMidI = mid(g(im, P.leftAnkle), g(im, P.rightAnkle));
+  const body = sub(ankleMidI, shoulderMidI);
+  const bodyLen = Math.max(Math.hypot(body.x, body.y), 1e-6);
+  // unit normal of the body line pointing down (toward the floor, image +y)
+  const flip = body.x < 0 ? -1 : 1;
+  const nx = (-body.y / bodyLen) * flip;
+  const ny = (body.x / bodyLen) * flip;
+
   const wristLift = (shoulder: number, wrist: number) =>
     (g(im, shoulder).y - g(im, wrist).y) / torsoLenI;
 
@@ -102,6 +111,8 @@ export function extractFeatures(frame: PoseFrame): FrameFeatures {
       l: wristLift(P.leftShoulder, P.leftWrist),
       r: wristLift(P.rightShoulder, P.rightWrist),
     },
+    bodyTilt: (Math.atan2(Math.abs(body.y), Math.abs(body.x)) * 180) / Math.PI,
+    hipOffset: ((hipMidI.x - shoulderMidI.x) * nx + (hipMidI.y - shoulderMidI.y) * ny) / bodyLen,
     // nose→feet is ~87% of full height; scale so a person head-to-toe in frame ≈ 1
     bodyHeightFrac: (feetY - noseY) / 0.87,
     center: { x: (g(frame.image, P.leftHip).x + g(frame.image, P.rightHip).x) / 2, y: hipMidI.y },

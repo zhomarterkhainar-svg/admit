@@ -1,15 +1,15 @@
-import type { ExerciseId } from '@/exercises/registry';
+import { ALL_EXERCISES, type AnyExerciseId } from '@/exercises/registry';
 
 export interface ProgramStep {
-  id: ExerciseId;
-  /** counted reps to finish the step */
+  id: AnyExerciseId;
+  /** counted reps (seconds for a hold like the plank) to finish the step */
   target: number;
   /** safety net: move on after this many seconds */
   timeLimitSec: number;
 }
 
 export interface Program {
-  id: 'quick' | 'full' | 'single' | 'free';
+  id: 'quick' | 'full' | 'single' | 'free' | 'floor';
   steps: ProgramStep[];
 }
 
@@ -35,7 +35,17 @@ export const FULL: Program = {
   ],
 };
 
-export const single = (id: ExerciseId, target = 8): Program => ({
+/** "On the floor": push-ups, a plank hold (seconds) and glute bridges, filmed from the side. */
+export const FLOOR: Program = {
+  id: 'floor',
+  steps: [
+    { id: 'pushup', target: 6, timeLimitSec: 120 },
+    { id: 'plank', target: 20, timeLimitSec: 90 },
+    { id: 'bridge', target: 8, timeLimitSec: 120 },
+  ],
+};
+
+export const single = (id: AnyExerciseId, target = ALL_EXERCISES[id].hold ? 30 : 8): Program => ({
   id: 'single',
   steps: [{ id, target, timeLimitSec: 180 }],
 });

@@ -18,7 +18,7 @@ import { useApp } from '@/app/store';
 import { plural, t, type I18nKey } from '@/i18n';
 import { speak } from '@/audio/tts';
 import { sfx } from '@/audio/sfx';
-import { EXERCISES } from '@/exercises/registry';
+import { ALL_EXERCISES } from '@/exercises/registry';
 import { rankFor } from '@/game/ranks';
 import { DwellButton } from '../gestures/DwellButton';
 import { useGestures } from '../gestures/GestureProvider';
@@ -37,7 +37,7 @@ const fmtTime = (ms: number) => {
 
 /** Rule id → its fix text, looked up across all exercises. */
 function fixFor(id: string): { msg: I18nKey; fix: I18nKey; joints: readonly number[] } | null {
-  for (const ex of Object.values(EXERCISES)) {
+  for (const ex of Object.values(ALL_EXERCISES)) {
     const r = [...ex.frameRules, ...ex.repRules].find((x) => x.id === id);
     if (r) return { msg: r.message, fix: r.fix, joints: r.joints };
   }
@@ -139,10 +139,11 @@ export function Results() {
                   const clean = r.reps.filter((x) => x.counted && x.errors.length === 0).length;
                   return (
                     <div className="ex-row" key={i}>
-                      <span>{t(EXERCISES[r.id].name)}</span>
+                      <span>{t(ALL_EXERCISES[r.id].name)}</span>
                       <span className="num muted">
                         {counted}
                         {r.target > 0 && `/${r.target}`}
+                        {ALL_EXERCISES[r.id].hold && ` ${t('workout.sec')}`}
                       </span>
                       <ProgressBar value={r.reps.length ? clean / r.reps.length : 0} />
                     </div>

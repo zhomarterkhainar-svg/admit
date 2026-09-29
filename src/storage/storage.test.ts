@@ -8,7 +8,7 @@ import {
   saveProgress,
   topScores,
 } from './progress';
-import { nextBatyrName, randomBatyrName } from './names';
+import { cleanNickname, nextBatyrName, randomBatyrName } from './names';
 
 const memory = () => {
   const m = new Map<string, string>();
@@ -51,9 +51,18 @@ describe('progress storage', () => {
 describe('batyr names', () => {
   it('generates and cycles names', () => {
     const n = randomBatyrName(() => 0);
-    expect(n).toBe('Қабанбай-10');
-    expect(nextBatyrName(n, 1, () => 0)).toBe('Бөгенбай-10');
-    expect(nextBatyrName(n, -1, () => 0)).toBe('Гүлбаршын-10');
+    expect(n).toBe('Қабанбай-1000');
+    expect(randomBatyrName(() => 0.999)).toMatch(/^Гүлбаршын-9\d{3}$/);
+    expect(nextBatyrName(n, 1, () => 0)).toBe('Бөгенбай-1000');
+    expect(nextBatyrName(n, -1, () => 0)).toBe('Гүлбаршын-1000');
+  });
+
+  it('cleans typed nicknames', () => {
+    expect(cleanNickname('  Ерлан   2007 ')).toBe('Ерлан 2007');
+    expect(cleanNickname('Әсел<script>')).toBe('Әселscript');
+    expect(cleanNickname('Q')).toBeNull();
+    expect(cleanNickname('x'.repeat(21))).toBeNull();
+    expect(cleanNickname('Batyr_01')).toBe('Batyr_01');
   });
 });
 

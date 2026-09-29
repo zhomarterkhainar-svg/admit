@@ -1,4 +1,4 @@
-import type { ExerciseId } from '@/exercises/registry';
+import type { AnyExerciseId } from '@/exercises/registry';
 import type { Progress } from '@/storage/progress';
 import { unlockAchievements, type AchievementDef } from './achievements';
 import { advanceQuest, dayKey, updateStreak, type QuestDef } from './daily';
@@ -25,7 +25,7 @@ export function applySession(
 ): SessionOutcome {
   const today = dayKey(session.now);
   const stats = { ...p.stats };
-  const byExercise: Partial<Record<ExerciseId, number>> = {};
+  const byExercise: Partial<Record<AnyExerciseId, number>> = {};
 
   // a session without a single counted rep / hit is not activity: no stats, streak or badges
   const active = (session.workout?.counted ?? 0) > 0 || (session.challenge?.hits ?? 0) > 0;

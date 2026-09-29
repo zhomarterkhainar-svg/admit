@@ -1,4 +1,4 @@
-import { P } from '@/core/types';
+import { P, type FrameFeatures } from '@/core/types';
 import type { FrameRule, Hint } from './types';
 
 /** Below this mean luminance the camera image is too dark for reliable tracking. */
@@ -24,29 +24,64 @@ export const NO_PERSON: Hint = {
 
 /**
  * Framing / environment checks shared by all exercises. Highest priority in the arbiter:
- * while any is active the rep counter is paused.
+ * while any is active the rep counter is paused. Other people in frame are NOT a problem:
+ * PersonLock follows the player and ignores passers-by.
  */
+const DARK_RULE: FrameRule = {
+  ...TOO_DARK,
+  kind: 'frame',
+  persistMs: 1000,
+  test: (_f, ctx) => ctx.brightness !== undefined && ctx.brightness < DARK_THRESHOLD,
+};
+
+/** Above this body tilt (degrees from horizontal) the player is not down on the floor yet. */
+export const FLOOR_TILT_MAX = 40;
+
+/** Visibility of a joint on the side facing the camera (the far side is hidden in a side view). */
+const nearSide = (f: FrameFeatures, l: number, r: number) =>
+  Math.max(f.jointVisibility[l] ?? 0, f.jointVisibility[r] ?? 0);
+
+/**
+ * Framing for floor exercises filmed from the side: whole body visible from head to heels,
+ * and actually down on the floor (before that the counter waits and shows how to start).
+ */
+export function floorSetupRules(): FrameRule[] {
+  return [
+    DARK_RULE,
+    {
+      kind: 'frame',
+      id: 'setup.floorBody',
+      severity: 'setup',
+      message: 'setup.floorBody.msg',
+      fix: 'setup.floorBody.fix',
+      joints: [],
+      persistMs: 500,
+      test: (f) =>
+        Math.min(
+          nearSide(f, P.leftShoulder, P.rightShoulder),
+          nearSide(f, P.leftHip, P.rightHip),
+          nearSide(f, P.leftAnkle, P.rightAnkle),
+        ) < 0.5,
+    },
+    {
+      kind: 'frame',
+      id: 'setup.floorDown',
+      severity: 'setup',
+      message: 'setup.floorDown.msg',
+      fix: 'setup.floorDown.fix',
+      joints: [],
+      persistMs: 400,
+      test: (f) => f.bodyTilt > FLOOR_TILT_MAX,
+    },
+  ];
+}
+
 export function setupRules(
   needs: ReadonlyArray<'upper' | 'lower' | 'feet'>,
   view: 'front' | 'side',
 ): FrameRule[] {
   const rules: FrameRule[] = [
-    {
-      ...TOO_DARK,
-      kind: 'frame',
-      persistMs: 1000,
-      test: (_f, ctx) => ctx.brightness !== undefined && ctx.brightness < DARK_THRESHOLD,
-    },
-    {
-      kind: 'frame',
-      id: 'setup.multiplePeople',
-      severity: 'setup',
-      message: 'setup.multiplePeople.msg',
-      fix: 'setup.multiplePeople.fix',
-      joints: [],
-      persistMs: 800,
-      test: (_f, ctx) => ctx.people > 1,
-    },
+    DARK_RULE,
     {
       kind: 'frame',
       id: 'setup.tooClose',

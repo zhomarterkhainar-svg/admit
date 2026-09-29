@@ -33,6 +33,7 @@ import { HintBanner } from '../components/HintBanner';
 import { Mascot, Speech } from '../components/Mascot';
 import { PauseModal } from '../components/PauseModal';
 import { StatBox } from '../components/StatBox';
+import { DepthMeter } from '../components/DepthMeter';
 import { HandsUpIcon } from '../components/icons';
 
 type Pop = { text: string; kind: 'hit' | 'clean' | 'miss' | 'warn'; key: number };
@@ -47,6 +48,8 @@ interface View {
   /** 0..1 of the reaction window left */
   windowLeft: number;
   hint: Hint | null;
+  /** 0..1 depth of the current move (same meter as in workouts) */
+  depth: number;
 }
 
 const COUNTDOWN_SEC = 4;
@@ -163,11 +166,13 @@ export function Challenge() {
       lastT = tick.t;
 
       let hint: Hint | null = null;
+      let depth = 0;
       if (runner) {
         const st = runner.update(tick.features, tick.people, tick.t, {
           brightness: tick.brightness,
         });
         hint = st.hint;
+        depth = st.progress;
         setErrorJoints((prev) => (sameSet(prev, st.errorJoints) ? prev : st.errorJoints));
         for (const e of st.events) if (e.type === 'rep') handle(game.rep(e.rep, clock));
       }
@@ -186,6 +191,7 @@ export function Challenge() {
           command: cmd,
           windowLeft: cmd ? Math.max(0, (cmd.deadline - clock) / (cmd.deadline - cmd.issuedAt)) : 0,
           hint,
+          depth,
         });
       }
     });
@@ -258,6 +264,7 @@ export function Challenge() {
             </div>
           )}
           <HintBanner hint={view?.hint ?? null} className="ch-hint" />
+          <DepthMeter value={view?.depth ?? 0} />
           {pop && (
             <div key={`pop-${pop.key}`} className={`ch-pop pop-${pop.kind}`}>
               {pop.text}

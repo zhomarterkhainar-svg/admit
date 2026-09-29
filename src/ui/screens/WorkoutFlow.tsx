@@ -3,7 +3,7 @@ import { useApp } from '@/app/store';
 import { t } from '@/i18n';
 import { speak } from '@/audio/tts';
 import { sfx } from '@/audio/sfx';
-import { EXERCISES } from '@/exercises/registry';
+import { ALL_EXERCISES } from '@/exercises/registry';
 import type { ExerciseResult } from '@/game/summary';
 import type { ProgramStep } from '@/game/program';
 import type { RepSummary } from '@/engine/types';
@@ -18,6 +18,7 @@ import { Lightbulb, SkipForward, Target, Timer } from 'lucide-react';
 import { Speech } from '../components/Mascot';
 import { PauseModal } from '../components/PauseModal';
 import { HandsUpIcon } from '../components/icons';
+import { FloorCameraTip } from '../components/FloorCameraTip';
 
 const INTRO_SEC = 7;
 
@@ -77,7 +78,7 @@ export function WorkoutFlow() {
         <Workout
           key={idx}
           loop={loop}
-          exercise={EXERCISES[current.id]}
+          exercise={ALL_EXERCISES[current.id]}
           target={current.target}
           timeLimitSec={current.timeLimitSec}
           paused={paused}
@@ -116,7 +117,7 @@ function Intro({
   total: number;
   onStart: () => void;
 }) {
-  const ex = EXERCISES[step.id];
+  const ex = ALL_EXERCISES[step.id];
   const mistakes = [...ex.repRules, ...ex.frameRules]
     .filter((r) => ERROR_EXAMPLES[r.id])
     .slice(0, 2);
@@ -162,12 +163,14 @@ function Intro({
             </Speech>
             <div className="target-row">
               <span className="pill">
-                <Target size={18} strokeWidth={2.75} color="var(--green)" /> {step.target} ×
+                <Target size={18} strokeWidth={2.75} color="var(--green)" /> {step.target}{' '}
+                {ex.hold ? t('workout.sec') : '×'}
               </span>
               <span className="pill">
                 <Timer size={18} strokeWidth={2.75} color="var(--blue)" /> {step.timeLimitSec} s
               </span>
             </div>
+            {ex.posture === 'floor' && <FloorCameraTip />}
             {mistakes.length > 0 && (
               <div className="intro-mistakes">
                 <div className="kicker">{t('intro.mistakes')}</div>

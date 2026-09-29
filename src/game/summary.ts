@@ -1,8 +1,8 @@
-import type { ExerciseId } from '@/exercises/registry';
+import { ALL_EXERCISES, type AnyExerciseId } from '@/exercises/registry';
 import type { RepSummary } from '@/engine/types';
 
 export interface ExerciseResult {
-  id: ExerciseId;
+  id: AnyExerciseId;
   target: number;
   reps: RepSummary[];
   durationMs: number;
@@ -58,9 +58,13 @@ export function summarize(
   const completedSteps = results.filter(
     (r) => r.target > 0 && r.reps.filter((x) => x.counted).length >= r.target,
   ).length;
+  // a held second of a plank is worth about a third of a rep
+  const weight = new Map(
+    results.flatMap((r) => r.reps.map((rep) => [rep, ALL_EXERCISES[r.id]?.hold ? 0.3 : 1])),
+  );
   const xp = Math.round(
-    counted.reduce((s, r) => s + 10 * (0.5 + r.quality / 200), 0) +
-      clean.length * 5 +
+    counted.reduce((s, r) => s + 10 * (0.5 + r.quality / 200) * weight.get(r)!, 0) +
+      clean.reduce((s, r) => s + 5 * weight.get(r)!, 0) +
       completedSteps * 20,
   );
   let run = 0;

@@ -163,6 +163,11 @@ function addScore(scores: ScoreEntry[], e: ScoreEntry): ScoreEntry[] {
   });
 }
 
+/** The player renamed themselves: their scores on this device follow the new name. */
+export function renameScores(p: Progress, from: string, to: string): Progress {
+  return { ...p, scores: p.scores.map((s) => (s.name === from ? { ...s, name: to } : s)) };
+}
+
 export function topScores(p: Progress, mode: ScoreEntry['mode'], n = 10): ScoreEntry[] {
   return p.scores
     .filter((s) => s.mode === mode)
