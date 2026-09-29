@@ -7,7 +7,7 @@
 
 > ADMIT Hackathon 2026 · кейс **MOTION: камера вместо джойстика** · направление: **фитнес-тренер + игровой режим**
 
-**Демо: [qozgal.netlify.app](https://qozgal.netlify.app)** (без камеры: кнопка «Демо без камеры») · **План команды:** [PLAN.md](PLAN.md) · **Задачи:** [docs/ISSUES.md](docs/ISSUES.md)
+**Демо: [qozgal.netlify.app](https://qozgal.netlify.app)** (без камеры: кнопка «Демо без камеры») · **План команды:** [PLAN.md](PLAN.md) · **Задачи:** [docs/ISSUES.md](docs/ISSUES.md) · **Доделать:** [docs/TASKS.md](docs/TASKS.md)
 
 | Старт: тренер Барыс, один клик | Режим «ошибка»: что не так + как исправить, красные суставы, стрелки, призрак |
 |---|---|
