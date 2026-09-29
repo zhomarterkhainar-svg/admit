@@ -84,7 +84,7 @@ export function LiveDebug({ loop, info }: { loop: PoseSource; info: string }) {
             placeholder="good-5 | bad-squat.depth"
           />
           <button onClick={toggleRec} className={recording ? 'rec on' : 'rec'}>
-            {recording ? `■ stop (${recCount})` : '● rec'}
+            {recording ? `stop (${recCount})` : 'rec'}
           </button>
         </div>
         {st && (
@@ -97,7 +97,7 @@ export function LiveDebug({ loop, info }: { loop: PoseSource; info: string }) {
                 .slice(-4)
                 .map(
                   (x) =>
-                    `${x.counted ? '✓' : '✗'}${x.quality}${x.errors.length ? `[${x.errors.join(',')}]` : ''}`,
+                    `${x.counted ? '+' : '-'}${x.quality}${x.errors.length ? `[${x.errors.join(',')}]` : ''}`,
                 )
                 .join('  ')}`,
             ].join('\n')}

@@ -20,6 +20,7 @@ import { HintBanner } from '../components/HintBanner';
 import { Mascot } from '../components/Mascot';
 import { ProgressBar } from '../components/ProgressBar';
 import { PauseModal } from '../components/PauseModal';
+import { CrossArmsIcon } from '../components/icons';
 
 const DURATION_SEC = 120;
 
@@ -174,7 +175,9 @@ export function FreeWorkout() {
             </div>
           ))}
         </div>
-        <div className="pause-hint">{t('free.finishHint')}</div>
+        <div className="pause-hint">
+          <CrossArmsIcon size={18} /> {t('free.finishHint')}
+        </div>
       </div>
       {paused && (
         <PauseModal

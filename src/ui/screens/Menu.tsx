@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import {
   Award,
+  Check,
+  Hand,
+  Timer,
   Dumbbell,
   Flame,
   Globe,
@@ -23,6 +26,7 @@ import { DwellButton } from '../gestures/DwellButton';
 import { Speech } from '../components/Mascot';
 import { ProgressBar } from '../components/ProgressBar';
 import { MirrorPip } from '../components/MirrorPip';
+import { CrossArmsIcon, GameIcon } from '../components/icons';
 
 const LANGS: Lang[] = ['ru', 'kk', 'en'];
 const LANG_LABEL: Record<Lang, string> = { ru: 'Русский', kk: 'Қазақша', en: 'English' };
@@ -128,7 +132,7 @@ export function Menu() {
           <aside className="menu-side" aria-label={t('menu.you')}>
             <div className="card profile">
               <span className="avatar" aria-hidden="true">
-                {rank.icon}
+                <GameIcon id={rank.icon} size={28} />
               </span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div className="profile-name">{playerName}</div>
@@ -151,7 +155,11 @@ export function Menu() {
                   tone={questDone ? 'green' : 'gold'}
                 />
                 <span className="quest-count num">
-                  {questDone ? '✓' : `${questProgress}/${quest.target}`}
+                  {questDone ? (
+                    <Check size={18} strokeWidth={3.5} />
+                  ) : (
+                    `${questProgress}/${quest.target}`
+                  )}
                 </span>
               </div>
               <div className="chip chip-gold" style={{ padding: 0 }}>
@@ -186,11 +194,15 @@ export function Menu() {
           </aside>
         </div>
         <footer className="gesture-help">
-          {t('menu.gestures')
-            .split(' · ')
-            .map((part) => (
-              <span key={part}>{part}</span>
-            ))}
+          <span>
+            <Hand size={18} strokeWidth={2.5} /> {t('help.cursor')}
+          </span>
+          <span>
+            <Timer size={18} strokeWidth={2.5} /> {t('help.hold')}
+          </span>
+          <span>
+            <CrossArmsIcon size={20} /> {t('help.cross')}
+          </span>
         </footer>
       </div>
     </div>

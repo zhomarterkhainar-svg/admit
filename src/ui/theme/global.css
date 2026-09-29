@@ -2618,3 +2618,30 @@ h3 {
     zoom: 1.4;
   }
 }
+
+/* ---------- SVG pictograms (no emoji anywhere) ---------- */
+.avatar {
+  color: var(--gold-d);
+}
+.ach-badge {
+  color: var(--ink-3);
+}
+.ach.on .ach-badge {
+  color: #fff;
+}
+.toast-icon {
+  color: #fff;
+}
+.gesture-help span,
+.pause-hint,
+.pose-compare figcaption {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.pose-compare figcaption {
+  gap: 3px;
+}
+.quest-count svg {
+  display: block;
+}

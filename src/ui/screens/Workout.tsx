@@ -17,6 +17,7 @@ import { ExerciseRecognizer } from '@/ml/recognizer';
 import { Flame, Timer, X } from 'lucide-react';
 import { HintBanner } from '../components/HintBanner';
 import { ProgressBar } from '../components/ProgressBar';
+import { CrossArmsIcon } from '../components/icons';
 
 interface Props<M> {
   loop: PoseSource;
@@ -219,7 +220,9 @@ export function Workout<M>({
           <span className="kicker">{t('workout.coach')}</span>
           <GhostPreview exercise={exercise} />
         </div>
-        <div className="pause-hint">{t('workout.pauseHint')}</div>
+        <div className="pause-hint">
+          <CrossArmsIcon size={18} /> {t('workout.pauseHint')}
+        </div>
         {flash && (
           <div key={`flash-${flash.key}`} className={`rep-flash flash-${flash.kind}`}>
             {flash.kind === 'perfect'

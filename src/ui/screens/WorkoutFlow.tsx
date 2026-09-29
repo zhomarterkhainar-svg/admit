@@ -17,6 +17,7 @@ import { ERROR_EXAMPLES } from '@/exercises/errorExamples';
 import { Lightbulb, SkipForward, Target, Timer } from 'lucide-react';
 import { Speech } from '../components/Mascot';
 import { PauseModal } from '../components/PauseModal';
+import { HandsUpIcon } from '../components/icons';
 
 const INTRO_SEC = 7;
 
@@ -183,7 +184,9 @@ function Intro({
                 ))}
               </div>
             )}
-            <p className="hands-hint">{t('intro.handsUp')}</p>
+            <p className="hands-hint">
+              <HandsUpIcon size={22} /> {t('intro.handsUp')}
+            </p>
           </div>
           <div className="intro-ghost">
             <span className="kicker">{t('workout.coach')}</span>

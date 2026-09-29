@@ -25,6 +25,7 @@ import {
 import { DwellButton } from '../gestures/DwellButton';
 import { useGestures } from '../gestures/GestureProvider';
 import { ProgressBar } from '../components/ProgressBar';
+import { GameIcon } from '../components/icons';
 
 const AVATAR_COLORS = ['#58cc02', '#1cb0f6', '#ff9600', '#ce82ff', '#ff4b4b', '#ffc800'];
 const avatarColor = (name: string) =>
@@ -95,7 +96,7 @@ export function Records() {
                 </DwellButton>
                 <div className="player-big">
                   <span className="avatar" style={{ margin: '0 auto 6px' }} aria-hidden="true">
-                    {rank.icon}
+                    <GameIcon id={rank.icon} size={28} />
                   </span>
                   {playerName}
                   <span className="muted">
@@ -153,7 +154,7 @@ export function Records() {
                 title={t(a.desc)}
               >
                 <span className="ach-badge" aria-hidden="true">
-                  {a.icon}
+                  <GameIcon id={a.icon} size={28} />
                 </span>
                 <b>{t(a.title)}</b>
               </div>

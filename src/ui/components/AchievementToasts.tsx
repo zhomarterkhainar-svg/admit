@@ -3,6 +3,7 @@ import { useApp } from '@/app/store';
 import { t } from '@/i18n';
 import { sfx } from '@/audio/sfx';
 import { speakIfIdle } from '@/audio/tts';
+import { GameIcon } from './icons';
 
 /** Stack of "Achievement unlocked!" toasts; each disappears after a few seconds. */
 export function AchievementToasts() {
@@ -22,7 +23,9 @@ export function AchievementToasts() {
   if (!first) return null;
   return (
     <div className="toast" key={first.id} role="status">
-      <span className="toast-icon">{first.icon}</span>
+      <span className="toast-icon">
+        <GameIcon id={first.icon} size={32} />
+      </span>
       <div>
         <div className="toast-kicker">{t('ach.unlocked')}</div>
         <div className="toast-title">{t(first.title)}</div>

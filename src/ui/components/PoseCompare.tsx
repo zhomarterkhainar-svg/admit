@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { makePose, type PoseEdit } from '@/core/reference/template';
+import { Check, X } from 'lucide-react';
 import { t } from '@/i18n';
 import { ERROR_EXAMPLES } from '@/exercises/errorExamples';
 import { drawSkeleton } from '../overlay/drawSkeleton';
@@ -58,7 +59,7 @@ function StaticPose({
   return <canvas ref={ref} className="static-pose" />;
 }
 
-/** "How it was ✗ / how it should be ✓" mini skeletons for a rule, if we have an example. */
+/** "How it was / how it should be" mini skeletons for a rule, if we have an example. */
 export function PoseCompare({ ruleId, joints }: { ruleId: string; joints?: readonly number[] }) {
   const ex = ERROR_EXAMPLES[ruleId];
   if (!ex) return null;
@@ -66,11 +67,15 @@ export function PoseCompare({ ruleId, joints }: { ruleId: string; joints?: reado
     <div className="pose-compare" aria-hidden="true">
       <figure className="bad">
         <StaticPose edit={ex.wrong} color="#afafaf" errorJoints={joints} />
-        <figcaption>✗ {t('compare.wrong')}</figcaption>
+        <figcaption>
+          <X size={12} strokeWidth={4} /> {t('compare.wrong')}
+        </figcaption>
       </figure>
       <figure className="good">
         <StaticPose edit={ex.right} color="#58cc02" />
-        <figcaption>✓ {t('compare.right')}</figcaption>
+        <figcaption>
+          <Check size={12} strokeWidth={4} /> {t('compare.right')}
+        </figcaption>
       </figure>
     </div>
   );

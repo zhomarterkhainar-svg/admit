@@ -7,15 +7,14 @@ export interface CommandDef {
   id: CommandId;
   exercise: ExerciseId;
   side?: Side;
-  icon: string;
 }
 
 export const COMMANDS: Record<CommandId, CommandDef> = {
-  squat: { id: 'squat', exercise: 'squat', icon: '⬇️' },
-  jumpingJack: { id: 'jumpingJack', exercise: 'jumpingJack', icon: '✴️' },
-  press: { id: 'press', exercise: 'press', icon: '🛡️' },
-  bendLeft: { id: 'bendLeft', exercise: 'sideBend', side: 'l', icon: '⬅️' },
-  bendRight: { id: 'bendRight', exercise: 'sideBend', side: 'r', icon: '➡️' },
+  squat: { id: 'squat', exercise: 'squat' },
+  jumpingJack: { id: 'jumpingJack', exercise: 'jumpingJack' },
+  press: { id: 'press', exercise: 'press' },
+  bendLeft: { id: 'bendLeft', exercise: 'sideBend', side: 'l' },
+  bendRight: { id: 'bendRight', exercise: 'sideBend', side: 'r' },
 };
 
 export interface ActiveCommand {

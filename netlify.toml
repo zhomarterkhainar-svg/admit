@@ -1,0 +1,28 @@
+# Netlify. Deploy from this machine: npm run build && npx netlify-cli deploy --prod --dir dist
+# (a Git-connected Netlify site runs the same build; npm install's postinstall fetches the models)
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# MediaPipe wasm + models are big and never change for a given version: cache for a year
+[[headers]]
+  for = "/models/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/wasm/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# camera only for this site; MediaPipe's analytics calls to Google are blocked by connect-src
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Permissions-Policy = "camera=(self)"
+    Content-Security-Policy = "connect-src 'self' https://cdn.jsdelivr.net https://storage.googleapis.com https://*.supabase.co"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"

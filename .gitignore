@@ -7,3 +7,5 @@ coverage
 public/models/*.task
 public/wasm/
 *.tsbuildinfo
+# Netlify CLI local state (site link)
+.netlify

@@ -33,6 +33,7 @@ import { HintBanner } from '../components/HintBanner';
 import { Mascot, Speech } from '../components/Mascot';
 import { PauseModal } from '../components/PauseModal';
 import { StatBox } from '../components/StatBox';
+import { HandsUpIcon } from '../components/icons';
 
 type Pop = { text: string; kind: 'hit' | 'clean' | 'miss' | 'warn'; key: number };
 
@@ -218,7 +219,9 @@ export function Challenge() {
                 <Swords size={56} strokeWidth={2.5} />
               )}
             </div>
-            <p className="hands-hint">{t('intro.handsUp')}</p>
+            <p className="hands-hint">
+              <HandsUpIcon size={22} /> {t('intro.handsUp')}
+            </p>
           </div>
         </div>
       ) : (

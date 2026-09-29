@@ -1,17 +1,18 @@
 import type { I18nKey } from '@/i18n';
+import type { GameIconId } from './icons';
 
 export interface Rank {
   key: I18nKey;
   minXp: number;
-  icon: string;
+  icon: GameIconId;
 }
 
 /** Path of the Batyr: young warrior → batyr → hero → giant. */
 export const RANKS: Rank[] = [
-  { key: 'rank.zhas', minXp: 0, icon: '🌱' },
-  { key: 'rank.batyr', minXp: 150, icon: '🏹' },
-  { key: 'rank.er', minXp: 500, icon: '🛡️' },
-  { key: 'rank.alyp', minXp: 1200, icon: '🦅' },
+  { key: 'rank.zhas', minXp: 0, icon: 'sprout' },
+  { key: 'rank.batyr', minXp: 150, icon: 'bow' },
+  { key: 'rank.er', minXp: 500, icon: 'shield' },
+  { key: 'rank.alyp', minXp: 1200, icon: 'eagle' },
 ];
 
 export function rankFor(xp: number): { rank: Rank; next: Rank | null; progress: number } {

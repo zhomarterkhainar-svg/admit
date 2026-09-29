@@ -75,7 +75,7 @@ export async function renderCard(d: CardData): Promise<HTMLCanvasElement> {
   ctx.fillText(t('results.done'), W / 2, 470, MAX_TEXT);
   ctx.fillStyle = C.ink;
   ctx.font = font(52, 900);
-  ctx.fillText(`${d.rank.icon} ${d.playerName}`, W / 2, 560, MAX_TEXT);
+  ctx.fillText(d.playerName, W / 2, 560, MAX_TEXT);
   ctx.fillStyle = C.ink2;
   ctx.font = font(32, 800);
   ctx.fillText(`${t(d.rank.key)} · ${d.totalXp} XP`, W / 2, 610);
@@ -112,9 +112,7 @@ export async function renderCard(d: CardData): Promise<HTMLCanvasElement> {
   ctx.fillStyle = C.green;
   ctx.font = font(40, 900);
   const line =
-    s.bestCleanStreak >= 3
-      ? `🔥 ${s.bestCleanStreak} ${t('workout.cleanStreak')}`
-      : t('praise.fixed');
+    s.bestCleanStreak >= 3 ? `${s.bestCleanStreak} ${t('workout.cleanStreak')}` : t('praise.fixed');
   ctx.fillText(line, W / 2, 1200, MAX_TEXT);
   ctx.fillStyle = C.ink2;
   ctx.font = font(30, 800);

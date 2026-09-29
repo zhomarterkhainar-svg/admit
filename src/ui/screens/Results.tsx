@@ -27,6 +27,7 @@ import { Mascot } from '../components/Mascot';
 import { PoseCompare } from '../components/PoseCompare';
 import { ProgressBar } from '../components/ProgressBar';
 import { StatBox } from '../components/StatBox';
+import { GameIcon } from '../components/icons';
 import { shareCard } from '../share/shareCard';
 
 const fmtTime = (ms: number) => {
@@ -190,7 +191,7 @@ export function Results() {
 
           <div className={`rank-line ${rankUp ? 'rank-up' : ''}`}>
             <span className="avatar small" aria-hidden="true">
-              {after.rank.icon}
+              <GameIcon id={after.rank.icon} size={22} />
             </span>
             {rankUp && <b>{t('results.rankUp')}</b>}
             <span>
