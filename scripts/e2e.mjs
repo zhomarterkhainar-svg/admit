@@ -181,6 +181,43 @@ try {
       els.reduce((s, e) => s + Number(e.textContent), 0),
     );
     check(counted > 0, `free workout: AI recognized and counted reps (${counted})`);
+
+    // the duel: two virtual athletes join with their hands up and score in round 1
+    await go(page, 'duel');
+    check(await waitFor(page, '.duel-hud', 20000), 'duel: both players joined');
+    // each athlete's set opens with a different rep (some are deliberately not counted):
+    // wait until both have scored, up to the end of round 1
+    let duelScores = [];
+    for (let i = 0; i < 50; i++) {
+      await sleep(500);
+      duelScores = await page.$$eval('.duel-score', (els) => els.map((e) => Number(e.textContent)));
+      if (duelScores.length === 2 && duelScores.every((s) => s > 0)) break;
+    }
+    await shot(page, 'duel-play');
+    check(
+      duelScores.length === 2 && duelScores.every((s) => s > 0),
+      `duel: both players score (${duelScores.join(' : ')})`,
+    );
+    await click(page, '^(Выйти|Шығу|Exit)$');
+    await sleep(500);
+    check(
+      (await page.evaluate(() => window.__app.getState().screen)) === 'games',
+      'exit button: leaves the duel',
+    );
+
+    // Qara Zhorga: the song plays, the lane runs, the virtual dancer's moves are judged
+    await go(page, 'dance');
+    await sleep(800);
+    await click(page, 'Билеу|Dance!');
+    check(await waitFor(page, '.dance-lane', 10000), 'dance: the song starts');
+    await sleep(13000);
+    await shot(page, 'dance-play');
+    const judged = await page.$$eval('.dance-stats .hud-chip', (els) =>
+      Number(els[0]?.textContent),
+    );
+    check(judged > 0, `dance: moves judged on the beat (score ${judged})`);
+    await click(page, '^(Выйти|Шығу|Exit)$');
+    await sleep(500);
     check(!page.errors.length, `demo: no console errors ${page.errors.slice(0, 2).join(' | ')}`);
     await page.close();
   }

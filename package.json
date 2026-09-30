@@ -1,7 +1,7 @@
 {
   "name": "qozgal",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "description": "QOZĞAL — AI-тренер «Путь Батыра»: управление телом через веб-камеру, подсчёт повторений и режим «ошибка»",
   "scripts": {
