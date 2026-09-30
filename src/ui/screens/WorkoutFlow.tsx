@@ -20,6 +20,7 @@ import { Speech } from '../components/Mascot';
 import { PauseModal } from '../components/PauseModal';
 import { HandsUpIcon } from '../components/icons';
 import { FloorCameraTip } from '../components/FloorCameraTip';
+import { ExitButton } from '../components/ExitButton';
 
 const INTRO_SEC = 7;
 
@@ -164,7 +165,10 @@ function Intro({
                 ))}
               </div>
             )}
-            <h1 className="h1">{t(ex.name)}</h1>
+            <div className="intro-title">
+              <ExitButton onExit={() => useApp.getState().go('menu')} />
+              <h1 className="h1">{t(ex.name)}</h1>
+            </div>
             <Speech mood="happy" size={84}>
               {t(ex.howTo)}
             </Speech>

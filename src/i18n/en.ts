@@ -107,6 +107,7 @@ export const en = {
   'ui.retry': 'Try again',
   'ui.demoBadge': 'DEMO · virtual batyr',
   'ui.demoExit': 'Use camera',
+  'ui.exit': 'Exit',
 
   'calib.title': 'Stand so your whole body is visible',
   'calib.light': 'Enough light',

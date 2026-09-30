@@ -35,6 +35,7 @@ import { PauseModal } from '../components/PauseModal';
 import { StatBox } from '../components/StatBox';
 import { DepthMeter } from '../components/DepthMeter';
 import { HandsUpIcon } from '../components/icons';
+import { ExitButton } from '../components/ExitButton';
 
 type Pop = { text: string; kind: 'hit' | 'clean' | 'miss' | 'warn'; key: number };
 
@@ -209,6 +210,7 @@ export function Challenge() {
       />
       {stage === 'ready' ? (
         <div className="page">
+          <ExitButton corner onExit={() => go('games')} />
           <div className="page-inner center">
             <h1 className="h1">{t('ch.title')}</h1>
             <Speech mood="cheer" size={110}>
@@ -233,16 +235,19 @@ export function Challenge() {
       ) : (
         <div className="hud challenge-hud">
           <div className="ch-top">
-            <div className="hud-chip hearts" aria-label={`${view?.lives ?? 3}/3`}>
-              {Array.from({ length: 3 }, (_, i) => (
-                <Heart
-                  key={i}
-                  size={28}
-                  strokeWidth={2.5}
-                  color={i < (view?.lives ?? 3) ? 'var(--red)' : 'var(--line)'}
-                  fill={i < (view?.lives ?? 3) ? 'var(--red)' : 'var(--line)'}
-                />
-              ))}
+            <div className="ch-left">
+              <ExitButton onExit={() => go('games')} />
+              <div className="hud-chip hearts" aria-label={`${view?.lives ?? 3}/3`}>
+                {Array.from({ length: 3 }, (_, i) => (
+                  <Heart
+                    key={i}
+                    size={28}
+                    strokeWidth={2.5}
+                    color={i < (view?.lives ?? 3) ? 'var(--red)' : 'var(--line)'}
+                    fill={i < (view?.lives ?? 3) ? 'var(--red)' : 'var(--line)'}
+                  />
+                ))}
+              </div>
             </div>
             <div className="hud-chip ch-score num">
               <Zap size={30} strokeWidth={2.5} fill="currentColor" />

@@ -9,10 +9,12 @@ import { sfx } from '@/audio/sfx';
 interface Registered {
   el: HTMLElement;
   onSelect: () => void;
+  /** a corner button on a camera screen: no cursor until the hand is over it */
+  quiet: boolean;
 }
 
 interface GestureApi {
-  register(id: string, el: HTMLElement, onSelect: () => void): () => void;
+  register(id: string, el: HTMLElement, onSelect: () => void, quiet?: boolean): () => void;
   subscribe(fn: (g: PoseGesture) => void): () => void;
 }
 
@@ -55,8 +57,8 @@ export function GestureProvider({ loop, children, enabled = true }: ProviderProp
 
   const api = useMemo<GestureApi>(
     () => ({
-      register(id, el, onSelect) {
-        buttons.current.set(id, { el, onSelect });
+      register(id, el, onSelect, quiet = false) {
+        buttons.current.set(id, { el, onSelect, quiet });
         version.current++;
         return () => {
           buttons.current.get(id)?.el.style.removeProperty('--dwell');
@@ -81,6 +83,8 @@ export function GestureProvider({ loop, children, enabled = true }: ProviderProp
     let cursor: Cursor | null = null;
     // button rects are cached: reading them on every pose tick forced a full layout 30×/s
     let targets: DwellTarget[] = [];
+    /** at least one ordinary (not quiet) button is on screen */
+    let anyLoud = false;
     let targetsAt = -Infinity;
     let targetsVersion = -1;
     const invalidate = () => (targetsAt = -Infinity);
@@ -132,28 +136,33 @@ export function GestureProvider({ loop, children, enabled = true }: ProviderProp
         const W = window.innerWidth;
         const H = window.innerHeight;
         targets = [];
-        for (const [id, { el }] of buttons.current) {
+        anyLoud = false;
+        for (const [id, { el, quiet }] of buttons.current) {
           const r = el.getBoundingClientRect();
           if (r.width === 0 || r.height === 0 || el.closest('[aria-hidden="true"]')) continue;
           targets.push({
             id,
             rect: { left: r.left / W, top: r.top / H, right: r.right / W, bottom: r.bottom / H },
           });
+          if (!quiet) anyLoud = true;
         }
       }
 
       cursor = hand.update(tick.frame, tick.t);
       if (!targets.length) cursor = null;
-      // look at the cursor hand close up only while there is something to click
-      loop.trackHand?.(cursor?.hand ?? null);
       const cooling = tick.t < cooldownUntil;
       const st = dwell.update(cursor, targets, tick.t, cooling);
+      // the hand model (fist click) runs only while the hand points at a button: it costs a
+      // second network per frame, and during an exercise the arms are up all the time
+      loop.trackHand?.(cursor && st.hoverId ? cursor.hand : null);
       const fist = grab.update(cursor ? tick.hand : null, tick.t);
       if (!fist.closed) hoverOpen = st.hoverId;
 
       const c = cursorEl.current;
       if (c) {
-        c.style.opacity = cursor ? '1' : '0';
+        // with only a quiet corner button (a workout's "Exit"), the cursor shows up just when
+        // the hand is over it — not whenever the arms go up during an exercise
+        c.style.opacity = cursor && (anyLoud || st.hoverId) ? '1' : '0';
         c.style.setProperty('--dwell', String(st.progress));
         c.classList.toggle('is-grab', !!cursor && fist.closed);
       }

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, Flame, House, Music, Play, RotateCcw, Target, Trophy, Zap } from 'lucide-react';
 import { useApp, type DanceResult } from '@/app/store';
 import { t, type I18nKey } from '@/i18n';
-import { speak } from '@/audio/tts';
+import { speak, stopSpeech } from '@/audio/tts';
 import { DombraSong } from '@/audio/dombra';
 import { BEAT_MS, chart, type Level, type Note } from '@/game/dance/chart';
 import { DanceJudge, multiplier, type JudgeEvent } from '@/game/dance/judge';
@@ -19,6 +19,7 @@ import { Mascot, Speech } from '../components/Mascot';
 import { PauseModal } from '../components/PauseModal';
 import { StatBox } from '../components/StatBox';
 import { HandsUpIcon } from '../components/icons';
+import { ExitButton } from '../components/ExitButton';
 
 /** the camera image arrives ~120 ms after the moment it shows: judge poses that much earlier */
 const CAMERA_LATENCY_MS = 120;
@@ -202,6 +203,8 @@ function DanceGame({
       const pose = demoDancePose(notes);
       demo.followTimeline((perf) => pose(song.songMsAt(perf)));
     }
+    // the coach stops talking: the music and the beat are what matters now
+    stopSpeech();
     song.start();
 
     const unsub = loop.subscribe((tick) => {
@@ -283,6 +286,7 @@ function DanceGame({
     <>
       <OverlayCanvas loop={loop} />
       <div className={`hud dance-hud ${hot ? 'hot' : ''}`}>
+        <ExitButton corner onExit={() => useApp.getState().go('games')} />
         <div className="dance-progress">
           <div ref={bar} className="dance-progress-fill" />
         </div>

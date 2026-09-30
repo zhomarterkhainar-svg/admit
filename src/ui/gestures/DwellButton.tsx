@@ -15,6 +15,8 @@ interface Props {
   className?: string;
   /** highlighted as the current choice (tabs) */
   active?: boolean;
+  /** a corner button on a camera screen: the hand cursor appears only when over it */
+  quiet?: boolean;
 }
 
 /** Chunky 3D button "clicked" by hovering the hand cursor over it (mouse/touch click also works). */
@@ -27,6 +29,7 @@ export function DwellButton({
   variant = 'secondary',
   className = '',
   active = false,
+  quiet = false,
 }: Props) {
   const id = useId();
   const ref = useRef<HTMLButtonElement>(null);
@@ -35,7 +38,7 @@ export function DwellButton({
   useEffect(() => {
     cb.current = onSelect;
   });
-  useEffect(() => api.register(id, ref.current!, () => cb.current()), [api, id]);
+  useEffect(() => api.register(id, ref.current!, () => cb.current(), quiet), [api, id, quiet]);
 
   return (
     <button

@@ -22,6 +22,7 @@ import { HintBanner } from '../components/HintBanner';
 import { ProgressBar } from '../components/ProgressBar';
 import { DepthMeter } from '../components/DepthMeter';
 import { CrossArmsIcon } from '../components/icons';
+import { ExitButton } from '../components/ExitButton';
 
 interface Props<M> {
   loop: PoseSource;
@@ -48,6 +49,7 @@ export function Workout<M>({
   step,
 }: Props<M>) {
   const baseline = useApp((s) => s.baseline);
+  const go = useApp((s) => s.go);
   const runner = useMemo(() => new ExerciseRunner(exercise, baseline), [exercise, baseline]);
   const [ui, setUi] = useState<RunnerState | null>(null);
   const [flash, setFlash] = useState<Flash>(null);
@@ -199,6 +201,7 @@ export function Workout<M>({
       />
       <div className="hud">
         <div className="hud-top">
+          <ExitButton onExit={() => go('menu')} />
           <div className="hud-chip">
             {step && <span className="step num">{step}</span>}
             {t(exercise.name)}

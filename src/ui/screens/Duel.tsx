@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, Check, Crown, Eye, EyeOff, House, RotateCcw, Timer } from 'lucide-react';
+import { Check, Crown, Eye, EyeOff, House, RotateCcw, Timer } from 'lucide-react';
 import { useApp } from '@/app/store';
 import { t } from '@/i18n';
 import { speak } from '@/audio/tts';
@@ -29,6 +29,7 @@ import { Confetti } from '../components/Confetti';
 import { Mascot } from '../components/Mascot';
 import { PauseModal } from '../components/PauseModal';
 import { HandsUpIcon } from '../components/icons';
+import { ExitButton } from '../components/ExitButton';
 
 /** Team colours: screen-left "Kök batyr" is blue, screen-right "Altyn batyr" is gold. */
 const TEAM: Record<DuelSide, { color: string; name: 'duel.blue' | 'duel.gold' }> = {
@@ -267,20 +268,13 @@ export function Duel() {
               <span className="duel-slot-state">{t(`duel.${join[side]}`)}</span>
             </div>
           ))}
-          <div className="duel-join-back">
-            <DwellButton
-              variant="ghost"
-              icon={<ArrowLeft size={22} strokeWidth={2.75} />}
-              onSelect={() => go('games')}
-            >
-              {t('back')}
-            </DwellButton>
-          </div>
+          <ExitButton corner onExit={() => go('games')} />
         </div>
       )}
 
       {stage === 'play' && hud && (
         <div className="hud duel-hud">
+          <ExitButton corner onExit={() => go('games')} />
           <div className="duel-top">
             <div className="hud-chip">
               <span className="step num">

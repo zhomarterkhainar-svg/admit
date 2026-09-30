@@ -109,6 +109,7 @@ export const kk = {
   'ui.retry': 'Қайталау',
   'ui.demoBadge': 'ДЕМО · виртуалды батыр',
   'ui.demoExit': 'Камераны қосу',
+  'ui.exit': 'Шығу',
 
   'calib.title': 'Толық көрінетіндей тұр',
   'calib.light': 'Жарық жеткілікті',

@@ -21,6 +21,7 @@ import { Mascot } from '../components/Mascot';
 import { ProgressBar } from '../components/ProgressBar';
 import { PauseModal } from '../components/PauseModal';
 import { CrossArmsIcon } from '../components/icons';
+import { ExitButton } from '../components/ExitButton';
 
 const DURATION_SEC = 120;
 
@@ -145,6 +146,7 @@ export function FreeWorkout() {
       />
       <div className="hud">
         <div className="hud-top">
+          <ExitButton onExit={() => go('menu')} />
           <div className="hud-chip">
             <Sparkles size={20} strokeWidth={2.75} color="var(--orange)" />
             {active ? t(EXERCISES[active].name) : t('free.waiting')}
