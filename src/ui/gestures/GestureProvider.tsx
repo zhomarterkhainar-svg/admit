@@ -1,6 +1,9 @@
 import { createContext, useContext, useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { HandCursor, type Cursor } from '@/gestures/cursor';
 import { DwellTracker, type DwellTarget } from '@/gestures/dwell';
+
+/** fallback when the fist can't be seen (too far for the hand model): hover this long = click */
+const FALLBACK_DWELL_MS = 4000;
 import { GrabDetector, squeezeProgress } from '@/gestures/grab';
 import { PoseGestureDetector, type PoseGesture } from '@/gestures/poseGestures';
 import type { PoseSource } from '@/core/vision/poseLoop';
@@ -76,8 +79,8 @@ export function GestureProvider({ loop, children, enabled = true }: ProviderProp
 
   useEffect(() => {
     if (!enabled) return;
-    // hover tracking only: dwell never clicks, the click is the squeeze
-    const dwell = new DwellTracker();
+    // main click = squeezing the palm into a fist; a long 4 s hover is the fallback
+    const dwell = new DwellTracker(FALLBACK_DWELL_MS);
     const detector = new PoseGestureDetector();
     const hand = new HandCursor();
     const grab = new GrabDetector();
@@ -152,7 +155,7 @@ export function GestureProvider({ loop, children, enabled = true }: ProviderProp
       cursor = hand.update(tick.frame, tick.t);
       if (!targets.length) cursor = null;
       const cooling = tick.t < cooldownUntil;
-      const st = dwell.update(cursor, targets, tick.t, true);
+      const st = dwell.update(cursor, targets, tick.t, cooling);
       // the hand model (fist click) runs only while the hand points at a button: it costs a
       // second network per frame, and during an exercise the arms are up all the time
       loop.trackHand?.(cursor && st.hoverId ? cursor.hand : null);
@@ -165,7 +168,7 @@ export function GestureProvider({ loop, children, enabled = true }: ProviderProp
         // with only a quiet corner button (a workout's "Exit"), the cursor shows up just when
         // the hand is over it — not whenever the arms go up during an exercise
         c.style.opacity = cursor && (anyLoud || st.hoverId) ? '1' : '0';
-        c.style.setProperty('--dwell', String(squeeze));
+        c.style.setProperty('--dwell', String(Math.max(squeeze, st.progress)));
         c.classList.toggle('is-grab', !!cursor && fist.closed);
       }
       if (lastHover && lastHover !== st.hoverId) {
@@ -176,11 +179,11 @@ export function GestureProvider({ loop, children, enabled = true }: ProviderProp
       if (st.hoverId) {
         const el = buttons.current.get(st.hoverId)?.el;
         el?.classList.add('is-hover');
-        el?.style.setProperty('--dwell', String(squeeze));
+        el?.style.setProperty('--dwell', String(Math.max(squeeze, st.progress)));
       }
       lastHover = st.hoverId;
       const squeezed = fist.grab && !cooling ? (hoverOpen ?? st.hoverId) : null;
-      const selected = squeezed;
+      const selected = squeezed ?? st.selected;
       if (selected) {
         cooldownUntil = tick.t + 900;
         dwell.lock(selected);
