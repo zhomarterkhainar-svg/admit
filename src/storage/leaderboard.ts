@@ -97,6 +97,26 @@ export class SupabaseLeaderboard implements LeaderboardProvider {
   }
 }
 
+export interface MyPlace {
+  /** 1-based place of the player's best row */
+  place: number;
+  score: number;
+  /** points still needed to overtake the row above (0 when first) */
+  gap: number;
+}
+
+/** Where the player stands on a board (their best row), or null if they are not on it. */
+export function myPlace(rows: readonly LeaderboardEntry[], name: string): MyPlace | null {
+  const i = rows.findIndex((r) => r.name === name);
+  if (i < 0) return null;
+  const score = rows[i]!.score;
+  const above = rows
+    .slice(0, i)
+    .reverse()
+    .find((r) => r.score > score);
+  return { place: i + 1, score, gap: above ? above.score - score + 1 : 0 };
+}
+
 /** Configured world leaderboard, or null when the env vars are not set. */
 export function globalLeaderboard(): SupabaseLeaderboard | null {
   const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;

@@ -66,6 +66,13 @@ export interface FrameFeatures {
    * + = hips sag toward the floor, − = hips piked up. Meaningful when lying (bodyTilt small).
    */
   hipOffset: number;
+  /**
+   * the same idea in 3D world space, for any camera angle (e.g. a push-up filmed from the front,
+   * where the image body line collapses): how far the hips are below (+) or above (−) the
+   * straight shoulders→knees line, in lengths of that line. Knees, not ankles: from the front
+   * the feet are hidden behind the body.
+   */
+  hipLineOffsetW: number;
   /** fraction of frame height covered by the body (nose → ankles) */
   bodyHeightFrac: number;
   /** hip center in normalized image coords */

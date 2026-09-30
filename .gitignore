@@ -9,3 +9,5 @@ public/wasm/
 *.tsbuildinfo
 # Netlify CLI local state (site link)
 .netlify
+# Playwright CLI output (may contain credentials)
+.playwright-cli/

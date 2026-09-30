@@ -1,8 +1,8 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { makePose, type PoseEdit } from '@/core/reference/template';
 import { Check, X } from 'lucide-react';
 import { t } from '@/i18n';
-import { ERROR_EXAMPLES } from '@/exercises/errorExamples';
+import { ERROR_EXAMPLES, topView } from '@/exercises/errorExamples';
 import { drawSkeleton } from '../overlay/drawSkeleton';
 import type { PoseFrame } from '@/core/types';
 
@@ -40,11 +40,18 @@ function StaticPose({
   errorJoints?: readonly number[];
 }) {
   const ref = useRef<HTMLCanvasElement>(null);
+  // lying poses (push-ups) get a landscape frame, otherwise the body is a tiny line
+  const wide = useMemo(() => {
+    const pts = makePose(edit).world.filter((_, i) => i === 0 || i >= 11);
+    const span = (k: 'x' | 'y') =>
+      Math.max(...pts.map((p) => p[k])) - Math.min(...pts.map((p) => p[k]));
+    return span('x') > span('y');
+  }, [edit]);
   useEffect(() => {
     const canvas = ref.current!;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width = canvas.clientWidth * dpr;
-    canvas.height = canvas.clientHeight * dpr;
+    canvas.width = Math.round(canvas.clientWidth * dpr);
+    canvas.height = Math.round(canvas.clientHeight * dpr);
     const ctx = canvas.getContext('2d')!;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     const frame = fitTight(makePose(edit).world, canvas.width, canvas.height);
@@ -55,24 +62,29 @@ function StaticPose({
       errorJoints: new Set(errorJoints),
       now: 0,
     });
-  }, [edit, color, errorJoints]);
-  return <canvas ref={ref} className="static-pose" />;
+  }, [edit, color, errorJoints, wide]);
+  return <canvas ref={ref} className={`static-pose ${wide ? 'wide' : ''}`} />;
 }
 
 /** "How it was / how it should be" mini skeletons for a rule, if we have an example. */
 export function PoseCompare({ ruleId, joints }: { ruleId: string; joints?: readonly number[] }) {
   const ex = ERROR_EXAMPLES[ruleId];
-  if (!ex) return null;
+  // stable objects: the intro re-renders 10×/s for its countdown
+  const poses = useMemo(
+    () => ex && (ex.view === 'top' ? { wrong: topView(ex.wrong), right: topView(ex.right) } : ex),
+    [ex],
+  );
+  if (!poses) return null;
   return (
     <div className="pose-compare" aria-hidden="true">
       <figure className="bad">
-        <StaticPose edit={ex.wrong} color="#afafaf" errorJoints={joints} />
+        <StaticPose edit={poses.wrong} color="#afafaf" errorJoints={joints} />
         <figcaption>
           <X size={12} strokeWidth={4} /> {t('compare.wrong')}
         </figcaption>
       </figure>
       <figure className="good">
-        <StaticPose edit={ex.right} color="#58cc02" />
+        <StaticPose edit={poses.right} color="#58cc02" />
         <figcaption>
           <Check size={12} strokeWidth={4} /> {t('compare.right')}
         </figcaption>

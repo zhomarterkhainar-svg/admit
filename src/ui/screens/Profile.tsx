@@ -1,7 +1,19 @@
 import { useState } from 'react';
-import { ArrowLeft, Award, Check, Dices, Pencil, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Award, Check, Dices, Pencil, TrendingUp, Wrench } from 'lucide-react';
 import { useApp } from '@/app/store';
 import { t } from '@/i18n';
+import { errorJourney } from '@/game/errorProgress';
+import { ALL_EXERCISES } from '@/exercises/registry';
+import { ErrorTrend } from '../components/ErrorTrend';
+
+/** A technique rule's short message ("Knees cave in"), looked up across all exercises. */
+function ruleMessage(id: string): string {
+  for (const ex of Object.values(ALL_EXERCISES)) {
+    const r = [...ex.frameRules, ...ex.repRules].find((x) => x.id === id);
+    if (r) return t(r.message);
+  }
+  return id;
+}
 import { rankFor } from '@/game/ranks';
 import { ACHIEVEMENTS } from '@/game/achievements';
 import { topScores } from '@/storage/progress';
@@ -44,6 +56,7 @@ export function Profile() {
       .map((e) => e.score),
   );
   const history = progress.history.slice(-12);
+  const journey = errorJourney(progress.history);
   const unlocked = Object.keys(progress.achievements).length;
   const stats: [string, number][] = [
     [t('profile.workouts'), s.workouts],
@@ -164,17 +177,41 @@ export function Profile() {
               </div>
             </section>
 
-            <section className="card">
-              <h2>
-                <TrendingUp size={20} strokeWidth={2.75} color="var(--green)" />
-                {t('records.progress')}
-              </h2>
-              {history.length < 2 ? (
-                <p className="muted">{t('profile.noHistory')}</p>
-              ) : (
-                <Sparkline values={history.map((h) => h.quality)} />
-              )}
-            </section>
+            <div className="profile-pair">
+              <section className="card">
+                <h2>
+                  <TrendingUp size={20} strokeWidth={2.75} color="var(--green)" />
+                  {t('records.progress')}
+                </h2>
+                {history.length < 2 ? (
+                  <p className="muted">{t('profile.noHistory')}</p>
+                ) : (
+                  <Sparkline values={history.map((h) => h.quality)} />
+                )}
+              </section>
+              <section className="card">
+                <h2>
+                  <Wrench size={20} strokeWidth={2.75} color="var(--orange)" />
+                  {t('progress.title')}
+                </h2>
+                {journey.length === 0 ? (
+                  <p className="muted">{t('progress.empty')}</p>
+                ) : (
+                  <ul className="journey">
+                    {journey.map((j) => (
+                      <li key={j.id}>
+                        <b>{ruleMessage(j.id)}</b>
+                        <ErrorTrend
+                          before={j.first}
+                          now={j.last}
+                          labels={['progress.first', 'progress.last']}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+            </div>
           </div>
         </div>
       </div>

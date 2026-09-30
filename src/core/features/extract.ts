@@ -72,6 +72,17 @@ export function extractFeatures(frame: PoseFrame): FrameFeatures {
   const wristLift = (shoulder: number, wrist: number) =>
     (g(im, shoulder).y - g(im, wrist).y) / torsoLenI;
 
+  // world body line shoulders → knees; the hips' vertical (world y, down) distance from it
+  const kneeMidW = mid(g(w, P.leftKnee), g(w, P.rightKnee));
+  const lineW = sub(kneeMidW, shoulderMidW);
+  const lineLenW = Math.max(Math.hypot(lineW.x, lineW.y, lineW.z), 1e-6);
+  const hipRelW = sub(hipMidW, shoulderMidW);
+  const alongW = Math.min(
+    1,
+    Math.max(0, (hipRelW.x * lineW.x + hipRelW.y * lineW.y + hipRelW.z * lineW.z) / lineLenW ** 2),
+  );
+  const hipLineOffsetW = (hipRelW.y - alongW * lineW.y) / lineLenW;
+
   return {
     t: frame.t,
     kneeAngle: {
@@ -113,6 +124,7 @@ export function extractFeatures(frame: PoseFrame): FrameFeatures {
     },
     bodyTilt: (Math.atan2(Math.abs(body.y), Math.abs(body.x)) * 180) / Math.PI,
     hipOffset: ((hipMidI.x - shoulderMidI.x) * nx + (hipMidI.y - shoulderMidI.y) * ny) / bodyLen,
+    hipLineOffsetW,
     // nose→feet is ~87% of full height; scale so a person head-to-toe in frame ≈ 1
     bodyHeightFrac: (feetY - noseY) / 0.87,
     center: { x: (g(frame.image, P.leftHip).x + g(frame.image, P.rightHip).x) / 2, y: hipMidI.y },

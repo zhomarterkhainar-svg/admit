@@ -99,15 +99,16 @@ export function Menu() {
                   {t('menu.full')}
                 </DwellButton>
               </div>
-              <div className="tile-wrap" data-tour="challenge">
+              <div className="tile-wrap" data-tour="games">
                 <DwellButton
                   tone="red"
                   icon={<Swords {...ICON} />}
-                  sub={t('menu.challengeSub')}
-                  onSelect={() => go('challenge')}
+                  sub={t('menu.gamesSub')}
+                  onSelect={() => go('games')}
                 >
-                  {t('menu.challenge')}
+                  {t('menu.games')}
                 </DwellButton>
+                {!newbie && <span className="start-here">{t('games.new')}</span>}
               </div>
               <div className="tile-wrap" data-tour="records">
                 <DwellButton

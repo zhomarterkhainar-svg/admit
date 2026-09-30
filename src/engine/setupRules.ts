@@ -40,13 +40,30 @@ export const FLOOR_TILT_MAX = 40;
 /** Visibility of a joint on the side facing the camera (the far side is hidden in a side view). */
 const nearSide = (f: FrameFeatures, l: number, r: number) =>
   Math.max(f.jointVisibility[l] ?? 0, f.jointVisibility[r] ?? 0);
+/** Visibility of a joint pair when both must be seen (front view: both arms). */
+const bothSides = (f: FrameFeatures, l: number, r: number) =>
+  Math.min(f.jointVisibility[l] ?? 0, f.jointVisibility[r] ?? 0);
 
 /**
- * Framing for floor exercises filmed from the side: whole body visible from head to heels,
- * and actually down on the floor (before that the counter waits and shows how to start).
+ * Where the camera is for a floor exercise. From the side the shoulders overlap in the picture
+ * (narrow) and the torso is long; from the front (camera ahead of the head) the shoulders are
+ * wide and the torso is foreshortened to almost nothing. frontality = shoulder width / torso.
  */
-export function floorSetupRules(): FrameRule[] {
-  return [
+export const FRONT_FRONTALITY = 0.85;
+export const floorView = (f: FrameFeatures): 'side' | 'front' =>
+  f.frontality >= FRONT_FRONTALITY ? 'front' : 'side';
+/** From the front the image body line collapses: "lying" = the 3D torso is far from upright. */
+export const FLOOR_TORSO_LEAN_MIN = 45;
+
+/**
+ * Framing for floor exercises: the body visible and actually down on the floor (before that the
+ * counter waits and shows how to start). From the side the whole body, head to heels; from the
+ * front (only for exercises that allow it) the head, shoulders and both arms — the legs are
+ * hidden behind the body there. Side-only exercises seen from the front ask to turn sideways.
+ */
+export function floorSetupRules(views: ReadonlyArray<'side' | 'front'> = ['side']): FrameRule[] {
+  const front = views.includes('front');
+  const rules: FrameRule[] = [
     DARK_RULE,
     {
       kind: 'frame',
@@ -57,11 +74,16 @@ export function floorSetupRules(): FrameRule[] {
       joints: [],
       persistMs: 500,
       test: (f) =>
-        Math.min(
-          nearSide(f, P.leftShoulder, P.rightShoulder),
-          nearSide(f, P.leftHip, P.rightHip),
-          nearSide(f, P.leftAnkle, P.rightAnkle),
-        ) < 0.5,
+        front && floorView(f) === 'front'
+          ? Math.min(
+              bothSides(f, P.leftShoulder, P.rightShoulder),
+              bothSides(f, P.leftElbow, P.rightElbow),
+            ) < 0.5
+          : Math.min(
+              nearSide(f, P.leftShoulder, P.rightShoulder),
+              nearSide(f, P.leftHip, P.rightHip),
+              nearSide(f, P.leftAnkle, P.rightAnkle),
+            ) < 0.5,
     },
     {
       kind: 'frame',
@@ -71,9 +93,22 @@ export function floorSetupRules(): FrameRule[] {
       fix: 'setup.floorDown.fix',
       joints: [],
       persistMs: 400,
-      test: (f) => f.bodyTilt > FLOOR_TILT_MAX,
+      test: (f) =>
+        floorView(f) === 'front' ? f.torsoLean < FLOOR_TORSO_LEAN_MIN : f.bodyTilt > FLOOR_TILT_MAX,
     },
   ];
+  if (!front)
+    rules.push({
+      kind: 'frame',
+      id: 'setup.floorSide',
+      severity: 'setup',
+      message: 'setup.floorSide.msg',
+      fix: 'setup.floorSide.fix',
+      joints: [],
+      persistMs: 700,
+      test: (f) => floorView(f) === 'front' && f.torsoLean >= FLOOR_TORSO_LEAN_MIN,
+    });
+  return rules;
 }
 
 export function setupRules(

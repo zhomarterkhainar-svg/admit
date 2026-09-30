@@ -297,7 +297,7 @@ function CommandIcon({ id }: { id: CommandId }) {
 }
 
 export function ChallengeResults() {
-  const { challenge, go } = useApp();
+  const { challenge, go, openBoard } = useApp();
   useGestures({ crossArms: () => go('menu') });
   useEffect(() => {
     if (!challenge) return;
@@ -342,7 +342,7 @@ export function ChallengeResults() {
             <DwellButton
               icon={<Trophy size={24} strokeWidth={2.75} />}
               tone="gold"
-              onSelect={() => go('records')}
+              onSelect={() => openBoard('challenge')}
             >
               {t('results.records')}
             </DwellButton>

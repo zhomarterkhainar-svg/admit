@@ -10,14 +10,20 @@ export interface HistoryEntry {
   cleanPct: number;
   xp: number;
   durationMs: number;
+  /** attempted reps (held seconds for a plank) per exercise id in this session */
+  tried?: Record<string, number>;
+  /** technique rule id → share (0..1) of that exercise's reps in this session with the error */
+  errorRates?: Record<string, number>;
 }
 
 export interface ScoreEntry {
   name: string;
   score: number;
   at: number;
-  mode: 'challenge' | 'workout';
+  mode: 'challenge' | 'workout' | 'dance';
 }
+
+export const SCORE_MODES: readonly ScoreEntry['mode'][] = ['challenge', 'workout', 'dance'];
 
 /** Lifetime counters that drive achievements. */
 export interface LifetimeStats {
@@ -28,6 +34,8 @@ export interface LifetimeStats {
   workouts: number;
   freeWorkouts: number;
   challenges: number;
+  /** Qara Zhorga songs danced */
+  dances: number;
   bestCombo: number;
   bestCleanStreak: number;
   questsDone: number;
@@ -65,6 +73,7 @@ export const EMPTY_STATS: LifetimeStats = {
   workouts: 0,
   freeWorkouts: 0,
   challenges: 0,
+  dances: 0,
   bestCombo: 0,
   bestCleanStreak: 0,
   questsDone: 0,
@@ -115,6 +124,29 @@ export function saveProgress(
   }
 }
 
+/**
+ * Per exercise: how many reps were tried and, for every technique rule, which share of them had
+ * that error. Framing problems (setup.*) and "wrong exercise" are not technique and are skipped.
+ */
+export function errorStats(s: WorkoutSummary): Pick<HistoryEntry, 'tried' | 'errorRates'> {
+  const tried: Record<string, number> = {};
+  const counts: Record<string, number> = {};
+  for (const r of s.results) {
+    tried[r.id] = (tried[r.id] ?? 0) + r.reps.length;
+    for (const rep of r.reps)
+      for (const id of new Set(rep.errors)) {
+        if (id.startsWith('setup.') || id === 'wrongExercise') continue;
+        counts[id] = (counts[id] ?? 0) + 1;
+      }
+  }
+  const errorRates: Record<string, number> = {};
+  for (const [id, n] of Object.entries(counts)) {
+    const of = tried[id.split('.')[0]!];
+    if (of) errorRates[id] = Math.min(1, n / of);
+  }
+  return { tried, errorRates };
+}
+
 export function recordWorkout(p: Progress, s: WorkoutSummary, name: string): Progress {
   const entry: HistoryEntry = {
     at: s.startedAt,
@@ -125,6 +157,7 @@ export function recordWorkout(p: Progress, s: WorkoutSummary, name: string): Pro
     cleanPct: s.cleanPct,
     xp: s.xp,
     durationMs: s.durationMs,
+    ...errorStats(s),
   };
   return {
     ...p,
@@ -141,10 +174,22 @@ export function recordChallenge(
   at: number,
   xp: number,
 ): Progress {
+  return recordScore(p, 'challenge', score, name, at, xp);
+}
+
+/** A game score (challenge, dance) on the device board, plus the XP it earned. */
+export function recordScore(
+  p: Progress,
+  mode: ScoreEntry['mode'],
+  score: number,
+  name: string,
+  at: number,
+  xp: number,
+): Progress {
   return {
     ...p,
     totalXp: p.totalXp + xp,
-    scores: addScore(p.scores, { name, score, at, mode: 'challenge' }),
+    scores: addScore(p.scores, { name, score, at, mode }),
   };
 }
 
@@ -156,7 +201,7 @@ const WEEK_MS = 8 * 86_400_000;
  */
 function addScore(scores: ScoreEntry[], e: ScoreEntry): ScoreEntry[] {
   const all = [...scores, e];
-  return (['challenge', 'workout'] as const).flatMap((mode) => {
+  return SCORE_MODES.flatMap((mode) => {
     const ofMode = all.filter((s) => s.mode === mode).sort((a, b) => b.score - a.score);
     const top = new Set(ofMode.slice(0, 20));
     return ofMode.filter((s) => top.has(s) || e.at - s.at <= WEEK_MS).slice(0, 200);

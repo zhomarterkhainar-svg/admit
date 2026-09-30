@@ -65,7 +65,7 @@ export class ExerciseRunner<M> {
   ) {
     this.phase = def.initialPhase;
     this.setup = new RuleTracker(
-      def.posture === 'floor' ? floorSetupRules() : setupRules(def.needs, def.view),
+      def.posture === 'floor' ? floorSetupRules(def.floorViews) : setupRules(def.needs, def.view),
     );
     this.form = new RuleTracker(def.frameRules);
   }

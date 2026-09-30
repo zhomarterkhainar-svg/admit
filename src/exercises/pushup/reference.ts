@@ -1,3 +1,5 @@
+import { P } from '@/core/types';
+import type { PoseEdit } from '@/core/reference/template';
 import { bodyLine, lying, type Side2 } from '../floorPose';
 
 const WRIST: Side2 = [-0.42, -0.03];
@@ -31,3 +33,22 @@ export const pushupTop = (sag = 0) => pose([-0.45, -0.58], [-0.435, -0.305], sag
 
 /** Bottom: chest near the floor, elbows bent to ~60° and pointing back. */
 export const pushupDown = (sag = 0) => pose([-0.62, -0.2], [-0.355, -0.293], sag);
+
+/**
+ * The common mistake: the same bottom position with the elbows flared straight out to the sides
+ * (a "T" from above, ~90° to the body) and the hands placed wide under them.
+ */
+export function pushupDownFlared(): PoseEdit {
+  const d = pushupDown();
+  const sx = d[P.leftShoulder]![0];
+  const wristY = d[P.leftWrist]![1];
+  return {
+    ...d,
+    [P.leftElbow]: [sx + 0.02, wristY - 0.25, -0.46],
+    [P.rightElbow]: [sx + 0.02, wristY - 0.25, 0.46],
+    [P.leftWrist]: [sx + 0.02, wristY, -0.46],
+    [P.rightWrist]: [sx + 0.02, wristY, 0.46],
+    [P.leftIndex]: [sx - 0.06, wristY, -0.46],
+    [P.rightIndex]: [sx - 0.06, wristY, 0.46],
+  };
+}

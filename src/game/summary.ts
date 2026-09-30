@@ -1,11 +1,14 @@
 import { ALL_EXERCISES, type AnyExerciseId } from '@/exercises/registry';
 import type { RepSummary } from '@/engine/types';
+import type { Replay } from './replay';
 
 export interface ExerciseResult {
   id: AnyExerciseId;
   target: number;
   reps: RepSummary[];
   durationMs: number;
+  /** the worst rep of the set as skeleton frames, for the slow-motion replay */
+  replay?: Replay;
 }
 
 export interface ErrorStat {

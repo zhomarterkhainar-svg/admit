@@ -56,6 +56,16 @@ export interface RepRule<M> extends Hint {
 
 export type Side = 'l' | 'r';
 
+/** A live angle readout drawn on the skeleton: an arc at `at` between `from` and `to` + degrees. */
+export interface Gauge {
+  at: number;
+  from: number;
+  to: number;
+  deg: number;
+  /** green when the angle is where it should be, orange when it is wrong, neutral otherwise */
+  tone?: 'good' | 'warn';
+}
+
 export interface RepSummary {
   index: number;
   startT: number;
@@ -82,6 +92,13 @@ export interface ExerciseDefinition<M = Record<string, number>> {
    * Such exercises get floor framing checks and no standing baseline correction.
    */
   posture?: 'stand' | 'floor';
+  /**
+   * Floor exercises: the camera angles the rules understand (default: side only). With 'front'
+   * the player may also face the camera; otherwise a front view asks them to turn sideways.
+   */
+  floorViews?: ReadonlyArray<'side' | 'front'>;
+  /** live angle readouts on the skeleton (e.g. the elbow angle in a push-up) */
+  gauges?(f: FrameFeatures): Gauge[];
   /** time-based exercise (plank): every second spent in `phase` counts as one unit */
   hold?: { phase: string };
   /** label under the side meter (default: "depth") */

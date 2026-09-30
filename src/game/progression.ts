@@ -20,6 +20,7 @@ export function applySession(
   session: {
     workout?: WorkoutSummary;
     challenge?: { bestCombo: number; hits: number };
+    dance?: { bestCombo: number; hits: number };
     now: number;
   },
 ): SessionOutcome {
@@ -28,7 +29,10 @@ export function applySession(
   const byExercise: Partial<Record<AnyExerciseId, number>> = {};
 
   // a session without a single counted rep / hit is not activity: no stats, streak or badges
-  const active = (session.workout?.counted ?? 0) > 0 || (session.challenge?.hits ?? 0) > 0;
+  const active =
+    (session.workout?.counted ?? 0) > 0 ||
+    (session.challenge?.hits ?? 0) > 0 ||
+    (session.dance?.hits ?? 0) > 0;
   if (!active) return { progress: p, unlocked: [], questCompleted: null };
 
   if (session.workout) {
@@ -52,6 +56,8 @@ export function applySession(
     stats.challenges++;
     stats.bestCombo = Math.max(stats.bestCombo, session.challenge.bestCombo);
   }
+  // the dance combo is not the challenge combo (the "×5 in the challenge" badge)
+  if (session.dance) stats.dances++;
 
   const streak = updateStreak(p.streak, today);
   const q = advanceQuest(p.quest, today, byExercise);

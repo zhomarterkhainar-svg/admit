@@ -52,9 +52,7 @@ describe('duel: two players in one picture', () => {
     expect(half.bodyHeightFrac).toBeCloseTo(single.bodyHeightFrac, 5);
   });
 
-  // TODO (docs/TASKS.md, задача 1): L counts 1 of 2 synthetic squats — check the runner's
-  // auto-baseline / noise filter on half-frames before building the duel screen
-  it.skip('counts both players at once, each with their own runner', () => {
+  it('counts both players at once, each with their own runner', () => {
     const tracker = new DuelTracker();
     const runners = {
       L: new ExerciseRunner(EXERCISES.squat),
@@ -62,10 +60,11 @@ describe('duel: two players in one picture', () => {
     };
     let t = 0;
     const counted = { L: 0, R: 0 };
-    // L squats deep twice, R only half-way (not counted)
-    for (let r = 0; r < 2; r++) {
+    // L squats deep twice, R only half-way (not counted). The tracker smooths the poses (like the
+    // camera loop does), so the last rise lands a couple of frames late: stand still at the end.
+    for (let r = 0; r < 3; r++) {
       for (let i = 0; i <= 90; i++) {
-        const k = i < 30 ? 0 : Math.sin((Math.PI * (i - 30)) / 60);
+        const k = r === 2 || i < 30 ? 0 : Math.sin((Math.PI * (i - 30)) / 60);
         t += 33;
         const views = tracker.update(
           [

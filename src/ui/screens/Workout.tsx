@@ -9,11 +9,14 @@ import { sfx } from '@/audio/sfx';
 import { OverlayCanvas } from '../overlay/OverlayCanvas';
 import { drawArrow } from '../overlay/drawArrow';
 import { drawGhost } from '../overlay/drawGhost';
+import { drawGauge } from '../overlay/drawGauge';
 import { GhostPreview } from '../overlay/GhostPreview';
 import { Particles } from '../overlay/particles';
 import { coverMapper } from '../overlay/drawSkeleton';
 import { P } from '@/core/types';
 import { ExerciseRecognizer } from '@/ml/recognizer';
+import { ReplayRecorder, type Replay } from '@/game/replay';
+import type { AnyExerciseId } from '@/exercises/registry';
 import { Flame, Timer, X } from 'lucide-react';
 import { HintBanner } from '../components/HintBanner';
 import { ProgressBar } from '../components/ProgressBar';
@@ -26,8 +29,8 @@ interface Props<M> {
   target: number;
   timeLimitSec: number;
   paused: boolean;
-  /** called once when the target is reached or time runs out */
-  onDone: (reps: RepSummary[], activeMs: number) => void;
+  /** called once when the target is reached or time runs out (+ the worst rep's replay) */
+  onDone: (reps: RepSummary[], activeMs: number, replay: Replay | null) => void;
   /** step label, e.g. "2 / 5" */
   step?: string;
 }
@@ -66,10 +69,14 @@ export function Workout<M>({
     let lastT: number | null = null;
     let activeMs = 0;
     let finished = false;
+    // the worst rep of the set, replayed in slow motion on the results (not for timed holds)
+    const recorder = exercise.hold
+      ? null
+      : new ReplayRecorder(exercise.id as AnyExerciseId, exercise);
     const finish = () => {
       if (finished) return;
       finished = true;
-      setTimeout(() => doneRef.current(runner.reps, activeMs), 900);
+      setTimeout(() => doneRef.current(runner.reps, activeMs, recorder?.finish() ?? null), 900);
     };
 
     // kNN recognizer: "you seem to be doing a different exercise" (standing exercises only)
@@ -106,7 +113,10 @@ export function Workout<M>({
         extraHints: wrong ? [wrongHint] : [],
       });
       hintRef.current = st.hint;
+      if (recorder && tick.frame && tick.features)
+        recorder.push(tick.frame, exercise.progress(tick.features));
       for (const e of st.events) {
+        if (e.type === 'rep') recorder?.onRep(e.rep);
         if (e.type === 'hint' && e.speak) {
           sfx.hint();
           speak((tr) => `${tr(e.hint.message)}. ${tr(e.hint.fix)}`);
@@ -175,13 +185,16 @@ export function Workout<M>({
           }
           particles.draw(ctx);
           const h = hintRef.current;
-          if (!tick.frame || !h) return;
+          if (!tick.frame) return;
           // technique problem → show the correct pose as a ghost over the user
-          if (h.severity !== 'setup' && tick.features) {
+          if (h && h.severity !== 'setup' && tick.features) {
             const target = exercise.ghostFor?.(tick.features) ?? exercise.keyframes.peak;
             drawGhost(ctx, tick.frame, target, performance.now(), exercise.posture === 'floor');
           }
-          h.arrows?.forEach((a) => drawArrow(ctx, tick.frame!, a));
+          h?.arrows?.forEach((a) => drawArrow(ctx, tick.frame!, a));
+          // live angle readouts (the elbow in a push-up), unless the setup is wrong anyway
+          if (tick.features && h?.severity !== 'setup')
+            exercise.gauges?.(tick.features).forEach((g) => drawGauge(ctx, tick.frame!, g));
         }}
       />
       <div className="hud">

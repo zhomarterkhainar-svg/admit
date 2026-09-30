@@ -9,6 +9,7 @@ import { useGestures } from '../gestures/GestureProvider';
 import type { Mood } from '../mascot/mascot';
 import { Mascot } from './Mascot';
 import { GestureGuide } from './GestureGuide';
+import { CursorSetupTip } from './CursorSetupTip';
 import { HandsUpIcon } from './icons';
 
 interface Step {
@@ -20,9 +21,11 @@ interface Step {
 
 const STEPS: Step[] = [
   { id: 'hello', mood: 'wave' },
+  // how to stand for the hand cursor comes first: every later step is clicked with it
+  { id: 'cursor', mood: 'think' },
   { id: 'training', target: 'training', mood: 'happy' },
   { id: 'modes', target: 'modes', mood: 'happy' },
-  { id: 'challenge', target: 'challenge', mood: 'cheer' },
+  { id: 'games', target: 'games', mood: 'cheer' },
   { id: 'records', target: 'records', mood: 'happy' },
   { id: 'profile', target: 'profile', mood: 'wave' },
   { id: 'settings', target: 'settings', mood: 'think' },
@@ -89,8 +92,9 @@ function place(spot: Rect | null, cw: number, ch: number): { x: number; y: numbe
 }
 
 /**
- * First-visit tour of the menu: the screen goes grey, Barys introduces himself and walks through
- * each area (training → modes → challenge → leaderboard → profile → settings → gestures), and
+ * First-visit tour of the menu: the screen goes grey, Barys introduces himself, explains how to
+ * stand for the hand cursor, walks through each area (training → modes → games →
+ * leaderboard → profile → settings → gestures), and
  * ends by sending the player to the quick workout first. Driven by dwell buttons, hands up
  * (next) and crossed arms (skip) — or the mouse.
  */
@@ -159,6 +163,7 @@ export function Tour() {
             )}
           </div>
         </div>
+        {step.id === 'cursor' && <CursorSetupTip />}
         {step.id === 'gestures' && <GestureGuide compact />}
         <div className="tour-dots" aria-hidden="true">
           {STEPS.map((s, k) => (

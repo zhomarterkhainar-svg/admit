@@ -1,0 +1,590 @@
+/*
+ * Games hub, the two-player duel and the rhythm mode.
+ * Loaded after global.css / menus.css and uses their tokens.
+ */
+
+/* ---------- games hub ---------- */
+.games-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr));
+  gap: 16px;
+  min-height: 0;
+}
+.game-card {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 14px;
+  min-height: clamp(220px, 46vh, 420px);
+  padding: 22px;
+}
+.game-card .dwell-icon {
+  width: 84px;
+  height: 84px;
+  border-radius: 24px;
+  margin-bottom: auto;
+}
+.game-card .dwell-label {
+  font-size: clamp(24px, 2.4vw, 32px);
+}
+.game-card .dwell-sub {
+  font-size: 17px;
+}
+
+/* ---------- duel ---------- */
+.duel-divider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  z-index: 1;
+  border-left: 4px dashed rgba(255, 255, 255, 0.75);
+  transform: translateX(-2px);
+  pointer-events: none;
+}
+.demo .duel-divider {
+  border-color: var(--blue-b);
+}
+.duel-join {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto 1fr auto;
+  column-gap: 40px;
+  padding: 18px 28px;
+}
+.duel-title {
+  grid-column: 1 / -1;
+  justify-self: center;
+  margin: 0;
+  padding: 8px 22px;
+  border-radius: var(--radius);
+  background: var(--bg);
+  border: 2px solid var(--line);
+  box-shadow: 0 4px 0 var(--line);
+  font-size: clamp(24px, 3vw, 36px);
+  font-weight: 900;
+}
+.duel-join-hint {
+  grid-column: 1 / -1;
+  justify-self: center;
+  max-width: 760px;
+  margin: 10px 0 0;
+  padding: 8px 16px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.92);
+  text-align: center;
+  font-size: 17px;
+  color: var(--ink-2);
+}
+/* status cards sit low in each half, under the player's hips, so the skeleton stays visible */
+.duel-slot {
+  --c: var(--blue);
+  align-self: end;
+  justify-self: center;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-items: center;
+  column-gap: 14px;
+  width: min(400px, 100%);
+  margin-bottom: 14px;
+  padding: 12px 16px;
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.94);
+  border: 4px solid var(--c);
+  box-shadow: 0 6px 0 var(--c);
+  animation: pop 0.3s ease-out;
+}
+.duel-slot.R {
+  --c: var(--gold);
+}
+.duel-slot.none {
+  border-style: dashed;
+  box-shadow: none;
+  opacity: 0.85;
+}
+.duel-slot-name {
+  grid-column: 2;
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--c);
+}
+.duel-slot.R .duel-slot-name {
+  color: var(--gold-d);
+}
+.duel-slot-icon {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--bg-soft);
+  color: var(--ink-3);
+}
+.duel-slot.seen .duel-slot-icon {
+  background: var(--blue-l);
+  color: var(--blue-d);
+  animation: bob 1.4s ease-in-out infinite;
+}
+.duel-slot.ready .duel-slot-icon {
+  background: var(--green);
+  color: #fff;
+}
+.duel-slot-state {
+  grid-column: 2;
+  font-size: 17px;
+  font-weight: 900;
+}
+.duel-join-back {
+  grid-column: 1 / -1;
+  justify-self: center;
+  pointer-events: auto;
+}
+.demo .duel-join-back {
+  margin-bottom: 44px;
+}
+
+.duel-top {
+  position: absolute;
+  top: max(14px, env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+}
+.duel-card {
+  --c: var(--blue);
+  position: absolute;
+  top: max(14px, env(safe-area-inset-top));
+  width: min(300px, 28vw);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  background: var(--bg);
+  border: 3px solid var(--c);
+  box-shadow: 0 5px 0 var(--c);
+}
+.duel-card.L {
+  left: 16px;
+}
+.duel-card.R {
+  --c: var(--gold);
+  right: 16px;
+  text-align: right;
+  align-items: flex-end;
+}
+.duel-card-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--blue-d);
+}
+.duel-card.R .duel-card-name,
+.duel-final-card.R .duel-card-name {
+  color: var(--gold-d);
+}
+.duel-score {
+  font-size: clamp(44px, 6vw, 72px);
+  font-weight: 900;
+  line-height: 1;
+}
+.duel-round-reps {
+  font-size: 15px;
+  color: var(--ink-2);
+}
+.duel-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 4px 10px;
+  border-radius: 10px;
+  background: var(--orange-l);
+  color: var(--orange-d);
+  font-size: 14px;
+  font-weight: 900;
+}
+.duel-hint.setup,
+.duel-hint.warn {
+  background: var(--blue-l);
+  color: var(--blue-d);
+}
+.duel-hint.safety,
+.duel-hint.validity {
+  background: var(--red-l);
+  color: var(--red-d);
+}
+.duel-pop {
+  position: absolute;
+  top: 55%;
+  left: 25%;
+  transform: translate(-50%, -50%);
+  font-size: clamp(40px, 6vw, 84px);
+  font-weight: 900;
+  -webkit-text-stroke: 9px #fff;
+  paint-order: stroke fill;
+  animation: flash 1s ease-out forwards;
+}
+.duel-pop.R {
+  left: 75%;
+}
+.duel-break {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(380px, 80vw);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 18px;
+  border-radius: var(--radius-lg);
+  background: var(--bg);
+  border: 2px solid var(--blue-b);
+  box-shadow: 0 6px 0 var(--blue-b);
+  animation: pop 0.3s ease-out;
+}
+.duel-break h2 {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 900;
+}
+.duel-break .kicker {
+  color: var(--blue-d);
+}
+.duel-break-ghost {
+  width: 100%;
+  height: clamp(150px, 30vh, 260px);
+  border-radius: var(--radius);
+  background: var(--blue-l);
+  overflow: hidden;
+}
+.duel-break .countdown {
+  position: static;
+}
+.duel-over {
+  background: rgba(255, 255, 255, 0.96);
+}
+.duel-final {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  width: min(720px, 100%);
+}
+.duel-final-card {
+  --c: var(--blue);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 18px;
+  border-radius: var(--radius-lg);
+  border: 3px solid var(--line);
+  background: var(--bg);
+}
+.duel-final-card.R {
+  --c: var(--gold);
+}
+.duel-final-card.win {
+  border-color: var(--c);
+  box-shadow: 0 6px 0 var(--c);
+  transform: scale(1.04);
+}
+.duel-final-crown {
+  position: absolute;
+  top: -22px;
+  color: var(--gold);
+  fill: var(--gold);
+}
+
+/* ---------- Qara Zhorga ---------- */
+.dance-legend ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+}
+.dance-legend li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px 4px 4px;
+  border-radius: 14px;
+  background: var(--blue-l);
+  font-size: 14px;
+  line-height: 1.2;
+}
+.dance-legend img {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background: var(--bg);
+}
+.dance-start {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.dance-start .dwell-btn {
+  min-width: 260px;
+  min-height: 70px;
+  justify-content: center;
+}
+.dance-start .dwell-label {
+  font-size: 24px;
+}
+
+.dance-hud {
+  transition: box-shadow 0.3s;
+}
+.dance-hud.hot {
+  box-shadow:
+    inset 0 0 0 6px var(--gold),
+    inset 0 0 60px rgba(255, 200, 0, 0.45);
+}
+.dance-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.6);
+}
+.dance-progress-fill {
+  height: 100%;
+  width: 0;
+  background: var(--purple);
+}
+.dance-move {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 22px 10px 10px;
+  border-radius: 999px;
+  background: var(--bg);
+  border: 3px solid var(--purple);
+  box-shadow: 0 5px 0 var(--purple-d);
+  animation: pop 0.2s ease-out;
+}
+/* the ring closes exactly on the beat: --left goes 1 → 0 */
+.dance-ring {
+  --left: 1;
+  position: relative;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: conic-gradient(var(--purple) calc(var(--left) * 360deg), var(--line) 0);
+}
+.dance-ring img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--bg);
+}
+.dance-move-name {
+  font-size: clamp(22px, 2.6vw, 34px);
+  font-weight: 900;
+}
+.dance-stats {
+  position: absolute;
+  top: 18px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+.dance-combo {
+  color: var(--orange-d);
+  border-color: var(--orange);
+}
+.dance-jorga {
+  position: absolute;
+  top: 140px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 22px;
+  border-radius: 999px;
+  background: var(--gold);
+  color: #fff;
+  font-size: 30px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  box-shadow: 0 4px 0 var(--gold-d);
+  animation: jorga 0.5s ease-in-out infinite alternate;
+}
+@keyframes jorga {
+  to {
+    transform: translateX(-50%) scale(1.08);
+  }
+}
+.dance-count {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  transform: translate(-50%, -50%);
+}
+.dance-pop {
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  transform: translate(-50%, -50%);
+  font-size: clamp(40px, 6vw, 84px);
+  font-weight: 900;
+  white-space: nowrap;
+  -webkit-text-stroke: 9px #fff;
+  paint-order: stroke fill;
+  animation: flash 0.8s ease-out forwards;
+}
+.dance-pop .num {
+  font-size: 0.55em;
+}
+.dance-pop.perfect {
+  color: var(--gold);
+}
+.dance-pop.good {
+  color: var(--green);
+}
+.dance-pop.miss {
+  color: var(--red);
+  font-size: clamp(30px, 4.4vw, 60px);
+}
+.dance-barys {
+  position: absolute;
+  left: 16px;
+  bottom: 176px;
+}
+/* Barys sways in time: one bob = 2 beats at 120 BPM */
+.dance-barys .mascot.bob {
+  animation-duration: 1s;
+}
+.dance-lane {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  width: calc(100% - 32px);
+  height: 150px;
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.85);
+  border: 2px solid var(--line);
+}
+.demo .dance-lane {
+  bottom: 56px;
+}
+.demo .dance-barys {
+  bottom: 216px;
+}
+.dance-grade {
+  display: grid;
+  place-items: center;
+  width: 110px;
+  height: 110px;
+  border-radius: 28px;
+  font-size: 76px;
+  font-weight: 900;
+  color: #fff;
+  background: var(--ink-3);
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.15);
+  animation: pop 0.4s ease-out;
+}
+.dance-grade.gS {
+  background: linear-gradient(135deg, var(--gold), var(--orange));
+}
+.dance-grade.gA {
+  background: var(--green);
+}
+.dance-grade.gB {
+  background: var(--blue);
+}
+.dance-grade.gC {
+  background: var(--purple);
+}
+.dance-grade.gD {
+  background: var(--red);
+}
+
+@media (max-width: 800px) {
+  .dance-move {
+    top: 14px;
+    padding: 6px 14px 6px 6px;
+  }
+  .dance-ring {
+    width: 72px;
+    height: 72px;
+  }
+  .dance-ring img {
+    width: 60px;
+    height: 60px;
+  }
+  .dance-stats {
+    top: 110px;
+  }
+  .dance-lane {
+    height: 110px;
+  }
+}
+
+@media (max-width: 800px) {
+  .games-grid {
+    grid-template-columns: 1fr;
+  }
+  .game-card {
+    min-height: 140px;
+  }
+  .duel-card {
+    width: 44vw;
+    padding: 8px 10px;
+  }
+  .duel-top {
+    top: auto;
+    bottom: 16px;
+  }
+  .duel-join {
+    column-gap: 12px;
+    padding: 12px;
+  }
+  .duel-slot {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    row-gap: 4px;
+    padding: 10px;
+    text-align: center;
+  }
+  .duel-slot-icon,
+  .duel-slot-name,
+  .duel-slot-state {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  .duel-slot-icon {
+    width: 56px;
+    height: 56px;
+  }
+  .duel-slot-name {
+    font-size: 18px;
+  }
+  .duel-slot-state {
+    font-size: 14px;
+  }
+}

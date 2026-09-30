@@ -8,9 +8,11 @@ import {
   loadProgress,
   renameScores,
   recordChallenge,
+  recordScore,
   recordWorkout,
   saveProgress,
   type Progress,
+  type ScoreEntry,
 } from '@/storage/progress';
 import { randomBatyrName } from '@/storage/names';
 import type { Baseline } from '@/engine/baseline';
@@ -31,7 +33,23 @@ export type Screen =
   | 'records'
   | 'profile'
   | 'settings'
-  | 'floor';
+  | 'floor'
+  | 'games'
+  | 'duel'
+  | 'dance';
+
+/** One Qara Zhorga song as the judge saw it. */
+export interface DanceResult {
+  score: number;
+  perfect: number;
+  good: number;
+  miss: number;
+  bestCombo: number;
+  /** 0..1 */
+  accuracy: number;
+  grade: 'S' | 'A' | 'B' | 'C' | 'D';
+  level: 'easy' | 'mid';
+}
 
 export interface ChallengeResult {
   score: number;
@@ -65,6 +83,10 @@ interface AppState {
   demo: boolean;
   /** the first-visit tour of the menu (mascot + spotlight) is open */
   tutorial: boolean;
+  /** the leaderboard tab to open with */
+  boardMode: ScoreEntry['mode'];
+  /** open the leaderboard on a given tab */
+  openBoard(mode: ScoreEntry['mode']): void;
 
   go(screen: Screen): void;
   dismissToast(id: string): void;
@@ -81,6 +103,8 @@ interface AppState {
     programId?: Program['id'],
   ): void;
   finishChallenge(r: Omit<ChallengeResult, 'record'>, at: number): void;
+  /** records the song and returns the XP it earned and whether it is a new record */
+  finishDance(r: DanceResult, at: number): { xp: number; record: boolean };
   setPlayerName(name: string): void;
   openTutorial(): void;
   closeTutorial(): void;
@@ -151,8 +175,10 @@ export const useApp = create<AppState>((set, get) => ({
   questCompleted: null,
   demo: false,
   tutorial: false,
+  boardMode: 'challenge',
 
   go: (screen) => set({ screen }),
+  openBoard: (boardMode) => set({ boardMode, screen: 'records' }),
   dismissToast: (id) => set({ toasts: get().toasts.filter((a) => a.id !== id) }),
   setDemo: (demo) => set({ demo }),
 
@@ -223,6 +249,25 @@ export const useApp = create<AppState>((set, get) => ({
       questCompleted: out.questCompleted,
       screen: 'challengeResults',
     });
+  },
+
+  finishDance: (r, at) => {
+    const { progress, playerName } = get();
+    const record = isRecord(progress, 'dance', r.score);
+    const xp = Math.round(r.score / 20);
+    const recorded = recordScore({ ...progress, playerName }, 'dance', r.score, playerName, at, xp);
+    const out = applySession(recorded, {
+      dance: { bestCombo: r.bestCombo, hits: r.perfect + r.good },
+      now: at,
+    });
+    persist(out.progress, get().demo, { name: playerName, score: r.score, mode: 'dance', at });
+    set({
+      xpBefore: progress.totalXp,
+      progress: out.progress,
+      toasts: [...get().toasts, ...out.unlocked],
+      questCompleted: out.questCompleted,
+    });
+    return { xp, record };
   },
 
   setPlayerName: (playerName) => {

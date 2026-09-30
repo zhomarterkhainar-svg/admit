@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { CameraError, startCamera, stopCamera } from '@/core/camera/camera';
 import { PoseLoop } from '@/core/vision/poseLoop';
-import { PoseTracker, type PoseModel } from '@/core/vision/poseTracker';
+import { createPoseTracker, type PoseModel, type PoseTracker } from '@/core/vision/poseTracker';
 
 export type EngineStatus =
   | { state: 'idle' }
@@ -10,6 +10,12 @@ export type EngineStatus =
   | { state: 'error'; kind: CameraError['kind'] | 'model'; message: string };
 
 const isMobile = () => /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+/** `?model=lite|full` forces a model (for comparing speed / accuracy on a device) */
+const forcedModel = (): PoseModel | null => {
+  const m = new URLSearchParams(location.search).get('model');
+  return m === 'lite' || m === 'full' ? m : null;
+};
 
 /** Slow device? After a warm-up, if inference stays under 14 FPS, hot-swap to the lite model. */
 function watchPerformance(loop: PoseLoop, onSwap: (lite: PoseTracker) => void): void {
@@ -22,7 +28,7 @@ function watchPerformance(loop: PoseLoop, onSwap: (lite: PoseTracker) => void): 
     if (slowSince !== null && tick.t - slowSince > 3000) {
       switching = true;
       unsub();
-      void PoseTracker.create('lite').then((lite) => {
+      void createPoseTracker('lite').then((lite) => {
         const old = loop.currentTracker;
         loop.setTracker(lite);
         onSwap(lite);
@@ -41,13 +47,13 @@ export function usePoseEngine(videoRef: React.RefObject<HTMLVideoElement | null>
   const trackerRef = useRef<PoseTracker | null>(null);
 
   const start = useCallback(
-    async (model: PoseModel = isMobile() ? 'lite' : 'full') => {
+    async (model: PoseModel = forcedModel() ?? (isMobile() ? 'lite' : 'full')) => {
       const video = videoRef.current;
       if (!video) return;
       try {
         setStatus({ state: 'loading', step: 'camera' });
         // load model in parallel with camera permission prompt
-        const trackerP = PoseTracker.create(model);
+        const trackerP = createPoseTracker(model);
         streamRef.current = await startCamera(video);
         setStatus({ state: 'loading', step: 'model' });
         const tracker = await trackerP;
@@ -56,7 +62,8 @@ export function usePoseEngine(videoRef: React.RefObject<HTMLVideoElement | null>
         loopRef.current = loop;
         loop.start();
         setStatus({ state: 'ready', loop, tracker });
-        if (tracker.model === 'full') watchPerformance(loop, (lite) => (trackerRef.current = lite));
+        if (tracker.model === 'full' && !forcedModel())
+          watchPerformance(loop, (lite) => (trackerRef.current = lite));
       } catch (err) {
         if (err instanceof CameraError)
           setStatus({ state: 'error', kind: err.kind, message: err.message });
