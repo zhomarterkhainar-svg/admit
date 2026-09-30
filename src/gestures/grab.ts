@@ -33,6 +33,16 @@ export function handOpenness(lms: readonly Pt[]): number {
 /** openness at or above this = open hand, at or below CLOSED_AT = fist (hysteresis in between) */
 export const OPEN_AT = 1.55;
 export const CLOSED_AT = 1.3;
+/**
+ * 0 = fully open palm … 1 = fist: drives the "squeeze" ring on the cursor and the button fill,
+ * so the user sees the click coming as the fingers curl.
+ */
+export function squeezeProgress(openness: number | undefined): number {
+  if (openness === undefined || !Number.isFinite(openness)) return 0;
+  const OPEN_FULL = 1.95;
+  return Math.min(1, Math.max(0, (OPEN_FULL - openness) / (OPEN_FULL - CLOSED_AT)));
+}
+
 /** the fist must follow an open hand this soon to count as a "squeeze" */
 const SQUEEZE_WINDOW_MS = 1500;
 /** consecutive fist readings needed (one bad frame must not click) */

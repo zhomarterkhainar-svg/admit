@@ -98,3 +98,14 @@ describe('hand crop', () => {
     expect(wy).toBeLessThan(roi.y + roi.h);
   });
 });
+
+describe('squeezeProgress', () => {
+  it('0 for an open palm, 1 for a fist, monotonic in between', async () => {
+    const { squeezeProgress, CLOSED_AT } = await import('./grab');
+    expect(squeezeProgress(2.1)).toBe(0);
+    expect(squeezeProgress(CLOSED_AT)).toBe(1);
+    expect(squeezeProgress(1.6)).toBeGreaterThan(0.3);
+    expect(squeezeProgress(1.6)).toBeLessThan(squeezeProgress(1.4));
+    expect(squeezeProgress(undefined)).toBe(0);
+  });
+});
