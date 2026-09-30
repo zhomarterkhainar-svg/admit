@@ -1,10 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { HandCursor, type Cursor } from '@/gestures/cursor';
-import { DwellTracker, type DwellTarget } from '@/gestures/dwell';
-
-/** fallback when the fist can't be seen (too far for the hand model): hover this long = click */
-const FALLBACK_DWELL_MS = 4000;
-import { GrabDetector, squeezeProgress } from '@/gestures/grab';
+import type { DwellTarget } from '@/gestures/dwell';
+import { CursorClicker } from '@/gestures/clicker';
 import { PoseGestureDetector, type PoseGesture } from '@/gestures/poseGestures';
 import type { PoseSource } from '@/core/vision/poseLoop';
 import { sfx } from '@/audio/sfx';
@@ -80,10 +77,9 @@ export function GestureProvider({ loop, children, enabled = true }: ProviderProp
   useEffect(() => {
     if (!enabled) return;
     // main click = squeezing the palm into a fist; a long 4 s hover is the fallback
-    const dwell = new DwellTracker(FALLBACK_DWELL_MS);
+    const clicker = new CursorClicker();
     const detector = new PoseGestureDetector();
     const hand = new HandCursor();
-    const grab = new GrabDetector();
     let cursor: Cursor | null = null;
     // button rects are cached: reading them on every pose tick forced a full layout 30×/s
     let targets: DwellTarget[] = [];
@@ -123,12 +119,6 @@ export function GestureProvider({ loop, children, enabled = true }: ProviderProp
     };
     raf = requestAnimationFrame(draw);
     let lastHover: string | null = null;
-    // the button under the cursor while the hand was still open: closing the hand into a fist
-    // moves the pose "fingertip" a little, the click goes to where the hand was pointing
-    let hoverOpen: string | null = null;
-    // after a selection the next screen often has a button under the same spot:
-    // freeze dwell briefly so it can't be selected by accident
-    let cooldownUntil = 0;
 
     const unsubscribe = loop.subscribe((tick) => {
       for (const g of detector.update(tick.frame, tick.features))
@@ -154,22 +144,18 @@ export function GestureProvider({ loop, children, enabled = true }: ProviderProp
 
       cursor = hand.update(tick.frame, tick.t);
       if (!targets.length) cursor = null;
-      const cooling = tick.t < cooldownUntil;
-      const st = dwell.update(cursor, targets, tick.t, cooling);
+      const st = clicker.update(cursor, targets, tick.hand, tick.t);
       // the hand model (fist click) runs only while the hand points at a button: it costs a
       // second network per frame, and during an exercise the arms are up all the time
       loop.trackHand?.(cursor && st.hoverId ? cursor.hand : null);
-      const fist = grab.update(cursor ? tick.hand : null, tick.t);
-      if (!fist.closed) hoverOpen = st.hoverId;
-      const squeeze = cursor && st.hoverId && !cooling ? squeezeProgress(tick.hand?.openness) : 0;
 
       const c = cursorEl.current;
       if (c) {
         // with only a quiet corner button (a workout's "Exit"), the cursor shows up just when
         // the hand is over it — not whenever the arms go up during an exercise
         c.style.opacity = cursor && (anyLoud || st.hoverId) ? '1' : '0';
-        c.style.setProperty('--dwell', String(Math.max(squeeze, st.progress)));
-        c.classList.toggle('is-grab', !!cursor && fist.closed);
+        c.style.setProperty('--dwell', String(st.progress));
+        c.classList.toggle('is-grab', st.closed);
       }
       if (lastHover && lastHover !== st.hoverId) {
         const prev = buttons.current.get(lastHover)?.el;
@@ -179,14 +165,11 @@ export function GestureProvider({ loop, children, enabled = true }: ProviderProp
       if (st.hoverId) {
         const el = buttons.current.get(st.hoverId)?.el;
         el?.classList.add('is-hover');
-        el?.style.setProperty('--dwell', String(Math.max(squeeze, st.progress)));
+        el?.style.setProperty('--dwell', String(st.progress));
       }
       lastHover = st.hoverId;
-      const squeezed = fist.grab && !cooling ? (hoverOpen ?? st.hoverId) : null;
-      const selected = squeezed ?? st.selected;
+      const selected = st.selected;
       if (selected) {
-        cooldownUntil = tick.t + 900;
-        dwell.lock(selected);
         targetsAt = -Infinity; // the screen is about to change
         sfx.select();
         buttons.current.get(selected)?.onSelect();

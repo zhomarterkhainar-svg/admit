@@ -44,6 +44,8 @@ const browser = await puppeteer.launch({
     '--use-fake-device-for-media-stream',
     '--autoplay-policy=no-user-gesture-required',
     '--enable-unsafe-swiftshader',
+    // containers/CI often run as root, where Chrome refuses to start with its sandbox
+    ...(process.getuid?.() === 0 ? ['--no-sandbox'] : []),
     // several tabs in one headless browser: never throttle the one under test
     '--disable-background-timer-throttling',
     '--disable-backgrounding-occluded-windows',
