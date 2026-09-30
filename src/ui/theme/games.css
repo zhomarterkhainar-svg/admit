@@ -73,6 +73,48 @@
 }
 
 /* ---------- duel ---------- */
+/* rival choice: a friend | the AI at three levels */
+.duel-pick {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
+  gap: 16px;
+  min-height: 0;
+}
+.duel-pick-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.duel-pick-group.bot {
+  padding: 10px 12px 12px;
+  margin: -10px -12px -12px;
+  border-radius: var(--radius-lg);
+  background: var(--gold-l);
+}
+.duel-pick-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--ink-2);
+}
+.duel-pick-group.bot .duel-pick-label {
+  color: var(--gold-d);
+}
+.duel-levels {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.duel-pick .game-card {
+  flex: 1;
+  min-height: clamp(200px, 40vh, 380px);
+}
 .duel-divider {
   position: absolute;
   top: 0;
@@ -178,6 +220,10 @@
   font-size: 17px;
   font-weight: 900;
 }
+.duel-slot.bot .duel-slot-icon {
+  background: var(--gold);
+  color: #fff;
+}
 
 .duel-top {
   position: absolute;
@@ -226,6 +272,15 @@
   font-size: clamp(44px, 6vw, 72px);
   font-weight: 900;
   line-height: 1;
+}
+.duel-level-tag {
+  align-self: flex-end;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--gold-l);
+  color: var(--gold-d);
+  font-size: 13px;
+  font-weight: 900;
 }
 .duel-round-reps {
   font-size: 15px;
@@ -577,12 +632,66 @@
   }
 }
 
+/* phones held sideways: short choice cards, no descriptions */
+@media (max-height: 500px) and (min-width: 801px) {
+  .duel-pick .game-card {
+    min-height: 0;
+    gap: 8px;
+    padding: 12px 14px;
+  }
+  .duel-pick .game-card .dwell-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+  }
+  .duel-pick .game-card .dwell-icon svg {
+    width: 28px;
+    height: 28px;
+  }
+  .duel-pick .game-card .dwell-sub {
+    display: none;
+  }
+}
+
 @media (max-width: 800px) {
   .games-grid {
     grid-template-columns: 1fr;
   }
   .game-card {
     min-height: 140px;
+  }
+  /* phones: the four choices as compact rows, all on one screen (a hand cannot scroll) */
+  .duel-pick {
+    flex: none;
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .duel-levels {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .duel-pick .game-card {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 0;
+    padding: 12px 14px;
+  }
+  .duel-pick .game-card .dwell-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    margin-bottom: 0;
+  }
+  .duel-pick .game-card .dwell-icon svg {
+    width: 30px;
+    height: 30px;
+  }
+  .duel-pick .game-card .dwell-label {
+    font-size: 20px;
+  }
+  .duel-pick .game-card .dwell-sub {
+    font-size: 14px;
   }
   .duel-card {
     width: 44vw;

@@ -21,44 +21,94 @@ export interface DemoRep {
 const rep = (peak: PoseEdit, ms = 2000, rest: PoseEdit = {}): DemoRep => ({ rest, peak, ms });
 
 /**
+ * The duel exercises as a clean rep plus the typical mistakes. Shared by the demo choreography
+ * and the AI rival, who mixes them in by difficulty.
+ */
+export interface MoveSet {
+  clean: DemoRep;
+  faults: DemoRep[];
+}
+
+export const DUEL_MOVES = {
+  squat: {
+    clean: rep(squatDown()),
+    faults: [
+      rep(blend({}, squatDown(), 0.55)), // too shallow → not counted
+      rep(
+        squatDown({ [P.leftKnee]: [0.05, 0.45, -0.22], [P.rightKnee]: [-0.05, 0.45, -0.22] }),
+        2600,
+      ), // knees cave in
+      rep(squatDown(), 600), // too fast
+    ],
+  },
+  jumpingJack: {
+    clean: rep(jackOpen(), 1000),
+    faults: [
+      rep(
+        jackOpen({
+          [P.leftElbow]: [0.4, -0.45],
+          [P.rightElbow]: [-0.4, -0.45],
+          [P.leftWrist]: [0.55, -0.55],
+          [P.rightWrist]: [-0.55, -0.55],
+        }),
+        1000,
+      ), // arms not overhead → not counted
+      rep(
+        jackOpen({
+          [P.leftAnkle]: [0.25, 0.84],
+          [P.rightAnkle]: [-0.25, 0.84],
+          [P.leftHeel]: [0.25, 0.88],
+          [P.rightHeel]: [-0.25, 0.88],
+        }),
+        1000,
+      ), // narrow
+    ],
+  },
+  press: {
+    clean: rep(pressTop(), 1600, pressStart()),
+    faults: [
+      rep(
+        pressTop({
+          [P.leftElbow]: [0.36, -0.75],
+          [P.rightElbow]: [-0.36, -0.75],
+          [P.leftWrist]: [0.22, -1.0],
+          [P.rightWrist]: [-0.22, -1.0],
+        }),
+        1600,
+        pressStart(),
+      ), // no lockout → not counted
+      rep(
+        pressTop({ [P.rightElbow]: [-0.36, -0.42], [P.rightWrist]: [-0.32, -0.62] }),
+        2400,
+        pressStart(),
+      ), // one arm lags
+    ],
+  },
+} satisfies Record<string, MoveSet>;
+
+const { squat, jumpingJack, press } = DUEL_MOVES;
+
+/**
  * Demo choreography per exercise: good reps mixed with typical mistakes so the error mode
  * can be seen without a camera. The engine is NOT told about the mistakes — it detects them.
  */
 export const DEMO_SCRIPTS: Record<AnyExerciseId, DemoRep[]> = {
   squat: [
-    rep(squatDown()),
-    rep(blend({}, squatDown(), 0.55)), // too shallow → not counted
-    rep(
-      squatDown({ [P.leftKnee]: [0.05, 0.45, -0.22], [P.rightKnee]: [-0.05, 0.45, -0.22] }),
-      2600,
-    ), // knees cave in
-    rep(squatDown()),
-    rep(squatDown(), 600), // too fast
-    rep(squatDown()),
+    squat.clean,
+    squat.faults[0]!,
+    squat.faults[1]!,
+    squat.clean,
+    squat.faults[2]!,
+    squat.clean,
   ],
   jumpingJack: [
-    rep(jackOpen(), 1000),
-    rep(
-      jackOpen({
-        [P.leftElbow]: [0.4, -0.45],
-        [P.rightElbow]: [-0.4, -0.45],
-        [P.leftWrist]: [0.55, -0.55],
-        [P.rightWrist]: [-0.55, -0.55],
-      }),
-      1000,
-    ), // arms not overhead → not counted
-    rep(jackOpen(), 1000),
-    rep(
-      jackOpen({
-        [P.leftAnkle]: [0.25, 0.84],
-        [P.rightAnkle]: [-0.25, 0.84],
-        [P.leftHeel]: [0.25, 0.88],
-        [P.rightHeel]: [-0.25, 0.88],
-      }),
-      1000,
-    ), // narrow
-    rep(jackOpen(), 1000),
+    jumpingJack.clean,
+    jumpingJack.faults[0]!,
+    jumpingJack.clean,
+    jumpingJack.faults[1]!,
+    jumpingJack.clean,
   ],
+  press: [press.clean, press.faults[0]!, press.faults[1]!, press.clean],
   lunge: [
     rep(lungeDown('l'), 2400),
     rep(blend({}, lungeDown('r'), 0.6), 2400), // shallow → not counted
@@ -71,25 +121,6 @@ export const DEMO_SCRIPTS: Record<AnyExerciseId, DemoRep[]> = {
       }),
       2800,
     ), // leaning forward
-  ],
-  press: [
-    rep(pressTop(), 1600, pressStart()),
-    rep(
-      pressTop({
-        [P.leftElbow]: [0.36, -0.75],
-        [P.rightElbow]: [-0.36, -0.75],
-        [P.leftWrist]: [0.22, -1.0],
-        [P.rightWrist]: [-0.22, -1.0],
-      }),
-      1600,
-      pressStart(),
-    ), // no lockout → not counted
-    rep(
-      pressTop({ [P.rightElbow]: [-0.36, -0.42], [P.rightWrist]: [-0.32, -0.62] }),
-      2400,
-      pressStart(),
-    ), // one arm lags
-    rep(pressTop(), 1600, pressStart()),
   ],
   sideBend: [
     rep(sideBend('l')),
