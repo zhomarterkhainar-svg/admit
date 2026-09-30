@@ -186,6 +186,8 @@ try {
 
     // the duel: two virtual athletes join with their hands up and score in round 1
     await go(page, 'duel');
+    await sleep(900);
+    await click(page, '^(С другом|Досыңмен|With a friend)');
     check(await waitFor(page, '.duel-hud', 20000), 'duel: both players joined');
     // each athlete's set opens with a different rep (some are deliberately not counted):
     // wait until both have scored, up to the end of round 1
@@ -206,6 +208,18 @@ try {
       (await page.evaluate(() => window.__app.getState().screen)) === 'games',
       'exit button: leaves the duel',
     );
+
+    // duel against the AI rival: it moves and scores by the same rules as the player
+    await go(page, 'duel');
+    await sleep(900);
+    await click(page, '^(Средний|Орташа|Medium)');
+    check(await waitFor(page, '.duel-hud', 20000), 'duel vs AI: the match starts');
+    await sleep(14000);
+    await shot(page, 'duel-ai');
+    const aiScore = await page.$eval('.duel-card.R .duel-score', (e) => Number(e.textContent));
+    check(aiScore > 0, `duel vs AI: the AI rival scores (${aiScore})`);
+    await click(page, '^(Выйти|Шығу|Exit)$');
+    await sleep(500);
 
     // Qara Zhorga: the song plays, the lane runs, the virtual dancer's moves are judged
     await go(page, 'dance');
