@@ -9,6 +9,7 @@ export default defineConfig({
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
   // the MediaPipe worker is an ES module (it loads the ES build of the wasm loader)
   worker: { format: 'es' },
-  server: { host: true },
+  // PORT: set by preview tools when 5173 is taken
+  server: { host: true, port: Number(process.env.PORT) || undefined },
   test: { environment: 'node', include: ['src/**/*.test.ts', 'tests/**/*.test.ts'] },
 });

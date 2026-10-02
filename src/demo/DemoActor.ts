@@ -39,8 +39,8 @@ class Performer {
   }
 }
 
-/** Template pose → a camera frame with the whole body inside the picture. */
-function toFrame(edit: PoseEdit, t: number, floor: boolean, width = 1280): PoseFrame {
+/** Template pose → a camera frame with the whole body inside the picture (demo, AI rival). */
+export function demoFrame(edit: PoseEdit, t: number, floor = false, width = 1280): PoseFrame {
   const frame = makePose(edit, t, width, 720);
   for (const l of frame.image) {
     // the template puts the feet at ~1.03 of the frame height: fit the whole body (head
@@ -127,11 +127,11 @@ export class DemoActor implements PoseSource {
     let crowd: PoseFrame[] | undefined;
     if (this.duo) {
       crowd = (['L', 'R'] as const).map((side) =>
-        fromHalf(toFrame(this.duo![side].pose(t), t, false, 640), side),
+        fromHalf(demoFrame(this.duo![side].pose(t), t, false, 640), side),
       );
       frame = crowd[0]!;
     } else {
-      frame = toFrame(this.timeline ? this.timeline(t) : this.main.pose(t), t, this.floor);
+      frame = demoFrame(this.timeline ? this.timeline(t) : this.main.pose(t), t, this.floor);
     }
     const tick: PoseTick = {
       t,
