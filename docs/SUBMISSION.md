@@ -4,7 +4,7 @@
 
 **Репозиторий:** https://github.com/zhomarterkhainar-svg/admit
 
-**Рабочая версия:** https://zhomarterkhainar-svg.github.io/admit/ (можно проверить без камеры: кнопка «Демо без камеры»)
+**Рабочая версия:** https://qozgal-batyr.netlify.app (можно проверить без камеры: кнопка «Демо без камеры»)
 
 ---
 
