@@ -31,8 +31,8 @@ export function handOpenness(lms: readonly Pt[]): number {
 }
 
 /** openness at or above this = open hand, at or below CLOSED_AT = fist (hysteresis in between) */
-export const OPEN_AT = 1.55;
-export const CLOSED_AT = 1.3;
+export const OPEN_AT = 1.5;
+export const CLOSED_AT = 1.2;
 /**
  * 0 = fully open palm … 1 = fist: drives the "squeeze" ring on the cursor and the button fill,
  * so the user sees the click coming as the fingers curl.

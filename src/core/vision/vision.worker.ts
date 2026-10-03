@@ -63,6 +63,8 @@ async function init(req: Extract<WorkerRequest, { type: 'init' }>): Promise<void
         source = src;
         delegate = d;
         scope.postMessage({ type: 'ready', delegate: d });
+        // warm the hand model up right away: loaded on first use, the first squeezes went unseen
+        void loadHand();
         return;
       } catch (err) {
         lastError = err;
@@ -72,7 +74,7 @@ async function init(req: Extract<WorkerRequest, { type: 'init' }>): Promise<void
   scope.postMessage({ type: 'error', message: String(lastError) });
 }
 
-/** The hand model is loaded lazily, the first time the cursor needs it. */
+/** The hand model is loaded in the background once the pose model is up (or on first use). */
 async function loadHand(): Promise<void> {
   if (!fileset || !source || handState !== 'none') return;
   handState = 'loading';
@@ -104,7 +106,10 @@ function detectHand(bitmap: ImageBitmap, ts: number): HandState | null {
   if (!lms) return null;
   return {
     openness: handOpenness(lms),
-    score: res.handedness[0]?.[0]?.score ?? 1,
+    // NOT the handedness score: that one says how sure the model is it's a left vs right hand
+    // (≈0.5 for many real hands, which then never clicked). The hand itself already passed
+    // minHandPresenceConfidence to get here.
+    score: 1,
     points: (res.landmarks[0] ?? []).map((p) => ({ x: p.x, y: p.y })),
   };
 }

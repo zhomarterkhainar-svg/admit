@@ -63,6 +63,15 @@ describe('fist detection', () => {
     expect(clicks.some(Boolean)).toBe(false);
   });
 
+  it('clicks with the openness the hand model really gives for a far-away hand', () => {
+    // measured on photos through the real crop pipeline: an open palm a few metres away reads
+    // ≈ 1.56–1.85, a fist ≈ 0.84–0.88; a "victory" sign (two fingers folded) 1.35 is no fist
+    const g = new GrabDetector();
+    const seq = [1.56, 1.58, 1.35, 0.88, 0.86].map((o) => ({ openness: o, score: 1 }));
+    const out = seq.map((h, i) => g.update(h, i * 40).grab);
+    expect(out).toEqual([false, false, false, false, true]);
+  });
+
   it('low-confidence or missing hands are ignored', () => {
     const g = new GrabDetector();
     g.update(open, 0);

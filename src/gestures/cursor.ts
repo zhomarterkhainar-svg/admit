@@ -68,6 +68,14 @@ export interface HandPoint {
   y: number;
 }
 
+/** Where the pose model puts the pointing hand (video-normalized). */
+export function posePoint(frame: PoseFrame, hand: 'l' | 'r'): { x: number; y: number } {
+  const tip = frame.image[hand === 'l' ? P.leftIndex : P.rightIndex]!;
+  const wrist = frame.image[hand === 'l' ? P.leftWrist : P.rightWrist]!;
+  // the fingertip alone is the noisiest landmark: blend it with the steadier wrist
+  return { x: 0.7 * tip.x + 0.3 * wrist.x, y: 0.7 * tip.y + 0.3 * wrist.y };
+}
+
 export function computeCursor(
   frame: PoseFrame,
   prev: Cursor | null,
@@ -82,13 +90,8 @@ export function computeCursor(
 
   const candidates = (['l', 'r'] as const)
     .map((hand) => {
-      const tip = im[hand === 'l' ? P.leftIndex : P.rightIndex]!;
       const wrist = im[hand === 'l' ? P.leftWrist : P.rightWrist]!;
-      // the fingertip alone is the noisiest landmark: blend it with the steadier wrist
-      const point =
-        palm && palm.hand === hand
-          ? { x: palm.x, y: palm.y }
-          : { x: 0.7 * tip.x + 0.3 * wrist.x, y: 0.7 * tip.y + 0.3 * wrist.y };
+      const point = palm && palm.hand === hand ? { x: palm.x, y: palm.y } : posePoint(frame, hand);
       return {
         hand,
         point,
@@ -119,6 +122,13 @@ export function computeCursor(
 const GRACE_MS = 220;
 /** How fast the reach box follows the body (per frame): the box must not wobble with breathing. */
 const BODY_FOLLOW = 0.12;
+/**
+ * The hand model does not see the hand on every frame. Switching the cursor between the palm and
+ * the pose point would make it jump, so the palm is applied as a correction of the pose point
+ * that eases in (per frame) while the palm is seen and fades out when it is not.
+ */
+const PALM_IN = 0.3;
+const PALM_OUT = 0.1;
 
 /**
  * Steady hand cursor for the UI:
@@ -133,6 +143,20 @@ export class HandCursor {
   private readonly fy = new OneEuroFilter({ minCutoff: 0.8, beta: 4, dCutoff: 1 });
   private last: Cursor | null = null;
   private lastSeen = -Infinity;
+  /** palm − pose point of `offset.hand`, eased */
+  private offset = { hand: null as 'l' | 'r' | null, x: 0, y: 0 };
+
+  /** the pose point corrected by the eased palm offset (null while there is no correction) */
+  private steer(frame: PoseFrame, palm: HandPoint | null): HandPoint | null {
+    const o = this.offset;
+    if (palm && palm.hand !== o.hand) Object.assign(o, { hand: palm.hand, x: 0, y: 0 });
+    if (!o.hand) return null;
+    const base = posePoint(frame, o.hand);
+    const k = palm ? PALM_IN : PALM_OUT;
+    o.x += ((palm ? palm.x - base.x : 0) - o.x) * k;
+    o.y += ((palm ? palm.y - base.y : 0) - o.y) * k;
+    return { hand: o.hand, x: base.x + o.x, y: base.y + o.y };
+  }
 
   update(frame: PoseFrame | null, t: number, palm: HandPoint | null = null): Cursor | null {
     const raw = frame ? reachBody(frame) : null;
@@ -148,7 +172,10 @@ export class HandCursor {
           }
         : raw;
     }
-    const c = frame && this.body ? computeCursor(frame, this.last, this.body, palm) : null;
+    const c =
+      frame && this.body
+        ? computeCursor(frame, this.last, this.body, this.steer(frame, palm))
+        : null;
     if (!c) {
       if (this.last && t - this.lastSeen < GRACE_MS) return this.last;
       this.reset();
@@ -165,6 +192,7 @@ export class HandCursor {
 
   reset(): void {
     this.last = null;
+    this.offset = { hand: null, x: 0, y: 0 };
     this.fx.reset();
     this.fy.reset();
   }
