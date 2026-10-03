@@ -43,10 +43,37 @@ export function reachBody(frame: PoseFrame): ReachBody | null {
  * The active hand is whichever hand is raised higher (and above the hips).
  * @param body the (optionally smoothed) body the box is anchored to
  */
+/**
+ * Centre of the palm from the 21 hand landmarks (wrist + the four knuckles): unlike the fingertips
+ * it stays put while the fingers curl into a fist, so squeezing to click does not move the cursor.
+ */
+export function palmCenter(
+  points: readonly { x: number; y: number }[],
+): { x: number; y: number } | null {
+  const idx = [0, 5, 9, 13, 17];
+  if (points.length < 21) return null;
+  let x = 0;
+  let y = 0;
+  for (const i of idx) {
+    x += points[i]!.x;
+    y += points[i]!.y;
+  }
+  return { x: x / idx.length, y: y / idx.length };
+}
+
+/** The hand model's view of one hand (video-normalized), to steer the cursor by the fingers. */
+export interface HandPoint {
+  hand: 'l' | 'r';
+  x: number;
+  y: number;
+}
+
 export function computeCursor(
   frame: PoseFrame,
   prev: Cursor | null,
   body: ReachBody | null = reachBody(frame),
+  /** the palm seen close up by the hand model: more precise than the pose fingertip */
+  palm: HandPoint | null = null,
 ): Cursor | null {
   if (!body) return null;
   const im = frame.image;
@@ -58,7 +85,10 @@ export function computeCursor(
       const tip = im[hand === 'l' ? P.leftIndex : P.rightIndex]!;
       const wrist = im[hand === 'l' ? P.leftWrist : P.rightWrist]!;
       // the fingertip alone is the noisiest landmark: blend it with the steadier wrist
-      const point = { x: 0.7 * tip.x + 0.3 * wrist.x, y: 0.7 * tip.y + 0.3 * wrist.y };
+      const point =
+        palm && palm.hand === hand
+          ? { x: palm.x, y: palm.y }
+          : { x: 0.7 * tip.x + 0.3 * wrist.x, y: 0.7 * tip.y + 0.3 * wrist.y };
       return {
         hand,
         point,
@@ -104,7 +134,7 @@ export class HandCursor {
   private last: Cursor | null = null;
   private lastSeen = -Infinity;
 
-  update(frame: PoseFrame | null, t: number): Cursor | null {
+  update(frame: PoseFrame | null, t: number, palm: HandPoint | null = null): Cursor | null {
     const raw = frame ? reachBody(frame) : null;
     if (raw) {
       const b = this.body;
@@ -118,7 +148,7 @@ export class HandCursor {
           }
         : raw;
     }
-    const c = frame && this.body ? computeCursor(frame, this.last, this.body) : null;
+    const c = frame && this.body ? computeCursor(frame, this.last, this.body, palm) : null;
     if (!c) {
       if (this.last && t - this.lastSeen < GRACE_MS) return this.last;
       this.reset();

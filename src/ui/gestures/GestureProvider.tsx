@@ -2,6 +2,8 @@ import { createContext, useContext, useEffect, useMemo, useRef, type ReactNode }
 import { HandCursor, type Cursor } from '@/gestures/cursor';
 import type { DwellTarget } from '@/gestures/dwell';
 import { CursorClicker } from '@/gestures/clicker';
+import { fingerPath } from '@/gestures/fingers';
+import { palmCenter } from '@/gestures/cursor';
 import { PoseGestureDetector, type PoseGesture } from '@/gestures/poseGestures';
 import type { PoseSource } from '@/core/vision/poseLoop';
 import { sfx } from '@/audio/sfx';
@@ -54,6 +56,7 @@ export function GestureProvider({ loop, children, enabled = true }: ProviderProp
   const version = useRef(0);
   const listeners = useRef(new Set<(g: PoseGesture) => void>());
   const cursorEl = useRef<HTMLDivElement>(null);
+  const fingersEl = useRef<SVGPathElement>(null);
 
   const api = useMemo<GestureApi>(
     () => ({
@@ -81,6 +84,8 @@ export function GestureProvider({ loop, children, enabled = true }: ProviderProp
     const detector = new PoseGestureDetector();
     const hand = new HandCursor();
     let cursor: Cursor | null = null;
+    /** the hand the hand model is currently asked to follow */
+    let trackedSide: 'l' | 'r' | null = null;
     // button rects are cached: reading them on every pose tick forced a full layout 30×/s
     let targets: DwellTarget[] = [];
     /** at least one ordinary (not quiet) button is on screen */
@@ -142,12 +147,21 @@ export function GestureProvider({ loop, children, enabled = true }: ProviderProp
         }
       }
 
-      cursor = hand.update(tick.frame, tick.t);
+      // the hand model's palm (when it sees the tracked hand) steers the cursor by the fingers
+      const pts = tick.hand?.points;
+      const palm = trackedSide && pts ? palmCenter(pts) : null;
+      cursor = hand.update(
+        tick.frame,
+        tick.t,
+        palm && trackedSide ? { hand: trackedSide, ...palm } : null,
+      );
       if (!targets.length) cursor = null;
       const st = clicker.update(cursor, targets, tick.hand, tick.t);
-      // the hand model (fist click) runs only while the hand points at a button: it costs a
-      // second network per frame, and during an exercise the arms are up all the time
-      loop.trackHand?.(cursor && st.hoverId ? cursor.hand : null);
+      // the hand model follows the fingers whenever the cursor is shown (menus); during an
+      // exercise (only a quiet corner button) just while pointing at it — the arms are up all the time
+      const visible = !!cursor && (anyLoud || !!st.hoverId);
+      trackedSide = visible ? cursor!.hand : null;
+      loop.trackHand?.(trackedSide);
 
       const c = cursorEl.current;
       if (c) {
@@ -156,6 +170,9 @@ export function GestureProvider({ loop, children, enabled = true }: ProviderProp
         c.style.opacity = cursor && (anyLoud || st.hoverId) ? '1' : '0';
         c.style.setProperty('--dwell', String(st.progress));
         c.classList.toggle('is-grab', st.closed);
+        const d = visible && tick.frame ? fingerPath(pts, tick.frame.width, tick.frame.height) : '';
+        if (fingersEl.current) fingersEl.current.setAttribute('d', d);
+        c.classList.toggle('has-fingers', d !== '');
       }
       if (lastHover && lastHover !== st.hoverId) {
         const prev = buttons.current.get(lastHover)?.el;
@@ -187,7 +204,12 @@ export function GestureProvider({ loop, children, enabled = true }: ProviderProp
   return (
     <Ctx.Provider value={api}>
       {children}
-      <div ref={cursorEl} className="hand-cursor" aria-hidden="true" />
+      <div ref={cursorEl} className="hand-cursor" aria-hidden="true">
+        {/* live skeleton of the tracked hand: the fingers curl into a fist as you squeeze */}
+        <svg className="hand-fingers" viewBox="0 0 56 56">
+          <path ref={fingersEl} />
+        </svg>
+      </div>
     </Ctx.Provider>
   );
 }

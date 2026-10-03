@@ -2691,3 +2691,31 @@ h3 {
 .quest-count svg {
   display: block;
 }
+/* live finger skeleton inside the cursor (hand model sees the hand) */
+.hand-fingers {
+  position: absolute;
+  inset: -14px;
+  width: 88px;
+  height: 88px;
+  overflow: visible;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.hand-fingers path {
+  fill: none;
+  stroke: var(--blue);
+  stroke-width: 3.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 2px #fff) drop-shadow(0 0 2px #fff);
+}
+.hand-cursor.has-fingers .hand-fingers {
+  opacity: 1;
+}
+.hand-cursor.has-fingers {
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.55) 0 58%, transparent 61%);
+}
+.hand-cursor.has-fingers.is-grab .hand-fingers path {
+  stroke: var(--green);
+}

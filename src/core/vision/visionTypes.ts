@@ -19,6 +19,11 @@ export interface HandState {
   openness: number;
   /** hand model confidence 0..1 */
   score: number;
+  /**
+   * The 21 hand landmarks (wrist, then 4 per finger), 2D. From the worker they are normalized to
+   * the hand crop; the pose loop converts them to normalized video coordinates.
+   */
+  points?: { x: number; y: number }[];
 }
 
 /** One person as the pose model saw them (landmarks only; the frame metadata is added later). */

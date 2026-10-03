@@ -64,6 +64,16 @@ export function handRoi(frame: PoseFrame, side: 'l' | 'r'): Roi | null {
   return { x: cx - size / 2, y: cy - size / 2, w: size, h: size };
 }
 
+/** Hand landmarks from crop-normalized to video-normalized coordinates (the crop is `roi`, video px). */
+export function cropToVideo(
+  points: readonly { x: number; y: number }[],
+  roi: Roi,
+  vw: number,
+  vh: number,
+): { x: number; y: number }[] {
+  return points.map((p) => ({ x: (roi.x + p.x * roi.w) / vw, y: (roi.y + p.y * roi.h) / vh }));
+}
+
 type VideoWithRVFC = HTMLVideoElement & {
   requestVideoFrameCallback?: (cb: () => void) => number;
   cancelVideoFrameCallback?: (id: number) => void;
@@ -214,7 +224,7 @@ export class PoseLoop implements PoseSource {
         (res) => {
           this.busy = false;
           // a result from a model that was swapped out meanwhile is dropped
-          if (this.running && tracker === this.tracker) this.process(res, now);
+          if (this.running && tracker === this.tracker) this.process(res, now, roi);
         },
         (err) => {
           this.busy = false;
@@ -225,7 +235,7 @@ export class PoseLoop implements PoseSource {
     this.schedule();
   }
 
-  private process(res: VisionResult, now: number): void {
+  private process(res: VisionResult, now: number, roi: Roi | null = null): void {
     const width = this.video.videoWidth;
     const height = this.video.videoHeight;
     const all: PoseFrame[] = res.people.map((p) => ({ t: now, ...p, width, height }));
@@ -266,7 +276,10 @@ export class PoseLoop implements PoseSource {
       fps: this.fps,
       inferenceMs: res.ms,
       brightness: this.brightness,
-      hand: res.hand,
+      hand:
+        res.hand?.points && roi
+          ? { ...res.hand, points: cropToVideo(res.hand.points, roi, width, height) }
+          : res.hand && { ...res.hand, points: undefined },
     };
     this.listeners.forEach((fn) => fn(tick));
   }

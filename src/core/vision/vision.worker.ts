@@ -105,6 +105,7 @@ function detectHand(bitmap: ImageBitmap, ts: number): HandState | null {
   return {
     openness: handOpenness(lms),
     score: res.handedness[0]?.[0]?.score ?? 1,
+    points: (res.landmarks[0] ?? []).map((p) => ({ x: p.x, y: p.y })),
   };
 }
 
