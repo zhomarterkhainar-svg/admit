@@ -29,6 +29,9 @@ export const sideBend: ExerciseDefinition<BendMetrics> = {
 
   progress: (f) => Math.abs(f.torsoSideLean) / 30,
 
+  peakAngle: (m) => Math.abs(m.peak),
+  angleLabel: 'moves.angle.lean',
+
   initMetrics: (f) => ({ peak: f.torsoSideLean, hipX0: f.center.x, maxHipShift: 0 }),
 
   track: (m, f) => ({

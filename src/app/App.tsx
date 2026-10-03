@@ -13,6 +13,7 @@ import { Welcome } from '@/ui/screens/Welcome';
 import { Challenge, ChallengeResults } from '@/ui/screens/Challenge';
 import { FreeWorkout } from '@/ui/screens/FreeWorkout';
 import { Profile } from '@/ui/screens/Profile';
+import { MovementProfile } from '@/ui/screens/MovementProfile';
 import { Settings } from '@/ui/screens/Settings';
 import { FloorMode } from '@/ui/screens/FloorMode';
 import { Games } from '@/ui/screens/Games';
@@ -40,6 +41,7 @@ const SCREENS: Record<Screen, React.ComponentType> = {
   challengeResults: ChallengeResults,
   records: Records,
   profile: Profile,
+  moves: MovementProfile,
   settings: Settings,
   floor: FloorMode,
   games: Games,

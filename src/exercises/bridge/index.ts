@@ -32,6 +32,9 @@ export const bridge: ExerciseDefinition<BridgeMetrics> = {
 
   progress: (f) => (hip(f) - 125) / (175 - 125),
 
+  peakAngle: (m) => m.maxHip,
+  angleLabel: 'moves.angle.hip',
+
   initMetrics: (f) => ({ maxHip: hip(f), kneeAtTop: knee(f), topMs: 0 }),
 
   track(m, f, ctx) {

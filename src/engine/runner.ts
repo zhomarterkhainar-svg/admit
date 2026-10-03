@@ -204,6 +204,16 @@ export class ExerciseRunner<M> {
     events.push({ type: 'rep', rep });
   }
 
+  /** depth, range of motion and key angle of the rep that just ended */
+  private range(m: M): Pick<RepSummary, 'depth' | 'rom' | 'angle'> {
+    const v = (this.repTrail ?? []).map((p) => p.v);
+    const angle = this.def.peakAngle?.(m);
+    return {
+      ...(v.length ? { depth: Math.max(...v), rom: Math.max(...v) - Math.min(...v) } : {}),
+      ...(angle !== undefined && Number.isFinite(angle) ? { angle: Math.round(angle) } : {}),
+    };
+  }
+
   private finishRep(t: number): RepSummary {
     const m = this.metrics!;
     let counted = true;
@@ -227,6 +237,7 @@ export class ExerciseRunner<M> {
       errors: [...this.repErrors],
       side: this.def.sideOf?.(m),
       smoothness: this.repTrail ? smoothnessScore(this.repTrail) : undefined,
+      ...this.range(m),
     };
     this.repTrail = null;
     // the next rep's pre-roll must not contain the tail of this one

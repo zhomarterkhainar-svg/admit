@@ -1,4 +1,5 @@
 import type { WorkoutSummary } from '@/game/summary';
+import { moveStats, type MoveStats } from '@/game/movementProfile';
 
 /** Compact record kept in history (no per-rep data). */
 export interface HistoryEntry {
@@ -14,6 +15,8 @@ export interface HistoryEntry {
   tried?: Record<string, number>;
   /** technique rule id → share (0..1) of that exercise's reps in this session with the error */
   errorRates?: Record<string, number>;
+  /** exercise id → depth, range of motion, stability and tempo in this session (movement profile) */
+  moves?: Record<string, MoveStats>;
 }
 
 export interface ScoreEntry {
@@ -158,6 +161,7 @@ export function recordWorkout(p: Progress, s: WorkoutSummary, name: string): Pro
     xp: s.xp,
     durationMs: s.durationMs,
     ...errorStats(s),
+    moves: moveStats(s),
   };
   return {
     ...p,

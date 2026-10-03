@@ -78,6 +78,12 @@ export interface RepSummary {
   side?: Side;
   /** movement control 0..100 (DTW of the depth trajectory vs a smooth reference) */
   smoothness?: number;
+  /** deepest point of the rep on the exercise's 0..1 depth scale (1 = full depth) */
+  depth?: number;
+  /** range of motion: deepest minus shallowest point of the rep, same 0..1 scale */
+  rom?: number;
+  /** the exercise's key joint angle at the deepest point, degrees (see `peakAngle`) */
+  angle?: number;
 }
 
 export interface ExerciseDefinition<M = Record<string, number>> {
@@ -119,6 +125,12 @@ export interface ExerciseDefinition<M = Record<string, number>> {
   track(m: M, f: FrameFeatures, ctx: RuleContext): M;
   frameRules: ReadonlyArray<FrameRule>;
   repRules: ReadonlyArray<RepRule<M>>;
+  /**
+   * The key joint angle at the deepest point of a rep (knee at the bottom of a squat, elbow at
+   * the bottom of a push-up …), for the movement profile; `angleLabel` says what it is.
+   */
+  peakAngle?(m: M): number;
+  angleLabel?: I18nKey;
   /** optional: which side worked (lunges, side bends) */
   sideOf?(m: M): Side | undefined;
   /** reference keyframes (world space) for the ghost overlay, demos and tests */

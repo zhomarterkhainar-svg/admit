@@ -33,6 +33,9 @@ export const press: ExerciseDefinition<PressMetrics> = {
 
   progress: (f) => (lift(f) - 0.2) / (1.2 - 0.2),
 
+  peakAngle: (m) => m.lockout,
+  angleLabel: 'moves.angle.lockout',
+
   initMetrics: (f) => ({ lockout: 0, minLift: lift(f), maxLift: lift(f) }),
 
   track: (m, f) => ({

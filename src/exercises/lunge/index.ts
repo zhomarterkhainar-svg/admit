@@ -35,6 +35,9 @@ export const lunge: ExerciseDefinition<LungeMetrics> = {
 
   progress: (f) => (175 - avgKnee(f)) / (175 - 95),
 
+  peakAngle: (m) => m.minFrontKnee,
+  angleLabel: 'moves.angle.frontKnee',
+
   initMetrics: (f) => {
     const front = frontLeg(f);
     return {

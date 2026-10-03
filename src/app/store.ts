@@ -32,6 +32,7 @@ export type Screen =
   | 'challengeResults'
   | 'records'
   | 'profile'
+  | 'moves'
   | 'settings'
   | 'floor'
   | 'games'

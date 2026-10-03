@@ -30,6 +30,9 @@ export const squat: ExerciseDefinition<SquatMetrics> = {
 
   progress: (f) => (175 - knee(f)) / (175 - 90),
 
+  peakAngle: (m) => m.minKnee,
+  angleLabel: 'moves.angle.knee',
+
   initMetrics: (f) => ({ minKnee: knee(f), startT: f.t, minKneeT: f.t }),
 
   track(m, f) {

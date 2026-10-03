@@ -152,6 +152,7 @@ try {
       'menu',
       'pick',
       'profile',
+      'moves',
       'settings',
       'floor',
       'games',

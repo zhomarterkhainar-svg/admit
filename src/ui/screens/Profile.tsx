@@ -1,19 +1,11 @@
 import { useState } from 'react';
-import { ArrowLeft, Award, Check, Dices, Pencil, TrendingUp, Wrench } from 'lucide-react';
+import { Activity, ArrowLeft, Award, Check, Dices, Pencil, TrendingUp, Wrench } from 'lucide-react';
 import { useApp } from '@/app/store';
 import { t } from '@/i18n';
 import { errorJourney } from '@/game/errorProgress';
-import { ALL_EXERCISES } from '@/exercises/registry';
+import { ruleMessage } from '../ruleMessage';
 import { ErrorTrend } from '../components/ErrorTrend';
 
-/** A technique rule's short message ("Knees cave in"), looked up across all exercises. */
-function ruleMessage(id: string): string {
-  for (const ex of Object.values(ALL_EXERCISES)) {
-    const r = [...ex.frameRules, ...ex.repRules].find((x) => x.id === id);
-    if (r) return t(r.message);
-  }
-  return id;
-}
 import { rankFor } from '@/game/ranks';
 import { ACHIEVEMENTS } from '@/game/achievements';
 import { topScores } from '@/storage/progress';
@@ -136,6 +128,14 @@ export function Profile() {
                 {t(status === 'bad' ? 'profile.nickBad' : 'profile.nickHelp')}
               </p>
             </form>
+            <DwellButton
+              icon={<Activity size={22} strokeWidth={2.5} />}
+              tone="blue"
+              sub={t('moves.openSub')}
+              onSelect={() => go('moves')}
+            >
+              {t('moves.open')}
+            </DwellButton>
             <DwellButton
               icon={<Dices size={22} strokeWidth={2.5} />}
               tone="purple"

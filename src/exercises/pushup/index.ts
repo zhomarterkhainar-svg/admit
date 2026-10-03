@@ -48,6 +48,9 @@ export const pushup: ExerciseDefinition<PushupMetrics> = {
 
   progress: (f) => (165 - elbow(f)) / (165 - 85),
 
+  peakAngle: (m) => m.minElbow,
+  angleLabel: 'moves.angle.elbow',
+
   initMetrics: (f) => ({
     minElbow: elbow(f),
     startT: f.t,
