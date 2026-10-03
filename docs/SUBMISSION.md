@@ -4,7 +4,7 @@
 
 **Репозиторий:** https://github.com/zhomarterkhainar-svg/admit
 
-**Рабочая версия:** https://qozgal.netlify.app (можно проверить без камеры: кнопка «Демо без камеры»)
+**Рабочая версия:** https://zhomarterkhainar-svg.github.io/admit/ (можно проверить без камеры: кнопка «Демо без камеры»)
 
 ---
 
@@ -83,9 +83,8 @@ MediaPipe работает в Web Worker — интерфейс не тормо�
 ## Чек-лист перед отправкой
 - [x] `npm run lint`, `npm run typecheck`, `npm test`, `npm run build` проходят; `npm run e2e` — все проверки ✓
 - [x] README: скриншоты актуальны (сняты `npm run e2e -- --shots docs/img`)
-- [ ] Код запушен в `main`, и Netlify деплоит именно `main` (ветка по умолчанию на GitHub —
-      `claude/focused-goodall-2cv1mb`: сделать `main` веткой по умолчанию или обновить её)
-- [ ] Ссылка на Netlify открывается из инкогнито и с телефона, демо без камеры проходит до итогов
+- [x] Код запушен в `main`; GitHub Pages деплоит каждый пуш (Netlify — с ветки `main`)
+- [ ] Ссылка на сайт открывается из инкогнито и с телефона, демо без камеры проходит до итогов
 - [ ] Supabase: выполнен SQL из `docs/LEADERBOARD.md` (режим `dance`)
 - [ ] Название команды совпадает с регистрацией
 - [ ] Отправлено до дедлайна
