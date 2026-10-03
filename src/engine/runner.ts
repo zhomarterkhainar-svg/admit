@@ -49,6 +49,8 @@ export class ExerciseRunner<M> {
   /** depth trajectory: rolling pre-rep buffer + samples during the rep */
   private trail: { t: number; v: number }[] = [];
   private repTrail: { t: number; v: number }[] | null = null;
+  /** body measurements accumulated over the current rep (movement profile) */
+  private body = { asym: 0, asymN: 0, lean: 0, lean2: 0, leanN: 0, shoulder: 0 };
   /** time-based exercises: ms held toward the next second, and what went wrong during it */
   private held = 0;
   private heldLastT: number | null = null;
@@ -114,7 +116,10 @@ export class ExerciseRunner<M> {
       this.stepPhase(f, events);
       ctx.phase = this.phase;
       ctx.phaseMs = f.t - this.phaseSince;
-      if (this.metrics) this.metrics = this.def.track(this.metrics, f, ctx);
+      if (this.metrics) {
+        this.metrics = this.def.track(this.metrics, f, ctx);
+        this.trackBody(f, depth);
+      }
       formActive = this.form.update(f, ctx);
       if (this.metrics) formActive.forEach((r) => this.repErrors.add(r.id));
       if (this.def.hold) this.stepHold(f.t, this.def.hold.phase, formActive, events);
@@ -157,6 +162,7 @@ export class ExerciseRunner<M> {
       this.metrics = this.def.initMetrics(f);
       this.repStartT = f.t;
       this.repErrors = new Set();
+      this.body = { asym: 0, asymN: 0, lean: 0, lean2: 0, leanN: 0, shoulder: 0 };
     } else if (proposed === this.def.repStart && this.metrics) {
       if (f.t - this.repStartT < (this.def.minRepMs ?? MIN_REP_MS)) {
         this.metrics = null; // noise, not a movement
@@ -204,6 +210,20 @@ export class ExerciseRunner<M> {
     events.push({ type: 'rep', rep });
   }
 
+  private trackBody(f: FrameFeatures, depth: number): void {
+    const b = this.body;
+    // left/right only compared while actually moving (standing still says nothing)
+    if (this.def.symmetry && depth > 0.3) {
+      b.asym += this.def.symmetry(f);
+      b.asymN++;
+    }
+    b.lean += f.torsoSideLean;
+    b.lean2 += f.torsoSideLean ** 2;
+    b.leanN++;
+    if (this.def.overhead)
+      b.shoulder = Math.max(b.shoulder, Math.min(f.shoulderAngle.l, f.shoulderAngle.r));
+  }
+
   /** depth, range of motion and key angle of the rep that just ended */
   private range(m: M): Pick<RepSummary, 'depth' | 'rom' | 'angle'> {
     const v = (this.repTrail ?? []).map((p) => p.v);
@@ -211,6 +231,18 @@ export class ExerciseRunner<M> {
     return {
       ...(v.length ? { depth: Math.max(...v), rom: Math.max(...v) - Math.min(...v) } : {}),
       ...(angle !== undefined && Number.isFinite(angle) ? { angle: Math.round(angle) } : {}),
+      ...this.bodyStats(),
+    };
+  }
+
+  private bodyStats(): Pick<RepSummary, 'asym' | 'sway' | 'shoulder'> {
+    const b = this.body;
+    const r = (v: number) => Math.round(v * 10) / 10;
+    const mean = b.leanN ? b.lean / b.leanN : 0;
+    return {
+      ...(b.asymN ? { asym: r(b.asym / b.asymN) } : {}),
+      ...(b.leanN > 2 ? { sway: r(Math.sqrt(Math.max(0, b.lean2 / b.leanN - mean ** 2))) } : {}),
+      ...(this.def.overhead && b.shoulder > 0 ? { shoulder: Math.round(b.shoulder) } : {}),
     };
   }
 

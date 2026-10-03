@@ -1169,3 +1169,94 @@
 .moves-grid {
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
 }
+
+/* ── QOZĞAL Movement Profile (whole body) ─────────────────────── */
+.body-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 14px;
+}
+.body-radar-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.body-radar {
+  width: 100%;
+  max-height: 360px;
+}
+.radar-ring {
+  fill: none;
+  stroke: var(--line, #e5e5e5);
+  stroke-width: 1.5;
+}
+.radar-shape {
+  fill: color-mix(in srgb, var(--blue) 30%, transparent);
+  stroke: var(--blue);
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+.radar-label {
+  font-size: 13px;
+  font-weight: 800;
+  fill: var(--ink-2);
+}
+.radar-value {
+  font-size: 14px;
+  font-weight: 900;
+  fill: var(--ink);
+}
+.body-how,
+.body-sub {
+  margin: 0;
+  font-size: 13px;
+}
+.body-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.body-na {
+  font-size: 14px;
+  font-weight: 700;
+}
+@media (max-width: 760px) {
+  .body-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* results: "your movement profile is updated" (bottom of the exercises card) */
+.profile-update {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 2px solid var(--bg-soft);
+  font-size: 15px;
+}
+.profile-update > b {
+  flex: 1 1 auto;
+}
+.profile-update .muted {
+  flex-basis: 100%;
+}
+.pu-chip {
+  padding: 3px 12px;
+  border-radius: 999px;
+  font-weight: 800;
+  background: var(--bg-soft);
+}
+.pu-chip.up {
+  color: var(--green-d);
+}
+.pu-chip.down {
+  color: var(--orange-d);
+}
+.results-body > .card:first-child {
+  display: flex;
+  flex-direction: column;
+}

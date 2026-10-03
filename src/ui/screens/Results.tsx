@@ -21,6 +21,7 @@ import { sfx } from '@/audio/sfx';
 import { ALL_EXERCISES } from '@/exercises/registry';
 import { rankFor } from '@/game/ranks';
 import { errorProgress } from '@/game/errorProgress';
+import { profileUpdate, type BodyChange } from '@/game/bodyProfile';
 import { ErrorTrend } from '../components/ErrorTrend';
 import { ErrorReplay } from '../components/ErrorReplay';
 import { DwellButton } from '../gestures/DwellButton';
@@ -79,8 +80,11 @@ export function Results() {
   if (!summary) return null;
   const perfect = summary.attempted > 0 && summary.topErrors.length === 0;
   // the session just finished is the last history entry
-  const trends =
-    progress.history.at(-1)?.at === summary.startedAt ? errorProgress(progress.history) : [];
+  const fresh = progress.history.at(-1)?.at === summary.startedAt;
+  const trends = fresh ? errorProgress(progress.history) : [];
+  // "your movement profile is updated: symmetry ↑ 8%" (undefined: nothing was measured)
+  const update =
+    fresh && progress.history.at(-1)?.body ? profileUpdate(progress.history) : undefined;
   // slow-motion replay: the worst rep showing the top error if there is one, else any worst rep
   const replays = summary.results.flatMap((r) => (r.replay ? [r.replay] : []));
   const topId = summary.topErrors[0]?.id;
@@ -170,6 +174,7 @@ export function Results() {
                   );
                 })}
               </div>
+              {update !== undefined && <ProfileUpdate changes={update} />}
             </section>
 
             <section className="card">
@@ -292,5 +297,33 @@ export function Results() {
         </div>
       </div>
     </>
+  );
+}
+
+const CHANGE_LABEL: Record<BodyChange['key'], I18nKey> = {
+  shoulders: 'body.shoulders',
+  knees: 'body.knees',
+  symmetry: 'body.symmetry.short',
+  amplitude: 'body.amplitude',
+  core: 'body.core',
+  speed: 'body.speed',
+  smoothness: 'body.smoothness',
+  squatDepth: 'body.squatDepth',
+};
+
+/** "Your movement profile is updated — Symmetry ↑ 8% · Stability ↑ 12% · Squat depth ↑ 6%" */
+function ProfileUpdate({ changes }: { changes: BodyChange[] | null }) {
+  return (
+    <div className="profile-update" role="status">
+      <Activity size={22} strokeWidth={2.75} color="var(--blue)" />
+      <b>{t(changes ? 'body.updated' : 'body.created')}</b>
+      {changes?.length === 0 && <span className="muted">{t('body.same')}</span>}
+      {changes?.map((c) => (
+        <span key={c.key} className={`pu-chip ${c.delta > 0 ? 'up' : 'down'}`}>
+          {t(CHANGE_LABEL[c.key])} {c.delta > 0 ? '↑' : '↓'}{' '}
+          <span className="num">{Math.abs(c.delta)}%</span>
+        </span>
+      ))}
+    </div>
   );
 }

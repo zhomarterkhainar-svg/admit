@@ -31,6 +31,8 @@ export const jumpingJack: ExerciseDefinition<JackMetrics> = {
 
   progress: (f) => arms(f) / 165,
 
+  symmetry: (f) => Math.abs(f.shoulderAngle.l - f.shoulderAngle.r),
+  overhead: true,
   initMetrics: (f) => ({ maxStance: f.stanceRatio, handsOverhead: false }),
 
   track: (m, f) => ({

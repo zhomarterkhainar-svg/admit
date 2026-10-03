@@ -84,6 +84,12 @@ export interface RepSummary {
   rom?: number;
   /** the exercise's key joint angle at the deepest point, degrees (see `peakAngle`) */
   angle?: number;
+  /** mean left/right difference while moving, degrees (exercises with a `symmetry` measure) */
+  asym?: number;
+  /** wobble of the torso sideways during the rep: standard deviation of the side lean, degrees */
+  sway?: number;
+  /** overhead exercises: how high the arms got (the lower arm's best shoulder angle), degrees */
+  shoulder?: number;
 }
 
 export interface ExerciseDefinition<M = Record<string, number>> {
@@ -131,6 +137,13 @@ export interface ExerciseDefinition<M = Record<string, number>> {
    */
   peakAngle?(m: M): number;
   angleLabel?: I18nKey;
+  /**
+   * For movements both sides do the same way (squat, jumping jack, press): how far left and right
+   * differ right now, degrees. Feeds the symmetry of the movement profile.
+   */
+  symmetry?(f: FrameFeatures): number;
+  /** the arms go overhead: the rep's shoulder angle feeds the shoulder mobility of the profile */
+  overhead?: boolean;
   /** optional: which side worked (lunges, side bends) */
   sideOf?(m: M): Side | undefined;
   /** reference keyframes (world space) for the ghost overlay, demos and tests */

@@ -135,6 +135,26 @@ try {
   // 3. demo flow: intro → error mode → results → records → challenge → free workout
   {
     const page = await open(1280, 720);
+    // two earlier workouts on this device: the results must say how the movement profile changed
+    await page.evaluate(() => {
+      const body = { symmetry: 60, core: 55, squatDepth: 70, amplitude: 70, smoothness: 60 };
+      const h = (at) => ({
+        at,
+        programId: 'quick',
+        counted: 5,
+        attempted: 5,
+        quality: 80,
+        cleanPct: 60,
+        xp: 50,
+        durationMs: 60000,
+        body,
+      });
+      localStorage.setItem(
+        'qozgal.progress.v1',
+        JSON.stringify({ totalXp: 100, history: [h(1), h(2)] }),
+      );
+    });
+    await page.reload({ waitUntil: 'networkidle0' });
     await click(page, 'Демо|Demo');
     check(await waitFor(page, '.intro'), 'demo: exercise intro');
     await sleep(1000);
@@ -147,6 +167,11 @@ try {
     await sleep(1200);
     await shot(page, 'results');
     await reach(page, 'results');
+    const update = await page.$eval('.profile-update', (el) => el.textContent).catch(() => '');
+    check(
+      /обновл|updated|жаңарт/i.test(update) && /[↑↓]/.test(update),
+      `results: movement profile updated (${update.trim()})`,
+    );
     for (const screen of [
       'records',
       'menu',

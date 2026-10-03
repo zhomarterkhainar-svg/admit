@@ -33,6 +33,7 @@ export const squat: ExerciseDefinition<SquatMetrics> = {
   peakAngle: (m) => m.minKnee,
   angleLabel: 'moves.angle.knee',
 
+  symmetry: (f) => Math.abs(f.kneeAngle.l - f.kneeAngle.r),
   initMetrics: (f) => ({ minKnee: knee(f), startT: f.t, minKneeT: f.t }),
 
   track(m, f) {
