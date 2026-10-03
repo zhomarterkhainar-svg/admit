@@ -40,6 +40,23 @@ const toLm = (l: NormalizedLandmark): Landmark => ({
   visibility: l.visibility ?? 1,
 });
 
+/**
+ * MediaPipe clears `self.ModuleFactory` after building a task, and in a module worker it loads the
+ * wasm loader with `import()`, which is cached: the second task (the hand model, or a CPU retry)
+ * then failed with "ModuleFactory not set" and the hand model NEVER loaded. Put it back from the
+ * cached module before every task.
+ */
+async function restoreModuleFactory(fs: Fileset): Promise<void> {
+  const g = self as unknown as { ModuleFactory?: unknown };
+  if (g.ModuleFactory) return;
+  try {
+    const m = (await import(/* @vite-ignore */ fs.wasmLoaderPath)) as { default?: unknown };
+    if (m.default) g.ModuleFactory = m.default;
+  } catch (err) {
+    console.warn('[vision worker] wasm loader re-import failed', err);
+  }
+}
+
 async function init(req: Extract<WorkerRequest, { type: 'init' }>): Promise<void> {
   let lastError: unknown = null;
   for (const src of req.sources) {
@@ -52,6 +69,7 @@ async function init(req: Extract<WorkerRequest, { type: 'init' }>): Promise<void
     }
     for (const d of ['GPU', 'CPU'] as const) {
       try {
+        await restoreModuleFactory(fileset);
         pose = await PoseLandmarker.createFromOptions(fileset, {
           baseOptions: { modelAssetPath: src.pose, delegate: d },
           runningMode: 'VIDEO',
@@ -80,6 +98,7 @@ async function loadHand(): Promise<void> {
   handState = 'loading';
   for (const d of [delegate, 'CPU'] as const) {
     try {
+      await restoreModuleFactory(fileset);
       hand = await HandLandmarker.createFromOptions(fileset, {
         baseOptions: { modelAssetPath: source.hand, delegate: d },
         runningMode: 'VIDEO',
@@ -95,6 +114,8 @@ async function loadHand(): Promise<void> {
     }
   }
   handState = 'failed';
+  // an error, not a warning: the e2e run fails on it (the fist click silently died once)
+  console.error('[vision worker] hand model unavailable: no fist click / finger tracking');
 }
 
 function detectHand(bitmap: ImageBitmap, ts: number): HandState | null {
