@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { t } from '@/i18n';
 import { useLoop, useVideo } from '../engine';
 import { drawSkeleton } from '../overlay/drawSkeleton';
@@ -12,7 +12,24 @@ export function MirrorPip({ className = '' }: { className?: string }) {
   const loop = useLoop();
   const videoRef = useVideo();
   const ref = useRef<HTMLCanvasElement>(null);
+  const pip = useRef<HTMLVideoElement>(null);
+  const [live, setLive] = useState(false);
 
+  // the camera picture is a second <video> on the same stream: the browser composites it on the
+  // GPU. Copying every frame into the canvas from JS cost several ms a frame on the main thread.
+  useEffect(() => {
+    const src = videoRef?.current?.srcObject;
+    const v = pip.current;
+    if (!v || !(src instanceof MediaStream)) return setLive(false);
+    v.srcObject = src;
+    void v.play().catch(() => {});
+    setLive(true);
+    return () => {
+      v.srcObject = null;
+    };
+  }, [videoRef, loop]);
+
+  // only the skeleton is drawn per pose tick, on a transparent canvas over the video
   useEffect(() => {
     const canvas = ref.current!;
     const ctx = canvas.getContext('2d')!;
@@ -25,29 +42,14 @@ export function MirrorPip({ className = '' }: { className?: string }) {
         canvas.width = w;
         canvas.height = h;
       }
-      const video = videoRef?.current;
-      if (video && video.readyState >= 2 && video.videoWidth) {
-        const vw = video.videoWidth;
-        const vh = video.videoHeight;
-        const s = Math.max(w / vw, h / vh);
-        ctx.save();
-        ctx.translate(w, 0);
-        ctx.scale(-1, 1); // selfie view, same as the full-screen camera
-        ctx.drawImage(video, (w - vw * s) / 2, (h - vh * s) / 2, vw * s, vh * s);
-        ctx.restore();
-      } else {
-        const g = ctx.createLinearGradient(0, 0, 0, h);
-        g.addColorStop(0, '#ddf4ff');
-        g.addColorStop(1, '#f7fbff');
-        ctx.fillStyle = g;
-        ctx.fillRect(0, 0, w, h);
-      }
+      ctx.clearRect(0, 0, w, h);
       if (tick.frame) drawSkeleton(ctx, tick.frame, { lineWidth: 10 });
     });
-  }, [loop, videoRef]);
+  }, [loop]);
 
   return (
-    <figure className={`mirror ${className}`}>
+    <figure className={`mirror ${live ? 'is-live' : ''} ${className}`}>
+      <video ref={pip} muted playsInline autoPlay aria-hidden="true" />
       <canvas ref={ref} aria-hidden="true" />
       <figcaption>
         <span className="rec-dot" /> {t('mirror.label')}

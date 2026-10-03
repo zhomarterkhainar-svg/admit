@@ -2,8 +2,8 @@ import { LandmarkSmoother } from '../filters/landmarkSmoother';
 import { extractFeatures } from '../features/extract';
 import { P, type FrameFeatures, type PoseFrame } from '../types';
 import type { PoseTracker } from './poseTracker';
-import type { HandState, Roi, VisionResult } from './visionTypes';
-import { PersonLock, torsoColor, type Rgb } from './personLock';
+import { THUMB_H, THUMB_W, type HandState, type Roi, type VisionResult } from './visionTypes';
+import { PersonLock, torsoColor } from './personLock';
 
 export interface PoseTick {
   /** ms, performance.now() */
@@ -94,14 +94,18 @@ export class PoseLoop implements PoseSource {
   private fps = 0;
   private lastT = 0;
   private brightness: number | undefined;
-  private lastBrightnessT = 0;
-  private probe: CanvasRenderingContext2D | null = null;
-  private colorProbe: CanvasRenderingContext2D | null = null;
-  private lastColorT = 0;
+  private lastThumbT = -Infinity;
+  private lastPeople = 0;
   private readonly lock = new PersonLock();
   private busy = false;
   private busySince = 0;
   private handSide: 'l' | 'r' | null = null;
+  private handBusy = false;
+  private handBusySince = 0;
+  /** the latest hand-model answer not yet handed out with a tick (already in video coords) */
+  private handResult: HandState | null | undefined = undefined;
+  /** a pose tick went out since the last hand request: at most one hand reading per tick */
+  private handDue = true;
   private lastFrame: PoseFrame | null = null;
   private maxPeople = 1;
 
@@ -127,27 +131,12 @@ export class PoseLoop implements PoseSource {
     return this.tracker;
   }
 
-  /** Average luminance of a tiny downscaled copy of the frame. */
-  private measureBrightness(now: number): void {
-    if (now - this.lastBrightnessT < 500) return;
-    this.lastBrightnessT = now;
-    try {
-      this.probe ??= Object.assign(document.createElement('canvas'), {
-        width: 32,
-        height: 18,
-      }).getContext('2d', {
-        willReadFrequently: true,
-      });
-      if (!this.probe) return;
-      this.probe.drawImage(this.video, 0, 0, 32, 18);
-      const d = this.probe.getImageData(0, 0, 32, 18).data;
-      let sum = 0;
-      for (let i = 0; i < d.length; i += 4)
-        sum += 0.2126 * d[i]! + 0.7152 * d[i + 1]! + 0.0722 * d[i + 2]!;
-      this.brightness = sum / (d.length / 4) / 255;
-    } catch {
-      this.brightness = undefined;
-    }
+  /** Average luminance of the frame thumbnail. */
+  private measureBrightness(px: Uint8ClampedArray): void {
+    let sum = 0;
+    for (let i = 0; i < px.length; i += 4)
+      sum += 0.2126 * px[i]! + 0.7152 * px[i + 1]! + 0.0722 * px[i + 2]!;
+    this.brightness = sum / (px.length / 4) / 255;
   }
 
   resetLock(): void {
@@ -155,30 +144,18 @@ export class PoseLoop implements PoseSource {
   }
 
   trackHand(side: 'l' | 'r' | null): void {
+    if (side !== this.handSide) this.handResult = undefined; // a reading of the other hand
     this.handSide = side;
   }
 
   /**
-   * Clothing colour of each person's torso, for telling people apart. Sampled whenever there is
-   * more than one person, and a few times a second otherwise to keep the player's colour fresh.
+   * Clothing colour of each person's torso, for telling people apart: read from the frame
+   * thumbnail the worker sends (whenever there is more than one person, and a few times a second
+   * otherwise to keep the player's colour fresh). Copying video pixels on the main thread cost
+   * ~5–10 ms per copy and made the UI stutter.
    */
-  private torsoColors(people: PoseFrame[], now: number): (Rgb | null)[] | null {
-    if (people.length === 0 || (people.length === 1 && now - this.lastColorT < 300)) return null;
-    this.lastColorT = now;
-    const W = 96;
-    const H = 54;
-    try {
-      this.colorProbe ??= Object.assign(document.createElement('canvas'), {
-        width: W,
-        height: H,
-      }).getContext('2d', { willReadFrequently: true });
-      if (!this.colorProbe) return null;
-      this.colorProbe.drawImage(this.video, 0, 0, W, H);
-      const px = this.colorProbe.getImageData(0, 0, W, H).data;
-      return people.map((p) => torsoColor(p.image, px, W, H));
-    } catch {
-      return null;
-    }
+  private wantsThumb(now: number): boolean {
+    return this.lastPeople > 1 || now - this.lastThumbT >= 300;
   }
 
   subscribe(fn: PoseListener): () => void {
@@ -216,15 +193,13 @@ export class PoseLoop implements PoseSource {
       this.busy = true;
       this.busySince = now;
       const tracker = this.tracker;
-      const roi =
-        this.handSide && tracker.hands && this.lastFrame
-          ? handRoi(this.lastFrame, this.handSide)
-          : null;
-      tracker.detect(this.video, now, roi).then(
+      const thumb = this.wantsThumb(now);
+      if (thumb) this.lastThumbT = now;
+      tracker.detect(this.video, now, thumb).then(
         (res) => {
           this.busy = false;
           // a result from a model that was swapped out meanwhile is dropped
-          if (this.running && tracker === this.tracker) this.process(res, now, roi);
+          if (this.running && tracker === this.tracker) this.process(res, now);
         },
         (err) => {
           this.busy = false;
@@ -232,15 +207,47 @@ export class PoseLoop implements PoseSource {
         },
       );
     }
+    if (ready) this.stepHand(now);
     this.schedule();
   }
 
-  private process(res: VisionResult, now: number, roi: Roi | null = null): void {
+  /** The hand model runs in its own worker, in parallel with the pose, on the cursor hand's crop. */
+  private stepHand(now: number): void {
+    const tracker = this.tracker;
+    if (!this.handSide || !tracker.detectHand || !this.lastFrame) return;
+    if (!this.handDue || (this.handBusy && now - this.handBusySince < 3000)) return;
+    const roi = handRoi(this.lastFrame, this.handSide);
+    if (!roi) return;
+    this.handBusy = true;
+    this.handBusySince = now;
+    this.handDue = false;
+    const { videoWidth: vw, videoHeight: vh } = this.video;
+    tracker.detectHand(this.video, now, roi).then(
+      (hand) => {
+        this.handBusy = false;
+        if (!this.running || tracker !== this.tracker || !this.handSide) return;
+        this.handResult = hand && {
+          ...hand,
+          points: hand.points ? cropToVideo(hand.points, roi, vw, vh) : undefined,
+        };
+      },
+      (err) => {
+        this.handBusy = false;
+        console.warn('[pose] hand detect failed', err);
+      },
+    );
+  }
+
+  private process(res: VisionResult, now: number): void {
     const width = this.video.videoWidth;
     const height = this.video.videoHeight;
     const all: PoseFrame[] = res.people.map((p) => ({ t: now, ...p, width, height }));
     // follow the player only: passers-by never reach the smoother, features or gestures
-    const colors = this.torsoColors(all, now);
+    this.lastPeople = all.length;
+    if (res.thumb) this.measureBrightness(res.thumb);
+    const colors = res.thumb
+      ? all.map((p) => torsoColor(p.image, res.thumb!, THUMB_W, THUMB_H))
+      : null;
     const idx = this.lock.pick(
       all.map((p, i) => ({ image: p.image, color: colors?.[i] ?? null })),
       now,
@@ -248,7 +255,6 @@ export class PoseLoop implements PoseSource {
     );
     const raw = idx >= 0 ? all[idx]! : null;
     const people = all.length;
-    this.measureBrightness(now);
     if (this.lastT) this.fps = 0.9 * this.fps + 0.1 * (1000 / Math.max(now - this.lastT, 1));
     this.lastT = now;
 
@@ -276,11 +282,11 @@ export class PoseLoop implements PoseSource {
       fps: this.fps,
       inferenceMs: res.ms,
       brightness: this.brightness,
-      hand:
-        res.hand?.points && roi
-          ? { ...res.hand, points: cropToVideo(res.hand.points, roi, width, height) }
-          : res.hand && { ...res.hand, points: undefined },
+      // each hand reading goes out with exactly one tick (the fist needs consecutive readings)
+      hand: this.handResult,
     };
+    this.handResult = undefined;
+    this.handDue = true;
     this.listeners.forEach((fn) => fn(tick));
   }
 }

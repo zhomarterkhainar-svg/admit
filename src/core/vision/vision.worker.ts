@@ -9,6 +9,7 @@ import {
 } from '@mediapipe/tasks-vision';
 import { handOpenness } from '@/gestures/grab';
 import type { Landmark } from '../types';
+import { THUMB_H, THUMB_W } from './visionTypes';
 import type {
   HandState,
   ModelSource,
@@ -19,7 +20,7 @@ import type {
 
 const scope = self as unknown as {
   onmessage: ((e: MessageEvent<WorkerRequest>) => void) | null;
-  postMessage(msg: WorkerResponse): void;
+  postMessage(msg: WorkerResponse, transfer?: Transferable[]): void;
 };
 
 type Fileset = Awaited<ReturnType<typeof FilesetResolver.forVisionTasks>>;
@@ -67,6 +68,18 @@ async function init(req: Extract<WorkerRequest, { type: 'init' }>): Promise<void
       lastError = err;
       continue;
     }
+    if (req.task === 'hand') {
+      // the hand worker: only the hand model
+      source = src;
+      await loadHand();
+      if (hand) {
+        scope.postMessage({ type: 'ready', delegate });
+        return;
+      }
+      lastError = 'hand model unavailable';
+      handState = 'none';
+      continue;
+    }
     for (const d of ['GPU', 'CPU'] as const) {
       try {
         await restoreModuleFactory(fileset);
@@ -81,8 +94,6 @@ async function init(req: Extract<WorkerRequest, { type: 'init' }>): Promise<void
         source = src;
         delegate = d;
         scope.postMessage({ type: 'ready', delegate: d });
-        // warm the hand model up right away: loaded on first use, the first squeezes went unseen
-        void loadHand();
         return;
       } catch (err) {
         lastError = err;
@@ -96,7 +107,7 @@ async function init(req: Extract<WorkerRequest, { type: 'init' }>): Promise<void
 async function loadHand(): Promise<void> {
   if (!fileset || !source || handState !== 'none') return;
   handState = 'loading';
-  for (const d of [delegate, 'CPU'] as const) {
+  for (const d of ['GPU', 'CPU'] as const) {
     try {
       await restoreModuleFactory(fileset);
       hand = await HandLandmarker.createFromOptions(fileset, {
@@ -108,6 +119,7 @@ async function loadHand(): Promise<void> {
         minTrackingConfidence: 0.4,
       });
       handState = 'ready';
+      delegate = d;
       return;
     } catch (err) {
       console.warn('[vision worker] hand model failed', d, err);
@@ -135,6 +147,22 @@ function detectHand(bitmap: ImageBitmap, ts: number): HandState | null {
   };
 }
 
+let thumbCtx: OffscreenCanvasRenderingContext2D | null = null;
+
+/** The frame shrunk to a thumbnail (brightness, clothing colours), copied off the main thread. */
+function thumbnail(frame: ImageBitmap): Uint8ClampedArray | undefined {
+  try {
+    thumbCtx ??= new OffscreenCanvas(THUMB_W, THUMB_H).getContext('2d', {
+      willReadFrequently: true,
+    });
+    if (!thumbCtx) return undefined;
+    thumbCtx.drawImage(frame, 0, 0, THUMB_W, THUMB_H);
+    return thumbCtx.getImageData(0, 0, THUMB_W, THUMB_H).data;
+  } catch {
+    return undefined;
+  }
+}
+
 scope.onmessage = (e) => {
   const req = e.data;
   if (req.type === 'init') {
@@ -148,8 +176,10 @@ scope.onmessage = (e) => {
   const t0 = performance.now();
   let people: RawPerson[] = [];
   let handResult: HandState | null | undefined;
+  let thumb: Uint8ClampedArray | undefined;
   try {
-    if (pose) {
+    if (req.thumb && req.frame) thumb = thumbnail(req.frame);
+    if (pose && req.frame) {
       const ts = req.ts <= lastTs ? lastTs + 1 : req.ts;
       lastTs = ts;
       const res = pose.detectForVideo(req.frame, ts);
@@ -165,12 +195,13 @@ scope.onmessage = (e) => {
   } catch (err) {
     console.warn('[vision worker]', err);
   } finally {
-    req.frame.close();
+    req.frame?.close();
     req.hand?.close();
   }
-  scope.postMessage({
+  const msg: WorkerResponse = {
     type: 'result',
     id: req.id,
-    result: { people, hand: handResult, ms: performance.now() - t0 },
-  });
+    result: { people, hand: handResult, ms: performance.now() - t0, thumb },
+  };
+  scope.postMessage(msg, thumb ? [thumb.buffer] : []);
 };

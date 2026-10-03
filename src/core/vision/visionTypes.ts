@@ -38,7 +38,15 @@ export interface VisionResult {
   hand?: HandState | null;
   /** inference time, ms */
   ms: number;
+  /**
+   * The frame shrunk to THUMB_W×THUMB_H RGBA (when asked for): brightness and clothing colours
+   * are read from it, so the main thread never has to copy video pixels back from the GPU.
+   */
+  thumb?: Uint8ClampedArray;
 }
+
+export const THUMB_W = 96;
+export const THUMB_H = 54;
 
 /** Where the model files live: self-hosted first, the CDN as a fallback. */
 export interface ModelSource {
@@ -47,10 +55,31 @@ export interface ModelSource {
   hand: string;
 }
 
+/**
+ * Two workers run in parallel: one for the pose model (every camera frame), one for the hand model
+ * (the cursor hand's crop). In one worker they had to take turns, and the pose rate dropped
+ * several times over whenever the cursor was on screen.
+ */
+export type WorkerTask = 'pose' | 'hand';
+
 export type WorkerRequest =
-  | { type: 'init'; model: PoseModel; sources: ModelSource[]; numPoses: number }
+  | {
+      type: 'init';
+      task: WorkerTask;
+      model: PoseModel;
+      sources: ModelSource[];
+      numPoses: number;
+    }
   | { type: 'config'; numPoses: number }
-  | { type: 'detect'; id: number; ts: number; frame: ImageBitmap; hand?: ImageBitmap };
+  | {
+      type: 'detect';
+      id: number;
+      ts: number;
+      frame?: ImageBitmap;
+      hand?: ImageBitmap;
+      /** also return the frame as a tiny thumbnail */
+      thumb?: boolean;
+    };
 
 export type WorkerResponse =
   | { type: 'ready'; delegate: 'GPU' | 'CPU' }
